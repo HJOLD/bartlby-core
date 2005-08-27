@@ -1,0 +1,97 @@
+#define PROGNAME "bartlby"
+#define VERSION  "0.9"
+#define EXPECTCORE 100001 //Module V Check's
+
+
+#define STATE_OK 0
+#define STATE_WARNING 1
+#define STATE_CRITICAL 2
+
+
+#define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
+    	if((dlmsg=dlerror()) != NULL) { \
+        	_log("Error: %s", dlmsg); \
+        	exit(1); \
+    	}
+    	
+    	
+
+struct shm_header {
+	        int svccount;
+	        int wrkcount;
+	        int current_running;
+
+
+};
+
+struct service {
+	int service_id;
+	int server_id;
+	int last_state;
+	int current_state;
+	int client_port;
+	char  new_server_text[2048];
+	char  service_name[2048];
+	char  server_name[2048];
+	char  client_ip[2048];
+	char  plugin[2048];
+	char  plugin_arguments[2048];
+	int check_interval;
+	int last_check;
+	
+	/*Time stuff*/
+	
+	int hour_from;
+	int min_from;
+	int hour_to;
+	int min_to;
+	
+	/*Notify things*/
+	int notify_enabled;
+	int last_notify_send;
+	int flap_count;
+	
+	char  service_var[2048];
+	int service_type;
+	int service_passive_timeout;
+	
+};
+
+struct worker {
+	
+	char  mail[2048];
+	char  icq[2048];
+	char  services[2048];
+	
+	
+	int icq_notify;
+	int mail_notify;
+	int escalation_count;
+	int escalation_time;
+	char t[500];
+
+}sa;
+
+
+
+
+char * getConfigValue(char *, char *);
+int clear_serviceMap(struct service **);
+int clear_workerMap(struct worker ** m);
+
+int schedule_loop(char *, void *, void *);
+void sched_reschedule(struct service * svc);
+
+void bartlby_check_service(struct service * svc, void *, void *, char *);
+
+
+//SHM
+
+
+struct service * bartlby_SHM_ServiceMap(void *);
+struct shm_header * bartlby_SHM_GetHDR(void *);
+struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
+
+//Global :-)
+int _log(char * str,  ...);
+

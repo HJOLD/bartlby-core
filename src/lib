@@ -1,0 +1,20 @@
+OBJS = bartlby.c config.c
+
+.SUFFIXES: .c .S .o
+
+.c.o:
+
+	gcc -g  -I.  -Wall -g -c $<
+
+
+
+bartlby: ${OBJS}
+	gcc  -g -I../include/ -ldl -o ../bartlby ${OBJS}
+
+
+
+all:    bartlby
+
+
+clean:
+	rm -fv *.o 
