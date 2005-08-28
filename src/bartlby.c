@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/08/28 18:00:22  hjanuschka
+data_lib api extended, service/add/delete/update
+
 Revision 1.3  2005/08/28 15:59:47  hjanuschka
 CVS header ;-)
 
@@ -119,6 +122,9 @@ int main(int argc, char ** argv) {
     	LOAD_SYMBOL(GetWorkerMap,SOHandle, "GetWorkerMap");
     	LOAD_SYMBOL(GetName,SOHandle, "GetName");
     	LOAD_SYMBOL(ExpectVersion,SOHandle, "ExpectVersion");
+    	
+    	 	
+    	
     	
     	
     	GetAutorStr=GetAutor();

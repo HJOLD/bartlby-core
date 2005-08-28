@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/08/28 18:00:22  hjanuschka
+data_lib api extended, service/add/delete/update
+
 Revision 1.5  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -51,17 +54,395 @@ CVS Header
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_active=1 and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels from workers where worker_active=1"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
+
+
 #define ADD_SERVER "insert into servers (server_name,server_ip,server_port) VALUES('%s','%s', '%d')"
 #define DELETE_SERVER "delete from servers where server_id=%d"
 #define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d where server_id=%d"
 #define SERVER_SELECTOR "select server_name, server_ip, server_port from servers where server_id=%d"
-		//Check functions
-		// Autor, Name, Version
-		// GetServiceMap
-		// SetService
-		// GetWorkers
-		// SetWorker
-		// GetServiceThrewID
+
+#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d)"
+
+#define DELETE_SERVICE "delete from services where service_id=%d"
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s' where service_id=%d"
+
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+
+
+int GetServiceById(int service_id, struct service * svc, char * config) {
+	struct service * rsvc;
+	
+	MYSQL *mysql;
+	MYSQL_ROW  row;
+	MYSQL_RES  *res;
+	char * sqlupd;
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+	
+	
+	
+	
+	
+	
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+      	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	sqlupd=malloc(sizeof(char)*(strlen(SERVICE_SELECTOR)+20));
+	sprintf(sqlupd, SERVICE_SELECTOR, service_id);
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+      	res = mysql_store_result(mysql);
+      		CHK_ERR(mysql);
+      	
+      	
+      	if(mysql_num_rows(res) == 1 ) {
+      		row=mysql_fetch_row(res);
+      		svc->service_id=atoi(row[0]);
+      		svc->server_id=atoi(row[4]);
+      		svc->last_state=atoi(row[2]);
+      		svc->current_state=atoi(row[2]);
+      		
+      		if(row[1] != NULL) {
+      			//svc->service_name=malloc(strlen(row[1])*sizeof(char)+2);
+      			sprintf(svc->service_name, "%s", row[1]);
+      			
+      		} else {
+      			//svc->service_name=NULL;     				
+      			sprintf(svc->service_name, "(null)");
+      		}
+      		
+      		
+      		if(row[3] != NULL) {
+      			//svc->server_name=malloc(strlen(row[3])*sizeof(char)+2);
+      			sprintf(svc->server_name, "%s", row[3]);
+      			
+      		} else {
+//    			svc->server_name=NULL;   
+      			sprintf(svc->server_name, "(null)");  				
+      		}
+      		
+      		
+      		if(row[6] != NULL) {
+      			//svc->client_ip=malloc(strlen(row[6])*sizeof(char)+2);
+      			sprintf(svc->client_ip, "%s", row[6]);
+      			
+      		} else {
+      			  
+      			sprintf(svc->client_ip, "(null)");     				
+      		}
+      		
+      		
+      		svc->client_port=atoi(row[5]);
+      		
+//     		svc->new_server_text=malloc(strlen(row[11])*sizeof(char)+2);
+      		
+      		sprintf(svc->new_server_text, "%s", row[11]);
+      		
+      		///svc->new_server_text=row[11];
+      		
+      		
+      		
+      		
+      		if(row[7] != NULL) {
+      			//svc->plugin=malloc(strlen(row[7])*sizeof(char)+2);
+      			sprintf(svc->plugin, "%s", row[7]);
+      			
+      		} else {
+      			//svc->plugin=NULL; 
+      			sprintf(svc->plugin, "(null)");       				
+      		}
+      		
+      		if(row[8] != NULL) {
+      			//svc->plugin_arguments=malloc(strlen(row[8])*sizeof(char)+2);
+      			sprintf(svc->plugin_arguments, "%s", row[8]);
+      			
+      		} else {
+      			//svc->plugin_arguments=NULL; 
+      			sprintf(svc->plugin_arguments, "(null)");      				
+      		}
+      		
+      		
+      		svc->last_check=atoi(row[9]);
+      		
+      		svc->check_interval=atoi(row[10]);
+      		      		
+      		
+      		svc->hour_from=atoi(row[12]);
+      		svc->min_from=atoi(row[13]);
+      		
+      		svc->hour_to=atoi(row[14]);
+      		svc->min_to=atoi(row[15]);
+      		
+      		svc->notify_enabled=atoi(row[16]);
+      		svc->last_notify_send=time(NULL);
+      		
+      		//svc.service_type, svc.service_var, svc.service_passive_timeout
+      		svc->service_type = atoi(row[17]);
+      		
+      		if(row[18] != NULL) {
+      			//svc->service_var=malloc(strlen(row[18])*sizeof(char)+2);
+      			sprintf(svc->service_var, "%s", row[18]);
+      			
+      		} else {
+      			//svc->service_var=NULL;
+      			sprintf(svc->service_var, "(null)");
+      		}
+      		
+      		svc->service_passive_timeout=atoi(row[19]);
+      		
+      		
+      		svc->flap_count=0;
+      		
+      	} else {
+		rsvc=NULL;
+	}
+	
+	
+	mysql_free_result(res);
+      	mysql_close(mysql);
+      	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	free(sqlupd);
+	
+	
+	return 1;	
+}
+
+int UpdateService(struct service * svc, char *config) {
+	/*
+		We get a struct service
+		fully filled :-)
+		update it it ;-)
+		and return svc->service_id
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+	char * SVC_TIME_FROM, * SVC_TIME_TO;
+	
+	
+	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00"));
+	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00"));
+	sprintf(SVC_TIME_FROM,"%d:%d:00", svc->hour_from, svc->min_from);
+	sprintf(SVC_TIME_TO,"%d:%d:00", svc->hour_to, svc->min_to);
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	/*
+	server_id %d
+	service_plugin %s
+	service_name %s
+	service_state 4
+	service_text 'Newly"
+	service_args %s
+	service_notify %d
+	service_active %d
+	service_time_from %s
+	service_time_to  %s
+	service_intervall %d
+	service_type %d
+	service_var %s
+	service_passive_timeout %d
+	
+	 */
+	 
+	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_SERVICE)+sizeof(struct service)+20));
+	sprintf(sqlupd, UPDATE_SERVICE, 
+	svc->service_type, 
+	svc->service_name, 
+	svc->server_id,
+	SVC_TIME_FROM,
+	SVC_TIME_TO,
+	svc->check_interval,
+	svc->plugin,
+	svc->plugin_arguments,
+	svc->service_passive_timeout,
+	svc->service_var,
+	svc->service_id
+	
+	);
+	
+	//Log("dbg", sqlupd);
+	_log("SQL:%s", sqlupd);
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=mysql_insert_id(mysql);
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	free(SVC_TIME_FROM);
+	free(SVC_TIME_TO);
+	
+	return rtc;	
+}
+
+int DeleteService(int service_id, char * config) {
+	/*
+		we get a svc->server_id
+		KICK it (not like beckham)
+		
+	*/
+	MYSQL *mysql;
+
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(DELETE_SERVICE)+20));
+	sprintf(sqlupd, DELETE_SERVICE, service_id);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return 1;		
+	
+	
+}
+
+
+int AddService(struct service * svc, char *config) {
+	/*
+		We get a struct service
+		fully filled :-)
+		store it ;-)
+		and return svc->service_id
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+	char * SVC_TIME_FROM, * SVC_TIME_TO;
+	
+	
+	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00"));
+	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00"));
+	sprintf(SVC_TIME_FROM,"%d:%d:00", svc->hour_from, svc->min_from);
+	sprintf(SVC_TIME_TO,"%d:%d:00", svc->hour_to, svc->min_to);
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	/*
+	server_id %d
+	service_plugin %s
+	service_name %s
+	service_state 4
+	service_text 'Newly"
+	service_args %s
+	service_notify %d
+	service_active %d
+	service_time_from %s
+	service_time_to  %s
+	service_intervall %d
+	service_type %d
+	service_var %s
+	service_passive_timeout %d
+	
+	 */
+	 
+	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVICE)+sizeof(struct service)+20));
+	sprintf(sqlupd, ADD_SERVICE, 
+	svc->server_id, 
+	svc->plugin, 
+	svc->service_name,
+	svc->plugin_arguments,
+	svc->notify_enabled,
+	1,
+	SVC_TIME_FROM,
+	SVC_TIME_TO,
+	svc->check_interval,
+	svc->service_type,
+	svc->service_var,
+	svc->service_passive_timeout
+	);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=mysql_insert_id(mysql);
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	free(SVC_TIME_FROM);
+	free(SVC_TIME_TO);
+	
+	return rtc;	
+}
+
 int GetServerById(int server_id, struct service * svc, char * config) {
 	struct service * rsvc;
 	
@@ -78,7 +459,7 @@ int GetServerById(int server_id, struct service * svc, char * config) {
 	
 	
 
-	rsvc=malloc(sizeof(struct service));
+	
 	
 	mysql=mysql_init(NULL);
 		CHK_ERR(mysql);
