@@ -11,14 +11,7 @@ clean:
 	  test "$$subdir" = . || (cd $$subdir && make clean); \
 	done
 changelog:
-	cd /storage/SF.NET/BARTLBY/bartlby-plugins
-	cvs2cl.pl
-	cd /storage/SF.NET/BARTLBY/bartlby-ui
-	cvs2cl.pl
-	cd /storage/SF.NET/BARTLBY/bartlby-plugins
-	cvs2cl.pl
-	cd /storage/SF.NET/BARTLBY/bartlby
-	cvs2cl.pl
+	../make_changelog
 	
 	
 	
@@ -48,5 +41,5 @@ sf-release:
 
 website: changelog
 	
-	scp ChangeLog hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/ChangeLog
+	scp ../CHANGELOG hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/ChangeLog
 	

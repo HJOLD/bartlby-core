@@ -27,7 +27,10 @@
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_active=1 and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels from workers where worker_active=1"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
-
+#define ADD_SERVER "insert into servers (server_name,server_ip,server_port) VALUES('%s','%s', '%d')"
+#define DELETE_SERVER "delete from servers where server_id=%d"
+#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d where server_id=%d"
+#define SERVER_SELECTOR "select server_name, server_ip, server_port from servers where server_id=%d"
 		//Check functions
 		// Autor, Name, Version
 		// GetServiceMap
@@ -35,7 +38,206 @@
 		// GetWorkers
 		// SetWorker
 		// GetServiceThrewID
+int GetServerById(int server_id, struct service * svc, char * config) {
+	struct service * rsvc;
+	
+	MYSQL *mysql;
+	MYSQL_ROW  row;
+	MYSQL_RES  *res;
+	char * sqlupd;
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+	
+	
+	
+
+	rsvc=malloc(sizeof(struct service));
+	
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+      	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	sqlupd=malloc(sizeof(char)*(strlen(SERVER_SELECTOR)+20));
+	sprintf(sqlupd, SERVER_SELECTOR, server_id);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+      	res = mysql_store_result(mysql);
+      		CHK_ERR(mysql);
+      	
+      	
+      	if(mysql_num_rows(res) == 1 ) {
+      		row=mysql_fetch_row(res);
+      		sprintf(rsvc->server_name,"%s", row[0]);
+      		sprintf(rsvc->client_ip,"%s", row[1]);
+      		rsvc->client_port=atoi(row[2]);
+      		
+      	} else {
+		rsvc=NULL;
+	}
+	
+	
+	mysql_free_result(res);
+      	mysql_close(mysql);
+      	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	free(sqlupd);
+	
+	
+	return 1;	
+}
 		
+int ModifyServer(struct service * svc, char *config) {
+	/*
+		We get a struct service
+		filled with server_name, client_port, client_ip, server_id
+		Modify_it it ;-)
+		and return svc->server_id
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20));
+	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_id);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=1;
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;	
+}		
+	
+int DeleteServer(int server_id, char * config) {
+	/*
+		we get a svc->server_id
+		KICK it (not like beckham)
+		
+	*/
+	MYSQL *mysql;
+
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(DELETE_SERVER)+20));
+	sprintf(sqlupd, DELETE_SERVER, server_id);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return 1;		
+	
+	
+}
+int AddServer(struct service * svc, char *config) {
+	/*
+		We get a struct service
+		filled with server_name, client_port, client_ip
+		store it ;-)
+		and return svc->server_id
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20));
+	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=mysql_insert_id(mysql);
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;	
+}	
 char * GetName() {
 	
 	return strdup(NAME);

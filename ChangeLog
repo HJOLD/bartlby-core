@@ -1,3 +1,9 @@
+2005-08-28 15:44  hjanuschka
+
+	* ChangeLog, Makefile, include/bartlby.h, src/bartlby.c,
+	  src/trigger.c, src/client/agent.c, src/libs/mysql.c: [no log
+	  message]
+
 2005-08-28 04:50  hjanuschka
 
 	* ChangeLog, Makefile: [no log message]
