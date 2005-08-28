@@ -14,14 +14,19 @@ char * getConfigValue(char * key, char * fname) {
 	char * tok;
 	
 	fp=fopen(fname, "r");
-	if(!fp) 
+	if(!fp)  {
+		_log("config fopen %s failed", fname);
 		return NULL;
+	}
+	
+	
 	
 	while(fgets(str,1024,fp) != NULL) {
 		str[strlen(str)-1]='\0';
 		tok=strtok(str, "=");
 		if(tok != NULL) {
 				if(strcmp(tok, key) == 0) {
+						
 						tok=strtok(NULL, "=");
 						if(tok == NULL) {
 								return NULL;

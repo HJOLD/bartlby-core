@@ -123,7 +123,7 @@ void bartlby_check_active(struct service * svc) {
 	
 	alarm(CONN_TIMEOUT);
 	send(client_socket, client_request, (strlen(svc->plugin)+strlen(svc->plugin_arguments)+3),0);
-	
+	//_log("sending `%s`", client_request);
 	if(connection_timed_out == 1) {
 		
 		

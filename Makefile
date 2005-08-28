@@ -1,4 +1,4 @@
-SUBDIRS = src/ src/libs/ src/tools/
+SUBDIRS = src/ src/libs/ src/tools/ src/client/
 
 all:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -17,6 +17,7 @@ cvs-clean:
 	rm -f *.so
 	rm -f bartlby
 	rm -f shmt
+	rm -f bartlby_agent
 cvs: cvs-clean
 	cvs commit;
 	
