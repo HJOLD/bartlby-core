@@ -1,3 +1,13 @@
+2005-08-28 17:49  hjanuschka
+
+	* makedist: [no log message]
+
+2005-08-28 17:49  hjanuschka
+
+	* ChangeLog, Makefile, bartlby.cfg, src/libs/mysql.c: Api extended
+	  (for php-extension):	       AddServer       DeleteServer
+	  ModifyServer	  GetServerById
+
 2005-08-28 15:44  hjanuschka
 
 	* ChangeLog, Makefile, include/bartlby.h, src/bartlby.c,
