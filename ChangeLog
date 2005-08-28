@@ -1,3 +1,7 @@
+2005-08-28 04:50  hjanuschka
+
+	* ChangeLog, Makefile: [no log message]
+
 2005-08-28 04:44  hjanuschka
 
 	* src/client/: Makefile, agent.c: initial import

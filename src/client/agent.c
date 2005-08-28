@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -167,6 +168,7 @@ int main(int argc, char ** argv) {
         	sprintf(svc_back, "1|LoadLimit reached %.02f skipping Check!|\n", loadavg[0]);
         }
 	//printf("SVC_BACK: %s\n", svc_back);
+	syslog(LOG_ERR, "bartlby_agent: %s",svc_back);
 	bartlby_encode(svc_back, strlen(svc_back));
 	printf("%s", svc_back);
 	bartlby_decode(svc_back, strlen(svc_back));

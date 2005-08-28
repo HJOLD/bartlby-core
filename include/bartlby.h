@@ -1,6 +1,6 @@
 #define PROGNAME "bartlby"
-#define VERSION  "0.9"
-#define EXPECTCORE 100001 //Module V Check's
+#define VERSION  "0.9.1"
+#define EXPECTCORE 100901 //Module V Check's
 
 
 #define STATE_OK 0
@@ -20,7 +20,7 @@ struct shm_header {
 	        int svccount;
 	        int wrkcount;
 	        int current_running;
-
+		char  version[50];
 
 };
 

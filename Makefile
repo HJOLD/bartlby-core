@@ -10,7 +10,19 @@ clean:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make clean); \
 	done
-cvs-clean:
+changelog:
+	cd /storage/SF.NET/BARTLBY/bartlby-plugins
+	cvs2cl.pl
+	cd /storage/SF.NET/BARTLBY/bartlby-ui
+	cvs2cl.pl
+	cd /storage/SF.NET/BARTLBY/bartlby-plugins
+	cvs2cl.pl
+	cd /storage/SF.NET/BARTLBY/bartlby
+	cvs2cl.pl
+	
+	
+	
+cvs-clean: changelog
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make clean); \
 	done
@@ -18,7 +30,7 @@ cvs-clean:
 	rm -f bartlby
 	rm -f shmt
 	rm -f bartlby_agent
-	cvs2cl.pl
+	
 cvs: cvs-clean
 	cvs commit;
 	
@@ -31,6 +43,10 @@ cvs-single: cvs-clean
 	done
 	
 sf-release: 
-	read a \
-	echo "a $a"
+	./makedist
+	echo "goto admin page and add release"
+
+website: changelog
+	
+	scp ChangeLog hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/ChangeLog
 	

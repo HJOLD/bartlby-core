@@ -140,6 +140,7 @@ int main(int argc, char ** argv) {
 		
 		_log("Workers: %d", shm_hdr->wrkcount);
 		shm_hdr->current_running=0;
+		sprintf(shm_hdr->version, "%s-%s", PROGNAME, VERSION);
 		
 		free(GetAutorStr);
 		free(GetVersionStr);
