@@ -15,7 +15,7 @@ firebird: ${FIREBIRD}
 	gcc  -lfbclient -fPIC -shared  -g -I../../include/ -o ../../firebird.so ${FIREBIRD}
 
 mysql: ${MYSQL}
-	gcc -I /usr/include/mysql/ -lmysqlclient -fPIC -shared  -g -I../../include/ -o ../../mysql.so ${MYSQL}
+	gcc -static -I /usr/include/mysql/ -lmysqlclient -fPIC -shared  -g -I../../include/ -o ../../mysql.so ${MYSQL}
 
 
 

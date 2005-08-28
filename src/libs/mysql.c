@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/08/28 22:25:58  hjanuschka
+*** empty log message ***
+
 Revision 1.6  2005/08/28 18:00:22  hjanuschka
 data_lib api extended, service/add/delete/update
 
@@ -489,7 +492,8 @@ int GetServerById(int server_id, struct service * svc, char * config) {
 	
 	
 	mysql_free_result(res);
-      	mysql_close(mysql);
+	
+	mysql_close(mysql);
       	free(mysql_host);
 	free(mysql_user);
 	free(mysql_pw);

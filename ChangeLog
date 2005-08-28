@@ -1,3 +1,17 @@
+2005-08-28 20:00  hjanuschka
+
+	* src/: bartlby.c, libs/mysql.c: data_lib api extended,
+	  service/add/delete/update
+
+2005-08-28 18:02  hjanuschka
+
+	* src/: check.c, config.c, global.c, sched.c, shm.c, trigger.c,
+	  client/agent.c, libs/mysql.c, tools/shmt.c: CVS Header
+
+2005-08-28 17:59  hjanuschka
+
+	* ChangeLog, src/bartlby.c: CVS header ;-)
+
 2005-08-28 17:49  hjanuschka
 
 	* makedist: [no log message]
