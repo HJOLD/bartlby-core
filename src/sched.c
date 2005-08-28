@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/08/28 22:57:14  hjanuschka
+config.c: fixed fclose BUG (too many open files ) missing fclose
+service_active is now set by data_lib and acutally used by scheduler
+
 Revision 1.3  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -71,7 +75,7 @@ int sched_check_waiting(struct service * svc) {
 	my_diff=cur_time - svc->last_check;
 	
 	
-	if(my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to) {
+	if(svc->service_active == 1 && my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to) {
 		//_log("Mydiff %d >= %d, %d>=%d, %d<=%d %d>=%d %d<=%d", my_diff, svc->check_interval,tmnow->tm_hour,svc->hour_from,tmnow->tm_hour , svc->hour_to,tmnow->tm_min , svc->min_from ,tmnow->tm_min , svc->min_to);	
 		
 		return 1;

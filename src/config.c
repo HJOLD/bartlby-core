@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/08/28 22:57:14  hjanuschka
+config.c: fixed fclose BUG (too many open files ) missing fclose
+service_active is now set by data_lib and acutally used by scheduler
+
 Revision 1.3  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -56,6 +60,7 @@ char * getConfigValue(char * key, char * fname) {
 								return NULL;
 						}
 						tok[strlen(tok)-1]='\0';
+						fclose(fp);
 						return strdup(tok);
 						
 				} else {

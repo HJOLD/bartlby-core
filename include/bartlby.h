@@ -51,6 +51,8 @@ struct service {
 	int last_notify_send;
 	int flap_count;
 	
+	int service_active;
+	
 	char  service_var[2048];
 	int service_type;
 	int service_passive_timeout;

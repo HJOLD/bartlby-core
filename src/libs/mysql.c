@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/08/28 22:57:14  hjanuschka
+config.c: fixed fclose BUG (too many open files ) missing fclose
+service_active is now set by data_lib and acutally used by scheduler
+
 Revision 1.7  2005/08/28 22:25:58  hjanuschka
 *** empty log message ***
 
@@ -54,7 +58,7 @@ CVS Header
 
 
 
-#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_active=1 and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
+#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels from workers where worker_active=1"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
@@ -69,7 +73,7 @@ CVS Header
 #define DELETE_SERVICE "delete from services where service_id=%d"
 #define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s' where service_id=%d"
 
-#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 int GetServiceById(int service_id, struct service * svc, char * config) {
@@ -202,6 +206,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		
       		svc->service_passive_timeout=atoi(row[19]);
       		
+      		svc->service_active=atoi(row[20]);
       		
       		svc->flap_count=0;
       		
@@ -929,7 +934,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			}
       			
       			svcs[i].service_passive_timeout=atoi(row[19]);
-      			
+      			svcs[i].service_active=atoi(row[20]);
       			
       			svcs[i].flap_count=0;
       			
