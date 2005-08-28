@@ -1,0 +1,39 @@
+2005-08-28 04:44  hjanuschka
+
+	* src/client/: Makefile, agent.c: initial import
+
+2005-08-28 04:43  hjanuschka
+
+	* Makefile, bartlby.cfg, src/check.c, src/config.c: fopen check
+
+2005-08-28 03:12  hjanuschka
+
+	* src/trigger.c, trigger/sample.sh: intial import :-)
+
+2005-08-28 03:11  hjanuschka
+
+	* bartlby.cfg, include/bartlby.h, src/Makefile, src/check.c,
+	  src/global.c, src/sched.c, src/libs/mysql.c: some new config
+	  variables	*trigger_dir passive, group checks added
+
+	  decode, encode moved to global
+
+	  scheduler fix ups (workers on SHM)
+
+	  module clean ups, extension: write back of svc*
+
+2005-08-28 01:39  hjanuschka
+
+	* Makefile, bartlby.cfg, lib, include/bartlby.h, src/Makefile,
+	  src/bartlby.c, src/check.c, src/config.c, src/global.c, src/lib,
+	  src/sched.c, src/shm.c, src/libs/Makefile, src/libs/firebird.c,
+	  src/libs/mysql.c, src/tools/Makefile, src/tools/shmt.c: Initial
+	  revision
+
+2005-08-28 01:39  hjanuschka
+
+	* Makefile, bartlby.cfg, lib, include/bartlby.h, src/Makefile,
+	  src/bartlby.c, src/check.c, src/config.c, src/global.c, src/lib,
+	  src/sched.c, src/shm.c, src/libs/Makefile, src/libs/firebird.c,
+	  src/libs/mysql.c, src/tools/Makefile, src/tools/shmt.c: initial
+

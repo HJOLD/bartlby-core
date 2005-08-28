@@ -18,6 +18,7 @@ cvs-clean:
 	rm -f bartlby
 	rm -f shmt
 	rm -f bartlby_agent
+	cvs2cl.pl
 cvs: cvs-clean
 	cvs commit;
 	
