@@ -1,4 +1,4 @@
-OBJS = bartlby.o config.o global.o sched.o shm.o check.o
+OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o
 
 .SUFFIXES: .c .S .o
 

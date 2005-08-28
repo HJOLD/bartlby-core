@@ -13,6 +13,42 @@
 #include <bartlby.h>
 
 
+char * bartlby_beauty_state(int status) {
+	char * ret;
+	switch(status) {
+		case STATE_OK:
+			ret=strdup("OK");
+		break;
+		case STATE_WARNING:
+			ret=strdup("WARNING");
+			
+		break;
+		case STATE_CRITICAL:
+			ret=strdup("CRITICAL");
+		break;
+		
+		default:
+			ret=strdup("UNKOWN-S");	
+	}
+	return ret;			
+}
+
+void bartlby_decode(char * msg, int length) {
+	int x;
+		
+	for(x=0; x<length; x++) {
+		msg[x]=2^msg[x];	
+		
+	}
+	
+}
+void bartlby_encode(char * msg, int length) {
+	int x;
+	for(x=0; x<length; x++) {
+		msg[x]=msg[x]^2;	
+	}
+	
+}
 
 int _log(char * str,  ...) {
 //	printf("LOG: %s\n", str);

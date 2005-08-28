@@ -68,6 +68,7 @@ struct worker {
 	int mail_notify;
 	int escalation_count;
 	int escalation_time;
+	char notify_levels[20];
 	char t[500];
 
 }sa;
@@ -92,6 +93,11 @@ struct service * bartlby_SHM_ServiceMap(void *);
 struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
 
+
+
+void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr);
 //Global :-)
 int _log(char * str,  ...);
-
+void bartlby_decode(char * msg, int length);
+void bartlby_encode(char * msg, int length);
+char * bartlby_beauty_state(int status);

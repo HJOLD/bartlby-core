@@ -25,7 +25,7 @@
 
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_active=1 and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
-#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services from workers where worker_active=1"
+#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels from workers where worker_active=1"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
 		//Check functions
@@ -155,7 +155,12 @@ int GetWorkerMap(struct worker * svcs, char * config) {
       				//svcs[i].services=NULL;   
       				sprintf(svcs[i].services, "(null)");     				  				
       			}
-      			
+      			if(row[3] != NULL) {
+      				sprintf(svcs[i].notify_levels, "%s", row[3]);
+      					
+      			} else {
+      				sprintf(svcs[i].notify_levels, "(null)");	
+      			}
       			
       			svcs[i].escalation_count=0;
       			svcs[i].escalation_time=time(NULL);

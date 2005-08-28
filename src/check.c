@@ -36,26 +36,6 @@
 static int connection_timed_out=0;
 
 
-void bartlby_decode(char * msg, int length) {
-	int x;
-		
-	for(x=0; x<length; x++) {
-		msg[x]=2^msg[x];	
-		
-	}
-	
-}
-void bartlby_encode(char * msg, int length) {
-	int x;
-	for(x=0; x<length; x++) {
-		msg[x]=msg[x]^2;	
-	}
-	
-}
-
-
-
-
 
 static void bartlby_conn_timeout(int signo) {
  	connection_timed_out = 1;
@@ -268,8 +248,10 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 	if(svc->current_state != svc->last_state) {
 		//udate tstamp text and call trigger *g*
-		_log("<%d/%d--DOLOG>%d;%d;%s:%d/%s - %s",svc->current_state,svc->last_state,svc->service_id, svc->current_state,  svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);		
+		//_log("<%d/%d--DOLOG>%d;%d;);		
+		_log("@LOG@%d|%d", svc->service_id, svc->current_state);
 		//pos2_pull_trigger(svc);	
+		bartlby_trigger(svc, cfgfile, shm_addr);
 		
 		svc->last_state=svc->current_state;
 		svc->last_check=time(NULL);

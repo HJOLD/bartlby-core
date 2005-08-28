@@ -90,13 +90,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 
 	struct service * services;
-	struct shm_header * hdr;
 	
 	
 	
 	gshm_hdr=bartlby_SHM_GetHDR(shm_addr);
 	
-	_log("Scheduler working on %d Services", hdr->svccount);
+	_log("Scheduler working on %d Services", gshm_hdr->svccount);
 	
 	cfg_mps=getConfigValue("max_concurent_checks", cfgfile);
 	if(cfg_mps == NULL) {
