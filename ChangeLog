@@ -1,3 +1,8 @@
+2005-08-30 22:13  hjanuschka
+
+	* ChangeLog, src/client/agent.c: fixed pclose() wrong exit code in
+	  agent
+
 2005-08-30 20:28  hjanuschka
 
 	* ChangeLog: [no log message]

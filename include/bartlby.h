@@ -1,6 +1,6 @@
 #define PROGNAME "bartlby"
-#define VERSION  "0.9.1"
-#define EXPECTCORE 100901 //Module V Check's
+#define VERSION  "0.9.2"
+#define EXPECTCORE 100902 //Module V Check's
 
 
 #define STATE_OK 0
