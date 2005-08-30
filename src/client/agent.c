@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/08/30 20:13:17  hjanuschka
+fixed pclose() wrong exit code in agent
+
 Revision 1.3  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -163,12 +166,14 @@ int main(int argc, char ** argv) {
 				fplg=popen(exec_str, "r");
 				if(fplg != NULL) {
 					if(fgets(plugin_output, 1024, fplg) != NULL) {
+						plugin_rtc=pclose(fplg);
 						plugin_output[strlen(plugin_output)-1]='\0';
 						sprintf(svc_back, "%d|%s\n", WEXITSTATUS(plugin_rtc), plugin_output);		
 					} else {
 						sprintf(svc_back, "1|No Output");	
+						plugin_rtc=pclose(fplg);
 					}
-					plugin_rtc=pclose(fplg);
+					
 					
 				} else {
 					sprintf(svc_back, "1|Plugin open failed");	
