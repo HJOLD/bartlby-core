@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/08/30 21:00:55  hjanuschka
+Signal handling, specialy SIGINT shutdown thingy rethought
+
 Revision 1.4  2005/08/28 22:57:14  hjanuschka
 config.c: fixed fclose BUG (too many open files ) missing fclose
 service_active is now set by data_lib and acutally used by scheduler
@@ -48,12 +51,24 @@ CVS Header
 void catch_signal(int signum);
 int do_shutdown=0;
 int current_running=0;
+pid_t sched_pid;
+
 struct shm_header * gshm_hdr;
 
 void catch_signal(int signum) {
+	pid_t sig_pid;
 	if(signum == SIGINT) {
-		signal(SIGINT, catch_signal);
 		do_shutdown=1;
+		sig_pid=getpid();
+		if(sig_pid != sched_pid) {
+			kill(sched_pid, SIGINT); //Notify scheduler that someone is trying to kill us
+			exit(1); // Exid child
+				
+		}
+		
+		
+		//signal(SIGINT, catch_signal);
+		
 	}
 }
 
@@ -84,7 +99,7 @@ int sched_check_waiting(struct service * svc) {
 }
 
 void sched_wait_open() {
-	while(current_running != 0) {
+	while(current_running != 0 && do_shutdown == 0) {
 			
 			sleep(1);
 						
@@ -119,6 +134,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 
 	struct service * services;
 	
+	sched_pid=getpid();
 	
 	
 	gshm_hdr=bartlby_SHM_GetHDR(shm_addr);

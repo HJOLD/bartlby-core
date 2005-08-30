@@ -1,3 +1,7 @@
+2005-08-30 22:19  hjanuschka
+
+	* ChangeLog, include/bartlby.h: moved to 0.9.2
+
 2005-08-30 22:13  hjanuschka
 
 	* ChangeLog, src/client/agent.c: fixed pclose() wrong exit code in
