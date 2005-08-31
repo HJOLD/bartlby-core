@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/08/31 20:05:18  hjanuschka
+removed some debug infos
+
 Revision 1.8  2005/08/28 22:57:14  hjanuschka
 config.c: fixed fclose BUG (too many open files ) missing fclose
 service_active is now set by data_lib and acutally used by scheduler
@@ -466,7 +469,7 @@ int GetServerById(int server_id, struct service * svc, char * config) {
 	
 	
 	
-
+	
 	
 	
 	mysql=mysql_init(NULL);
@@ -479,6 +482,7 @@ int GetServerById(int server_id, struct service * svc, char * config) {
 	sqlupd=malloc(sizeof(char)*(strlen(SERVER_SELECTOR)+20));
 	sprintf(sqlupd, SERVER_SELECTOR, server_id);
 	
+	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
       	res = mysql_store_result(mysql);
@@ -487,26 +491,36 @@ int GetServerById(int server_id, struct service * svc, char * config) {
       	
       	if(mysql_num_rows(res) == 1 ) {
       		row=mysql_fetch_row(res);
-      		sprintf(rsvc->server_name,"%s", row[0]);
-      		sprintf(rsvc->client_ip,"%s", row[1]);
-      		rsvc->client_port=atoi(row[2]);
       		
+      		if(row[0] != NULL ) {
+      			sprintf(svc->server_name, "%s", row[0]);	
+      		} else {
+      			sprintf(svc->server_name, "(null)");
+      		}
+      		if(row[1] != NULL) {
+      			sprintf(svc->client_ip, "%s", row[1]);	
+      		} else {
+      			sprintf(svc->client_ip, "(null)");	
+      		}
+      		if(row[2] != NULL) {
+      			svc->client_port=atoi(row[2]);	
+      		} else {
+      			svc->client_port=-1;	
+      		}
       	} else {
 		rsvc=NULL;
 	}
 	
 	
 	mysql_free_result(res);
-	
-	mysql_close(mysql);
+      	mysql_close(mysql);
       	free(mysql_host);
 	free(mysql_user);
 	free(mysql_pw);
 	free(mysql_db);
 	free(sqlupd);
-	
-	
-	return 1;	
+	return -1;
+		
 }
 		
 int ModifyServer(struct service * svc, char *config) {
@@ -540,7 +554,7 @@ int ModifyServer(struct service * svc, char *config) {
 	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_id);
 	
 	//Log("dbg", sqlupd);
-	
+	_log("SQL: %s\n", sqlupd);
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
