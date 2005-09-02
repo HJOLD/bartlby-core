@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2005/09/02 02:16:58  hjanuschka
+some trap downs ;-)
+
 Revision 1.9  2005/08/31 20:05:18  hjanuschka
 removed some debug infos
 
@@ -978,7 +981,7 @@ int GetServiceMap(struct service * svcs, char * config) {
 	free(mysql_user);
 	free(mysql_pw);
 	free(mysql_db);
-	return -1;	
+	return 0;	
 }
 
 void clone_me() {

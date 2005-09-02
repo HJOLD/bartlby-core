@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/02 02:16:57  hjanuschka
+some trap downs ;-)
+
 Revision 1.4  2005/08/30 20:13:17  hjanuschka
 fixed pclose() wrong exit code in agent
 
@@ -150,6 +153,7 @@ int main(int argc, char ** argv) {
 			sprintf(svc_back,"1|Protocol Error (No plugin specified");	
 		} else {
 			sprintf(plg, "%s", token);
+			syslog(LOG_ERR, "bartlby_agent: %s",plg);
 			plugin_path=malloc(sizeof(char) * (strlen(plugin_dir)+strlen(plg)));
 			sprintf(plugin_path, "%s/%s", plugin_dir, plg);
 			if(stat(plugin_path,&plg_stat) < 0) {
@@ -170,8 +174,10 @@ int main(int argc, char ** argv) {
 						plugin_output[strlen(plugin_output)-1]='\0';
 						sprintf(svc_back, "%d|%s\n", WEXITSTATUS(plugin_rtc), plugin_output);		
 					} else {
-						sprintf(svc_back, "1|No Output");	
 						plugin_rtc=pclose(fplg);
+						sprintf(svc_back, "%d|No Output - %s", WEXITSTATUS(plugin_rtc), exec_str);	
+						
+						
 					}
 					
 					

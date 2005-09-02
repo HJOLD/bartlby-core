@@ -1,5 +1,7 @@
 SUBDIRS = src/ src/libs/ src/tools/ src/client/
 
+DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui
+
 all:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make all); \
@@ -36,10 +38,14 @@ cvs-single: cvs-clean
 	done
 	
 sf-release: 
-	./makedist
+	../makedist
 	echo "goto admin page and add release"
 
-website: changelog
+website: changelog 
 	
 	scp ../CHANGELOG hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/ChangeLog
-	
+	list='$(DIRR)'; for subdir in $$list; do \
+	  for x in $$subdir; do \
+	  	scp /storage/SF.NET/BARTLBY/$$x/ChangeLog hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/ChangeLog-$$x; \
+	  done \
+	done
