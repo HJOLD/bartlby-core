@@ -1,3 +1,12 @@
+2005-09-02 04:17  hjanuschka
+
+	* trigger/mail.sh: simple sendmail trigger ;-)
+
+2005-09-02 04:16  hjanuschka
+
+	* ChangeLog, Makefile, src/client/agent.c, src/libs/mysql.c: some
+	  trap downs ;-)
+
 2005-08-31 22:05  hjanuschka
 
 	* src/libs/mysql.c: removed some debug infos

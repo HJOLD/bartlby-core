@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.11  2005/09/03 20:11:22  hjanuschka
+fixups
+
+added addworker, deleteworker, modifyworker, getworkerbyid
+
 Revision 1.10  2005/09/02 02:16:58  hjanuschka
 some trap downs ;-)
 
@@ -65,7 +70,7 @@ CVS Header
 
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
-#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels from workers where worker_active=1"
+#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
 
@@ -75,11 +80,247 @@ CVS Header
 #define SERVER_SELECTOR "select server_name, server_ip, server_port from servers where server_id=%d"
 
 #define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d)"
-
 #define DELETE_SERVICE "delete from services where service_id=%d"
 #define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s' where service_id=%d"
-
 #define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+
+#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, enabled_services, notify_levels, worker_active, worker_name) VALUES('%s', '%s', '%s','%s', %d, '%s')"
+#define DELETE_WORKER "delete from workers where worker_id=%d"
+#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s' WHERE worker_id=%d"
+#define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name from workers where worker_id=%d"
+
+int GetWorkerById(int worker_id, struct worker * svc, char * config) {
+	struct service * rsvc;
+	
+	MYSQL *mysql;
+	MYSQL_ROW  row;
+	MYSQL_RES  *res;
+	char * sqlupd;
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+	
+	
+	
+	
+	
+	
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+      	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	sqlupd=malloc(sizeof(char)*(strlen(WORKER_SEL)+sizeof(struct worker)+20));
+	sprintf(sqlupd, WORKER_SEL, worker_id);
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+      	res = mysql_store_result(mysql);
+      		CHK_ERR(mysql);
+      	
+      	
+      	if(mysql_num_rows(res) == 1 ) {
+      		row=mysql_fetch_row(res);
+      		
+      		if(row[0] != NULL ) {
+      			sprintf(svc->mail, "%s", row[0]);	
+      		} else {
+      			sprintf(svc->mail, "(null)");
+      		}
+      		if(row[1] != NULL) {
+      			sprintf(svc->icq, "%s", row[1]);	
+      		} else {
+      			sprintf(svc->icq, "(null)");	
+      		}
+      		if(row[2] != NULL) {
+      			sprintf(svc->services, "%s", row[2]);	
+      		} else {
+      			sprintf(svc->services, "(null)");	
+      		}
+      		if(row[3] != NULL) {
+      			sprintf(svc->notify_levels, "%s", row[3]);	
+      		} else {
+      			sprintf(svc->notify_levels, "(null)");	
+      		}
+      		if(row[4] != NULL) {
+      			svc->active=atoi(row[4]);	
+      		} else {
+      			svc->active=-1;	
+      		}
+      		if(row[5] != NULL) {
+      			sprintf(svc->name, "%s", row[5]);	
+      		} else {
+      			sprintf(svc->name, "(null)");	
+      		}
+      		if(row[6] != NULL) {
+      			svc->worker_id=atoi(row[6]);	
+      		} else {
+      			svc->worker_id=-1;	
+      		}
+      		
+      	} else {
+		rsvc=NULL;
+	}
+	
+	
+	mysql_free_result(res);
+      	mysql_close(mysql);
+      	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	free(sqlupd);
+	return -1;
+		
+}
+
+int UpdateWorker(struct worker * svc, char *config) {
+	/*
+		modify worker
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_WORKER)+sizeof(struct worker)+20));
+	sprintf(sqlupd, UPDATE_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name, svc->worker_id);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=1;
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;	
+}
+
+
+int DeleteWorker(int worker_id, char * config) {
+	/*
+		we get a svc->server_id
+		KICK it (not like beckham)
+		
+	*/
+	MYSQL *mysql;
+
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(DELETE_WORKER)+20));
+	sprintf(sqlupd, DELETE_WORKER, worker_id);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return 1;		
+	
+	
+}
+
+int AddWorker(struct worker * svc, char *config) {
+	/*
+		We get a struct worker
+		filled with worker_mail, worker_ic, enabled_services, notify_levels, active
+		store it ;-)
+		and return wrk->worker_id
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(ADD_WORKER)+sizeof(struct worker)+20));
+	sprintf(sqlupd, ADD_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=mysql_insert_id(mysql);
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;	
+}	
 
 
 int GetServiceById(int service_id, struct service * svc, char * config) {
@@ -250,8 +491,8 @@ int UpdateService(struct service * svc, char *config) {
 	
 	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00"));
 	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00"));
-	sprintf(SVC_TIME_FROM,"%d:%d:00", svc->hour_from, svc->min_from);
-	sprintf(SVC_TIME_TO,"%d:%d:00", svc->hour_to, svc->min_to);
+	sprintf(SVC_TIME_FROM,"%02d:%02d:00", svc->hour_from, svc->min_from);
+	sprintf(SVC_TIME_TO,"%02d:%02d:00", svc->hour_to, svc->min_to);
 	
 	char * mysql_host = getConfigValue("mysql_host", config);
 	char * mysql_user = getConfigValue("mysql_user", config);
@@ -793,6 +1034,22 @@ int GetWorkerMap(struct worker * svcs, char * config) {
       					
       			} else {
       				sprintf(svcs[i].notify_levels, "(null)");	
+      			}
+      			if(row[4] != NULL) {
+      				svcs[i].active = atoi(row[4]);	
+      			} else {
+      				svcs[i].active = -1;
+      			}
+      			if(row[5] != NULL) {
+      				sprintf(svcs[i].name, "%s", row[5]);
+      					
+      			} else {
+      				sprintf(svcs[i].name, "(null)");	
+      			}
+      			if(row[6] != NULL) {
+      				svcs[i].worker_id = atoi(row[6]);	
+      			} else {
+      				svcs[i].worker_id = -1;
       			}
       			
       			svcs[i].escalation_count=0;

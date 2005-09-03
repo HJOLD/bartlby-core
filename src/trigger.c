@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/09/03 20:11:22  hjanuschka
+fixups
+
+added addworker, deleteworker, modifyworker, getworkerbyid
+
 Revision 1.3  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -68,6 +73,10 @@ int bartlby_trigger_worker_level(struct worker * w, int level) {
 }
 
 int bartlby_trigger_escalation(struct worker *w) {
+	if(w->active != 1) {
+		_log("Worker: %s is inactive", w->mail);
+		return FL;	
+	}
 	if((time(NULL) - w->escalation_time) >= (ESCALATION_MINUTES*60)) {
 		w->escalation_count=0;
 		return TR;	

@@ -60,12 +60,13 @@ struct service {
 };
 
 struct worker {
-	
+	char name[2048];
 	char  mail[2048];
 	char  icq[2048];
 	char  services[2048];
 	
-	
+	int worker_id;
+	int active;
 	int icq_notify;
 	int mail_notify;
 	int escalation_count;

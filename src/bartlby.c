@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/03 20:11:22  hjanuschka
+fixups
+
+added addworker, deleteworker, modifyworker, getworkerbyid
+
 Revision 1.4  2005/08/28 18:00:22  hjanuschka
 data_lib api extended, service/add/delete/update
 
@@ -176,6 +181,7 @@ int main(int argc, char ** argv) {
 		free(GetVersionStr);
 		free(GetNameStr);
 		free(SOName);
+		
 		
 	} else {
 		

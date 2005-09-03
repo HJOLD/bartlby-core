@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/03 20:11:22  hjanuschka
+fixups
+
+added addworker, deleteworker, modifyworker, getworkerbyid
+
 Revision 1.5  2005/08/30 21:00:55  hjanuschka
 Signal handling, specialy SIGINT shutdown thingy rethought
 
@@ -29,6 +34,7 @@ CVS Header
 
 */
 
+#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -197,9 +203,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								
 								bartlby_check_service(&services[x], shm_addr, SOHandle, cfgfile);	
 								shmdt(shm_addr);
-														
-								
-								exit(1);
+								exit(0);
 								
 							break;	
 							default:
@@ -222,7 +226,6 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		round_visitors=0;
 		sleep(SCHED_PAUSE);
 	}
-	free(cfg_mps);
 	return 1;
 	
 	

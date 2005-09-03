@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/03 20:11:22  hjanuschka
+fixups
+
+added addworker, deleteworker, modifyworker, getworkerbyid
+
 Revision 1.4  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -136,8 +141,7 @@ void bartlby_check_active(struct service * svc) {
 	} 
 	connection_timed_out=0;
 	
-	client_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+3));
-	memset(client_request, '\0', (strlen(svc->plugin)+strlen(svc->plugin_arguments)+3));
+	client_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+30));
 	sprintf(client_request, "%s| %s|", svc->plugin, svc->plugin_arguments);
 	
 	
@@ -274,10 +278,11 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		//_log("<%d/%d--DOLOG>%d;%d;);		
 		_log("@LOG@%d|%d", svc->service_id, svc->current_state);
 		//pos2_pull_trigger(svc);	
-		bartlby_trigger(svc, cfgfile, shm_addr);
-		
 		svc->last_state=svc->current_state;
 		svc->last_check=time(NULL);
+		bartlby_trigger(svc, cfgfile, shm_addr);
+		
+		
 		
 					
 	} else {
