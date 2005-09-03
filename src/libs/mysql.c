@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.12  2005/09/03 23:01:13  hjanuschka
+datalib api refined
+moved to version 0.9.7
+reload via SHM
+
 Revision 1.11  2005/09/03 20:11:22  hjanuschka
 fixups
 
@@ -65,13 +70,13 @@ CVS Header
 
 #define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://www.januschka.com/BARTLBY"
 #define NAME "MYSQL Connector"
-#define DLVERSION  "0.1"
+#define DLVERSION  "0.2.9"
 
 
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
-#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id from workers"
-#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
+#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password from workers"
+#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d where service_id=%d"
 
 
 #define ADD_SERVER "insert into servers (server_name,server_ip,server_port) VALUES('%s','%s', '%d')"
@@ -84,10 +89,10 @@ CVS Header
 #define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s' where service_id=%d"
 #define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
-#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, enabled_services, notify_levels, worker_active, worker_name) VALUES('%s', '%s', '%s','%s', %d, '%s')"
+#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, enabled_services, notify_levels, worker_active, worker_name, password) VALUES('%s', '%s', '%s','%s', %d, '%s', '%s')"
 #define DELETE_WORKER "delete from workers where worker_id=%d"
-#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s' WHERE worker_id=%d"
-#define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name from workers where worker_id=%d"
+#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s' WHERE worker_id=%d"
+#define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password from workers where worker_id=%d"
 
 int GetWorkerById(int worker_id, struct worker * svc, char * config) {
 	struct service * rsvc;
@@ -162,6 +167,12 @@ int GetWorkerById(int worker_id, struct worker * svc, char * config) {
       		} else {
       			svc->worker_id=-1;	
       		}
+      		if(row[7] != NULL) {
+      			sprintf(svc->password, "%s", row[7]);
+      					
+      		} else {
+      			sprintf(svc->password, "(null)");	
+      		}
       		
       	} else {
 		rsvc=NULL;
@@ -203,10 +214,11 @@ int UpdateWorker(struct worker * svc, char *config) {
       		CHK_ERR(mysql);
 	
 	
-	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_WORKER)+sizeof(struct worker)+20));
-	sprintf(sqlupd, UPDATE_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name, svc->worker_id);
+	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_WORKER)+sizeof(struct worker)+200));
+	sprintf(sqlupd, UPDATE_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name,svc->password, svc->worker_id);
 	
-	//Log("dbg", sqlupd);
+	_log("%s", sqlupd);
+	_log("%s", UPDATE_WORKER);
 	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
@@ -302,7 +314,7 @@ int AddWorker(struct worker * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(ADD_WORKER)+sizeof(struct worker)+20));
-	sprintf(sqlupd, ADD_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name);
+	sprintf(sqlupd, ADD_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name, svc->password);
 	
 	
 	
@@ -951,11 +963,11 @@ int doUpdate(struct service * svc, char * config) {
 	
 	
 	
-	sqlupd=malloc(strlen(SERVICE_UPDATE_TEXT)+strlen(svc->new_server_text)+255);
-	memset(sqlupd,'\0', strlen(SERVICE_UPDATE_TEXT)+strlen(svc->new_server_text)+10);
-	sprintf(sqlupd, SERVICE_UPDATE_TEXT, svc->last_check, svc->new_server_text, svc->current_state, svc->service_id);
+	sqlupd=malloc(sizeof(char) *(strlen(SERVICE_UPDATE_TEXT)+sizeof(struct service)+255));
 	
-	//Log("dbg", sqlupd);
+	sprintf(sqlupd, SERVICE_UPDATE_TEXT, svc->last_check, svc->new_server_text, svc->current_state, svc->service_active, svc->notify_enabled, svc->service_id);
+	
+	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
@@ -1050,6 +1062,12 @@ int GetWorkerMap(struct worker * svcs, char * config) {
       				svcs[i].worker_id = atoi(row[6]);	
       			} else {
       				svcs[i].worker_id = -1;
+      			}
+      			if(row[7] != NULL) {
+      				sprintf(svcs[i].password, "%s", row[7]);
+      					
+      			} else {
+      				sprintf(svcs[i].password, "(null)");	
       			}
       			
       			svcs[i].escalation_count=0;

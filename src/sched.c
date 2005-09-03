@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/03 23:01:13  hjanuschka
+datalib api refined
+moved to version 0.9.7
+reload via SHM
+
 Revision 1.6  2005/09/03 20:11:22  hjanuschka
 fixups
 
@@ -161,8 +166,23 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	signal(SIGCHLD, sched_reaper);
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);
-		
+	gshm_hdr->do_reload=0;
+	
 	while(1) {
+		if(gshm_hdr->do_reload == 1) {
+			_log("queuing Reload");	
+			while(current_running != 0) {
+				_log("Shutdown wait");
+				sleep(1); //Wait for finish
+				shutdown_waits++;
+				if(shutdown_waits > 20) {
+					//Well this is the case where someone wants to keep us waiting
+					// women ? :-)	
+					return -2;
+				}	
+			}	
+			return -2;
+		}
 		if(do_shutdown == 1) {
 			_log("Exit recieved");	
 			while(current_running != 0) {

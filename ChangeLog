@@ -1,3 +1,11 @@
+2005-09-03 22:11  hjanuschka
+
+	* ChangeLog, include/bartlby.h, src/bartlby.c, src/check.c,
+	  src/sched.c, src/trigger.c, src/libs/mysql.c, trigger/mail.sh:
+	  fixups
+
+	  added addworker, deleteworker, modifyworker, getworkerbyid
+
 2005-09-02 04:17  hjanuschka
 
 	* trigger/mail.sh: simple sendmail trigger ;-)

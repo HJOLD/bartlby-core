@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.3  2005/09/03 23:01:13  hjanuschka
+datalib api refined
+moved to version 0.9.7
+reload via SHM
+
 Revision 1.2  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -67,6 +72,7 @@ int main(int argc, char ** argv) {
 			printf("\t%s\n", wrkmap[x].mail);
 		
 		printf("Current running checks: %d\n", shm_hdr->current_running);
+		shm_hdr->do_reload=1;
 		shmdt(bartlby_address);
 		
 		free(shmtok);

@@ -1,6 +1,6 @@
 #define PROGNAME "bartlby"
-#define VERSION  "0.9.2"
-#define EXPECTCORE 100902 //Module V Check's
+#define VERSION  "0.9.7"
+#define EXPECTCORE 100907 //Module V Check's
 
 
 #define STATE_OK 0
@@ -21,6 +21,7 @@ struct shm_header {
 	        int wrkcount;
 	        int current_running;
 		char  version[50];
+		int do_reload;
 
 };
 
@@ -67,8 +68,9 @@ struct worker {
 	
 	int worker_id;
 	int active;
-	int icq_notify;
-	int mail_notify;
+	
+	char password[2048];
+	
 	int escalation_count;
 	int escalation_time;
 	char notify_levels[20];

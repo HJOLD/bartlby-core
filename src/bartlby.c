@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/03 23:01:13  hjanuschka
+datalib api refined
+moved to version 0.9.7
+reload via SHM
+
 Revision 1.5  2005/09/03 20:11:22  hjanuschka
 fixups
 
@@ -102,7 +107,7 @@ int main(int argc, char ** argv) {
 	struct service * svcmap;
 	struct worker * wrkmap;
 
-	
+	int exi_code;
 	
 	_log("%s Version %s started %d", PROGNAME, VERSION, argc);
 	// Parse Config
@@ -152,57 +157,58 @@ int main(int argc, char ** argv) {
 		exit(1);
 	}
 	
+	free(GetAutorStr);
+	free(GetVersionStr);
+	free(GetNameStr);
+	free(SOName);
 	
-	
-	SHMSize=2048*2048*2;	
-	shm_id = shmget(ftok(shmtok, 32), SHMSize,IPC_CREAT | IPC_EXCL | 0777);
-	
-	if(shm_id != -1) {
-		bartlby_address=shmat(shm_id,NULL,0);
-	
-		shm_hdr=(struct shm_header *)(void *)bartlby_address;
+	exi_code=0;
+	while(exi_code != 1) {
+		SHMSize=2048*2048*2;	
+		shm_id = shmget(ftok(shmtok, 32), SHMSize,IPC_CREAT | IPC_EXCL | 0777);
 		
-		svcmap=(struct service *)(void *)bartlby_address+sizeof(struct shm_header);
+		if(shm_id != -1) {
+			bartlby_address=shmat(shm_id,NULL,0);
 		
-		shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
-		shm_hdr->svccount=shm_svc_cnt;
+			shm_hdr=(struct shm_header *)(void *)bartlby_address;
+			
+			svcmap=(struct service *)(void *)bartlby_address+sizeof(struct shm_header);
+			
+			shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
+			shm_hdr->svccount=shm_svc_cnt;
+			
+			svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+			
+			wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
+			shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
+			shm_hdr->wrkcount=shm_wrk_cnt;
+			
+			_log("Workers: %d", shm_hdr->wrkcount);
+			shm_hdr->current_running=0;
+			sprintf(shm_hdr->version, "%s-%s", PROGNAME, VERSION);
+			shm_hdr->do_reload=0;
+			
+			
+			
+		} else {
+			
+			
+			_log("SHM is already exsisting do a `ipcrm shm SHMID' or something like that");
+			system("ipcs -m|grep \"0x\"|awk '{if($2 != 0) {print \"ipcrm shm \" $2; } }'|sh");
+			exit(1);
+		}
 		
-		svcmap=bartlby_SHM_ServiceMap(bartlby_address);
 		
-		wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
-		shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
-		shm_hdr->wrkcount=shm_wrk_cnt;
-		
-		_log("Workers: %d", shm_hdr->wrkcount);
-		shm_hdr->current_running=0;
-		sprintf(shm_hdr->version, "%s-%s", PROGNAME, VERSION);
-		
-		free(GetAutorStr);
-		free(GetVersionStr);
-		free(GetNameStr);
-		free(SOName);
+		exi_code=schedule_loop(argv[1], bartlby_address, SOHandle);
+		_log("Scheduler ended with: %d", exi_code);
 		
 		
-	} else {
 		
-		free(GetAutorStr);
-		free(GetVersionStr);
-		free(GetNameStr);
-		free(SOName);
-		_log("SHM is already exsisting do a `ipcrm shm SHMID' or something like that");
-		system("ipcs -m|grep \"0x\"|awk '{if($2 != 0) {print \"ipcrm shm \" $2; } }'|sh");
-		exit(1);
+		//Destroy SHM
+		shmdt(bartlby_address);
+		shm_id = shmget(ftok(shmtok, 32), 0, 0600);
+		shmctl(shm_id, IPC_RMID, &shm_desc);
 	}
-	
-	
-	schedule_loop(argv[1], bartlby_address, SOHandle);
-	
-	
-	
-	//Destroy SHM
-	shm_id = shmget(ftok(shmtok, 32), 0, 0600);
-	shmctl(shm_id, IPC_RMID, &shm_desc);
-		
 	
 	free(shmtok);
 		
