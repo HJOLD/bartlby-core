@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/05 20:00:54  hjanuschka
+stupid configfile issue fixed
+
 Revision 1.4  2005/09/05 19:53:12  hjanuschka
 2 day uptime without a single sigsegv ;-)
 added daemon function ;-)
@@ -94,11 +97,14 @@ int _log(char * str,  ...) {
 	char * logfile;
 	FILE * fp;
 	
-	
-	logfile=getConfigValue("logfile", config_file);
-	if(logfile == NULL) {
-		printf("Logfile not set");
-		exit(1);	
+	if(strcmp(config_file, "") != 0) {
+		logfile=getConfigValue("logfile", config_file);
+		if(logfile == NULL) {
+			printf("Logfile not set");
+			exit(1);	
+		}
+	} else {
+		logfile=strdup("/dev/stdout");	
 	}
 	
 	time(&tnow);

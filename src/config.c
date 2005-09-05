@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/05 20:00:54  hjanuschka
+stupid configfile issue fixed
+
 Revision 1.4  2005/08/28 22:57:14  hjanuschka
 config.c: fixed fclose BUG (too many open files ) missing fclose
 service_active is now set by data_lib and acutally used by scheduler
@@ -43,8 +46,9 @@ char * getConfigValue(char * key, char * fname) {
 	
 	fp=fopen(fname, "r");
 	if(!fp)  {
-		_log("config fopen %s failed", fname);
-		return NULL;
+		printf("config fopen %s failed", fname);
+		exit(0);
+		
 	}
 	
 	
