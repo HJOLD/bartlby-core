@@ -106,3 +106,8 @@ int _log(char * str,  ...);
 void bartlby_decode(char * msg, int length);
 void bartlby_encode(char * msg, int length);
 char * bartlby_beauty_state(int status);
+
+void bartlby_get_daemon(char * cfgfile);
+void set_cfg(char * cfg);
+
+extern char config_file[255];

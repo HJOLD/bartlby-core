@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/05 19:53:12  hjanuschka
+2 day uptime without a single sigsegv ;-)
+added daemon function ;-)
+	new cfg vars daemon=[true|false], basedir, logfile
+
 Revision 1.6  2005/09/03 23:01:13  hjanuschka
 datalib api refined
 moved to version 0.9.7
@@ -50,6 +55,7 @@ CVS header ;-)
 #include <bartlby.h>
 
 
+
 #define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
     	if((dlmsg=dlerror()) != NULL) { \
         	_log("Error: %s", dlmsg); \
@@ -66,6 +72,7 @@ int main(int argc, char ** argv) {
 	char * GetVersionStr;
 	char * GetNameStr;
 	
+	char * daemon_mode;
 	
 	char * SOName; //Shared library name
 	void * SOHandle;
@@ -109,15 +116,24 @@ int main(int argc, char ** argv) {
 
 	int exi_code;
 	
-	_log("%s Version %s started %d", PROGNAME, VERSION, argc);
+	
+	
 	// Parse Config
-	if(argc == 2) {
+	if(argc >= 2) {
+		set_cfg(argv[1]);
 		SOName = getConfigValue("data_library", argv[1]);
 		if(SOName == NULL) {
 			_log("No data_library specified in `%s' config file", argv[1]);
 			exit(1);
 		}
 	}		
+	
+	_log("%s Version %s (%s/%s) started", PROGNAME, VERSION, __DATE__,__TIME__);
+	daemon_mode=getConfigValue("daemon", argv[1]);
+	if(strcmp(daemon_mode,"true") == 0) {	
+		bartlby_get_daemon(argv[1]);
+	} 	
+	
 		
 	_log("using data lib: `%s'", SOName);
 	SOHandle=dlopen(SOName, RTLD_LAZY);
@@ -147,7 +163,7 @@ int main(int argc, char ** argv) {
     		exit(1);
     	} 
     	
-    	_log("Data Lib (%s) by: '%s' Version: %s %d/%d", GetNameStr, GetAutorStr, GetVersionStr, ExpectVersion(), EXPECTCORE);
+    	_log("Data Lib (%s) by: '%s' Version: %s", GetNameStr, GetAutorStr, GetVersionStr);
     		
 	
 	
@@ -185,7 +201,7 @@ int main(int argc, char ** argv) {
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
 			shm_hdr->current_running=0;
-			sprintf(shm_hdr->version, "%s-%s", PROGNAME, VERSION);
+			sprintf(shm_hdr->version, "%s-%s (%s/%s)", PROGNAME, VERSION, __DATE__,__TIME__);
 			shm_hdr->do_reload=0;
 			
 			

@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/09/05 19:53:12  hjanuschka
+2 day uptime without a single sigsegv ;-)
+added daemon function ;-)
+	new cfg vars daemon=[true|false], basedir, logfile
+
 Revision 1.7  2005/09/03 23:01:13  hjanuschka
 datalib api refined
 moved to version 0.9.7
@@ -68,7 +73,7 @@ struct shm_header * gshm_hdr;
 
 void catch_signal(int signum) {
 	pid_t sig_pid;
-	if(signum == SIGINT) {
+	if(signum == SIGINT || signum == SIGUSR1) {
 		do_shutdown=1;
 		sig_pid=getpid();
 		if(sig_pid != sched_pid) {
@@ -163,6 +168,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	
 	signal(SIGINT, catch_signal);
+	signal(SIGUSR1, catch_signal);
 	signal(SIGCHLD, sched_reaper);
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);

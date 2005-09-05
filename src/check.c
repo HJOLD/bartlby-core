@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/05 19:53:12  hjanuschka
+2 day uptime without a single sigsegv ;-)
+added daemon function ;-)
+	new cfg vars daemon=[true|false], basedir, logfile
+
 Revision 1.5  2005/09/03 20:11:22  hjanuschka
 fixups
 
@@ -62,6 +67,7 @@ CVS Header
 #define GROUP_OK "Group check OK"
 
 static int connection_timed_out=0;
+
 
 
 

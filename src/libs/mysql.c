@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.13  2005/09/05 19:53:13  hjanuschka
+2 day uptime without a single sigsegv ;-)
+added daemon function ;-)
+	new cfg vars daemon=[true|false], basedir, logfile
+
 Revision 1.12  2005/09/03 23:01:13  hjanuschka
 datalib api refined
 moved to version 0.9.7
@@ -217,8 +222,7 @@ int UpdateWorker(struct worker * svc, char *config) {
 	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_WORKER)+sizeof(struct worker)+200));
 	sprintf(sqlupd, UPDATE_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name,svc->password, svc->worker_id);
 	
-	_log("%s", sqlupd);
-	_log("%s", UPDATE_WORKER);
+	
 	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
@@ -554,7 +558,7 @@ int UpdateService(struct service * svc, char *config) {
 	);
 	
 	//Log("dbg", sqlupd);
-	_log("SQL:%s", sqlupd);
+	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
@@ -810,7 +814,7 @@ int ModifyServer(struct service * svc, char *config) {
 	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_id);
 	
 	//Log("dbg", sqlupd);
-	_log("SQL: %s\n", sqlupd);
+	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
@@ -939,7 +943,7 @@ char * GetVersion() {
 }
 
 int doUpdate(struct service * svc, char * config) {
-	//_log("Update: %s:%d/%s to: %d", svc->server_name, svc->client_port, svc->service_name, svc->current_state);
+	
 	
 	
 	MYSQL *mysql;

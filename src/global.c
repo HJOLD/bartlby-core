@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/09/05 19:53:12  hjanuschka
+2 day uptime without a single sigsegv ;-)
+added daemon function ;-)
+	new cfg vars daemon=[true|false], basedir, logfile
+
 Revision 1.3  2005/08/28 16:02:59  hjanuschka
 CVS Header
 
@@ -36,6 +41,11 @@ CVS Header
 
 #include <bartlby.h>
 
+char config_file[255];
+
+void set_cfg(char * cfg) {
+	sprintf(config_file, "%s", cfg);	
+}
 
 char * bartlby_beauty_state(int status) {
 	char * ret;
@@ -81,21 +91,30 @@ int _log(char * str,  ...) {
 	time_t tnow;
 	struct tm *tmnow;
 	
+	char * logfile;
+	FILE * fp;
 	
+	
+	logfile=getConfigValue("logfile", config_file);
+	if(logfile == NULL) {
+		printf("Logfile not set");
+		exit(1);	
+	}
 	
 	time(&tnow);
 	tmnow = localtime(&tnow);
  	va_start(argzeiger,str);
    
    	
+	fp=fopen(logfile, "a");   	
 	
-   	
-   	printf("%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
-   	vprintf(str, argzeiger);
-   	printf(";\n");
+   	fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
+   	vfprintf(fp, str, argzeiger);
+   	fprintf(fp, ";\n");
    	//vprintf(string,argzeiger);
    	//fflush(pos2_log_file);
    	va_end(argzeiger);
-   
+   	fclose(fp);
+   	free(logfile);
 	return 1;   
 }

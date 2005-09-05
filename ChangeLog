@@ -1,3 +1,9 @@
+2005-09-04 01:01  hjanuschka
+
+	* ChangeLog, include/bartlby.h, src/bartlby.c, src/sched.c,
+	  src/libs/mysql.c, src/tools/shmt.c: datalib api refined moved to
+	  version 0.9.7 reload via SHM
+
 2005-09-03 22:11  hjanuschka
 
 	* ChangeLog, include/bartlby.h, src/bartlby.c, src/check.c,
