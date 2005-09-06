@@ -1,3 +1,8 @@
+2005-09-06 22:59  hjanuschka
+
+	* ChangeLog, Makefile, bartlby.cfg, src/bartlby.c: performance
+	  tests fixes addition's
+
 2005-09-05 22:00  hjanuschka
 
 	* src/: config.c, global.c: stupid configfile issue fixed
