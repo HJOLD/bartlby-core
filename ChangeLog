@@ -1,3 +1,19 @@
+2005-09-05 22:00  hjanuschka
+
+	* src/: config.c, global.c: stupid configfile issue fixed
+
+2005-09-05 21:53  hjanuschka
+
+	* src/daemon.c: daemon maybe safe shutdown by SIGINT SIGUSR1
+
+2005-09-05 21:53  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/Makefile,
+	  src/bartlby.c, src/check.c, src/global.c, src/sched.c,
+	  src/libs/mysql.c: 2 day uptime without a single sigsegv ;-) added
+	  daemon function ;-)	      new cfg vars daemon=[true|false],
+	  basedir, logfile
+
 2005-09-04 01:01  hjanuschka
 
 	* ChangeLog, include/bartlby.h, src/bartlby.c, src/sched.c,

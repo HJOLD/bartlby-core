@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/09/06 20:59:12  hjanuschka
+performance tests fixes addition's
+
 Revision 1.7  2005/09/05 19:53:12  hjanuschka
 2 day uptime without a single sigsegv ;-)
 added daemon function ;-)
@@ -86,8 +89,8 @@ int main(int argc, char ** argv) {
 	
 	int (*GetServiceMap)(struct service *, char *);
 	int (*GetWorkerMap)(struct worker *,char *);
-	
-	
+	long cfg_shm_size_bytes;
+	char *  cfg_shm_size;
 	/*
 		End DL STUFF
 	
@@ -131,6 +134,7 @@ int main(int argc, char ** argv) {
 	_log("%s Version %s (%s/%s) started", PROGNAME, VERSION, __DATE__,__TIME__);
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(strcmp(daemon_mode,"true") == 0) {	
+		free(daemon_mode);
 		bartlby_get_daemon(argv[1]);
 	} 	
 	
@@ -180,7 +184,18 @@ int main(int argc, char ** argv) {
 	
 	exi_code=0;
 	while(exi_code != 1) {
-		SHMSize=2048*2048*2;	
+		
+		
+		cfg_shm_size = getConfigValue("shm_size", argv[1]);
+		if(cfg_shm_size==NULL) {
+			cfg_shm_size_bytes=10;		
+		} else {
+			cfg_shm_size_bytes=atol(cfg_shm_size);
+		}
+		
+		free(cfg_shm_size);
+		
+		SHMSize=cfg_shm_size_bytes*1024*1024;	
 		shm_id = shmget(ftok(shmtok, 32), SHMSize,IPC_CREAT | IPC_EXCL | 0777);
 		
 		if(shm_id != -1) {
