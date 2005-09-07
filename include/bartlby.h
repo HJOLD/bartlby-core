@@ -7,6 +7,10 @@
 #define STATE_WARNING 1
 #define STATE_CRITICAL 2
 
+#define SVC_TYPE_ACTIVE 1
+#define SVC_TYPE_PASSIVE 2
+#define SVC_TYPE_GROUP 3
+
 
 #define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
     	if((dlmsg=dlerror()) != NULL) { \

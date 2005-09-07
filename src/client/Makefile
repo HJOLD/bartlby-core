@@ -1,7 +1,7 @@
 AGENT = ../config.o ../global.o agent.o
-PASSIVE = ../config.o ../global.o passive.o
+PORTIER = ../config.o ../global.o  ../shm.o portier.o
 
-
+ 
 .SUFFIXES: .c .S .o
 
 .c.o:
@@ -10,13 +10,15 @@ PASSIVE = ../config.o ../global.o passive.o
 
 
 
-
-agent: ${AGENT}
+portier: ${PORTIER}
+	gcc  -g -I../../include/ -o ../../bartlby_portier ${PORTIER}
+	
+agent: ${AGENT} 
 	gcc  -g -I../../include/ -o ../../bartlby_agent ${AGENT}
 
 
 
-all:    agent
+all:    agent portier
 	
 
 

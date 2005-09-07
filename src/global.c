@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/07 21:51:40  hjanuschka
+fixed passive check_fin bug
+added bartlby_portier passive results may now be deliverd from remote
+
 Revision 1.5  2005/09/05 20:00:54  hjanuschka
 stupid configfile issue fixed
 
@@ -49,6 +53,10 @@ char config_file[255];
 void set_cfg(char * cfg) {
 	sprintf(config_file, "%s", cfg);	
 }
+
+
+
+
 
 char * bartlby_beauty_state(int status) {
 	char * ret;

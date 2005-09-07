@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/07 21:51:40  hjanuschka
+fixed passive check_fin bug
+added bartlby_portier passive results may now be deliverd from remote
+
 Revision 1.6  2005/09/05 19:53:12  hjanuschka
 2 day uptime without a single sigsegv ;-)
 added daemon function ;-)
@@ -58,9 +62,7 @@ CVS Header
 
 #define CONN_TIMEOUT 5
 
-#define SVC_TYPE_ACTIVE 1
-#define SVC_TYPE_PASSIVE 2
-#define SVC_TYPE_GROUP 3
+
 
 #define GROUP_CRITICAL "Group check critical"
 #define GROUP_WITHOUT_PARMS "Group check without parameters"
@@ -324,9 +326,11 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 			sprintf(svc->new_server_text, "%s", PASSIVE_TIMEOUT);
 			svc->current_state=STATE_WARNING;
-			bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
+			
+			
 		}
-		
+		_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
+		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}
 	if(svc->service_type == SVC_TYPE_ACTIVE) {
