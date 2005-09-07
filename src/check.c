@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/09/07 22:36:56  hjanuschka
+portier: added err code -4 svc not found
+check: group check fixed , runnaway strtok :-)
+
 Revision 1.7  2005/09/07 21:51:40  hjanuschka
 fixed passive check_fin bug
 added bartlby_portier passive results may now be deliverd from remote
@@ -217,7 +221,7 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 
 
 	char del[]="|";
-	
+	char tmp_svcvar[2048];	
 	char * tok;
 	int svc_id;
 	int state;
@@ -233,10 +237,14 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 		sprintf(svc->new_server_text, "%s", GROUP_WITHOUT_PARMS);
 		svc->current_state=STATE_CRITICAL;	
 	} else {
-		tok=strtok(svc->service_var, del);
+		strcpy(tmp_svcvar, svc->service_var);
+		
+		tok=strtok(tmp_svcvar, del);
 		while(tok != NULL) {
 			
 			sscanf(tok, "%d=%d", &svc_id, &state);
+			
+			
 			
 			svg=NULL;
 			for(x=0; x<hdr->svccount; x++) {
@@ -246,12 +254,14 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 				}
 			}	
 			if(svg == NULL) { 
+				
 				sprintf(svc->new_server_text, "%s", GROUP_CRITICAL);
 				svc->current_state=STATE_CRITICAL;
 				return;
 			}
 			
 			if(svg->current_state != state) {
+				//_log("Service: is not %d\n", svg->current_state );
 				sprintf(svc->new_server_text, "%s", GROUP_CRITICAL);
 				svc->current_state=STATE_CRITICAL;
 				

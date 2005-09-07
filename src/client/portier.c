@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.2  2005/09/07 22:36:56  hjanuschka
+portier: added err code -4 svc not found
+check: group check fixed , runnaway strtok :-)
+
 Revision 1.1  2005/09/07 21:52:25  hjanuschka
 portier import
 
@@ -198,8 +202,10 @@ int main(int argc, char ** argv) {
 							} else {
 								sprintf(svc_out, "-3 Service is not of type 'PASSIVE'");	
 							}
+						} else {
+							sprintf(svc_out, "-4 Service not found\n");	
 						}
-					
+						
 					} else {
 						sprintf(svc_out, "New state missing\n");		
 					}
