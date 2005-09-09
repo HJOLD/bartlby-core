@@ -9,7 +9,7 @@ OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o
 
 
 bartlby: ${OBJS}
-	gcc  -g -I../include/ -ldl -o ../bartlby ${OBJS}
+	gcc  -g -I../include/ -ldl  -o ../bartlby ${OBJS}
 
 
 

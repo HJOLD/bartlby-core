@@ -1,3 +1,23 @@
+2005-09-08 00:36  hjanuschka
+
+	* include/bartlby.h, src/check.c, src/client/portier.c: portier:
+	  added err code -4 svc not found check: group check fixed ,
+	  runnaway strtok :-)
+
+2005-09-07 23:52  hjanuschka
+
+	* src/client/portier.c: portier import
+
+2005-09-07 23:51  hjanuschka
+
+	* include/bartlby.h, src/check.c, src/global.c,
+	  src/client/Makefile: fixed passive check_fin bug added
+	  bartlby_portier passive results may now be deliverd from remote
+
+2005-09-07 21:33  hjanuschka
+
+	* ChangeLog: [no log message]
+
 2005-09-06 23:47  hjanuschka
 
 	* ChangeLog, bartlby.cfg:

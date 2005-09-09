@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.3  2005/09/09 19:23:37  hjanuschka
+portier: added get_passive cmd
+added a little dummy passive portier query tool (wich can set passive states and recieve passiv service info
+
 Revision 1.2  2005/09/07 22:36:56  hjanuschka
 portier: added err code -4 svc not found
 check: group check fixed , runnaway strtok :-)
@@ -49,6 +53,7 @@ static int connection_timed_out=0;
 
 
 #define CMD_PASSIVE 1
+#define CMD_GET_PLG 2
 
 #define CONN_TIMEOUT 10
 
@@ -85,7 +90,6 @@ int main(int argc, char ** argv) {
 	
 	
 	struct shm_header * shm_hdr;
-	struct worker * wrkmap;
 	struct service * svcmap;
 	
 	shmtok = getConfigValue("shm_key", argv[0]);
@@ -154,6 +158,39 @@ int main(int argc, char ** argv) {
 	if(token != NULL) {
 		command=atoi(token);
 		switch(command) {
+			case CMD_GET_PLG:
+				token=strtok(NULL, "|");
+				if(token != NULL) {
+					passive_svcid=atoi(token);
+					
+					svc_found=0;
+					for(x=0; x<shm_hdr->svccount; x++) {
+						
+						if(svcmap[x].service_id == passive_svcid) {
+							svc_found = 1;
+							break;
+						}
+					}
+					if(svc_found == 1) {
+						//1|413395|2|dasdsadsadsadas|
+						if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
+							
+							sprintf(svc_out, "+PLG|%s %s\n", svcmap[x].plugin,svcmap[x].plugin_arguments);
+							
+						} else {
+							sprintf(svc_out, "-3 Service is not of type 'PASSIVE'");	
+						}
+					} else {
+						sprintf(svc_out, "-4 Service not found\n");	
+					}
+					
+					
+					
+				} else {
+					sprintf(svc_out, "SVCID missing\n");	
+					
+				}
+			break;
 			case CMD_PASSIVE:
 				//Second is SVCID
 				//Third is new status
@@ -183,13 +220,12 @@ int main(int argc, char ** argv) {
 						for(x=0; x<shm_hdr->svccount; x++) {
 							
 							if(svcmap[x].service_id == passive_svcid) {
-								printf("+FND found %s:%d/%s\n", svcmap[x].server_name,svcmap[x].client_port, svcmap[x].service_name);
 								svc_found = 1;
 								break;
 							}
 						}
 						if(svc_found == 1) {
-							//1|413395|2|dasdsadsadsadas|
+							//2|413395
 							if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
 								svcmap[x].last_state=svcmap[x].current_state;
 								svcmap[x].current_state=passive_state;
