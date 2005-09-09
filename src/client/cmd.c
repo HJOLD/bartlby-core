@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2005/09/09 19:26:10  hjanuschka
+compile warnings fixed (cmd.c)
+
 Revision 1.1  2005/09/09 19:24:18  hjanuschka
 littel cmd tool for working with passive services
 
@@ -197,7 +200,7 @@ void cmd_set_passive() {
 	char verstr[2048];
 	char cmdstr[2048];
 	char result[2048];
-	char * token, * token_t;
+	
 	int rc;
 	
 	res=connect_to(passive_host, passive_port);
@@ -311,9 +314,11 @@ int main(int argc, char ** argv) {
 	//printf("Working on '%s:%d/%d' action(%s)\n", passive_host, passive_port, passive_service, passive_action);
 	if(passive_action == NULL) {
 		printf("Action unkown!\n");	
+		exit(2);
 	}
 	if(passive_service <=0 || passive_port <= 0 || passive_host == NULL ){
-		printf("Either port, service or host is missing\n");	
+		printf("Either port, service or host is missing\n");
+		exit(3);	
 	}
 	
 	
