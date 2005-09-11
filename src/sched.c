@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/09/11 21:42:24  hjanuschka
+log files are now archived by Y.M.d
+
 Revision 1.8  2005/09/05 19:53:12  hjanuschka
 2 day uptime without a single sigsegv ;-)
 added daemon function ;-)
@@ -247,7 +250,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 		}
 		sched_wait_open();
-		_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
+		//_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		round_start=time(NULL);
 		round_visitors=0;
 		sleep(SCHED_PAUSE);

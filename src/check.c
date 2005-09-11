@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2005/09/11 21:42:24  hjanuschka
+log files are now archived by Y.M.d
+
 Revision 1.9  2005/09/11 09:20:58  hjanuschka
 logging issue ;-)
 ui now can display log in a nice layout ;-)
@@ -298,7 +301,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	if(svc->current_state != svc->last_state) {
 		//udate tstamp text and call trigger *g*
 		//_log("<%d/%d--DOLOG>%d;%d;);		
-		_log("@LOG@%d|%d|%s:%d/%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name);
+		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		//pos2_pull_trigger(svc);	
 		svc->last_state=svc->current_state;
 		svc->last_check=time(NULL);
@@ -343,7 +346,7 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 			
 		}
-		_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
+		//_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
 		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}

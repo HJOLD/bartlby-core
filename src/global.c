@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/11 21:42:24  hjanuschka
+log files are now archived by Y.M.d
+
 Revision 1.6  2005/09/07 21:51:40  hjanuschka
 fixed passive check_fin bug
 added bartlby_portier passive results may now be deliverd from remote
@@ -103,20 +106,33 @@ int _log(char * str,  ...) {
 	struct tm *tmnow;
 	
 	char * logfile;
+	char * logfile_dd;
 	FILE * fp;
-	
-	if(strcmp(config_file, "") != 0) {
-		logfile=getConfigValue("logfile", config_file);
-		if(logfile == NULL) {
-			printf("Logfile not set");
-			exit(1);	
-		}
-	} else {
-		logfile=strdup("/dev/stdout");	
-	}
 	
 	time(&tnow);
 	tmnow = localtime(&tnow);
+	
+	if(strcmp(config_file, "") != 0) {
+		logfile_dd=getConfigValue("logfile", config_file);
+		if(logfile_dd == NULL) {
+			printf("Logfile not set");
+			exit(1);	
+		}
+		if(strcmp(logfile_dd, "/dev/stdout") != 0) {
+			logfile=malloc(sizeof(char) * (strlen(logfile_dd)+50));
+			sprintf(logfile, "%s.%02d.%02d.%02d", logfile_dd, tmnow->tm_year + 1900,tmnow->tm_mon + 1,tmnow->tm_mday); 	
+		} else {
+			logfile=strdup("/dev/stdout");	
+		}
+		
+		
+		
+	} else {
+		logfile_dd=strdup("-");	
+		logfile=strdup("/dev/stdout");	
+	}
+	
+	
  	va_start(argzeiger,str);
    
    	
@@ -130,5 +146,6 @@ int _log(char * str,  ...) {
    	va_end(argzeiger);
    	fclose(fp);
    	free(logfile);
+   	free(logfile_dd);
 	return 1;   
 }
