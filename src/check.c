@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/09/11 09:20:58  hjanuschka
+logging issue ;-)
+ui now can display log in a nice layout ;-)
+
 Revision 1.8  2005/09/07 22:36:56  hjanuschka
 portier: added err code -4 svc not found
 check: group check fixed , runnaway strtok :-)
@@ -294,7 +298,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	if(svc->current_state != svc->last_state) {
 		//udate tstamp text and call trigger *g*
 		//_log("<%d/%d--DOLOG>%d;%d;);		
-		_log("@LOG@%d|%d", svc->service_id, svc->current_state);
+		_log("@LOG@%d|%d|%s:%d/%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name);
 		//pos2_pull_trigger(svc);	
 		svc->last_state=svc->current_state;
 		svc->last_check=time(NULL);

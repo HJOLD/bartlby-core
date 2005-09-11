@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/11 09:20:58  hjanuschka
+logging issue ;-)
+ui now can display log in a nice layout ;-)
+
 Revision 1.4  2005/09/03 20:11:22  hjanuschka
 fixups
 
@@ -184,7 +188,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 					if((bartlby_trigger_escalation(&wrkmap[x])) == FL) continue;
 					if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state)) == FL) continue;
 					//_log("EXEC trigger: %s", full_path);
-					_log("@NOT@%d|%d|%d|%s|%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].mail);
+					_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
 					
 					svc->last_notify_send=time(NULL);
 					wrkmap[x].escalation_time=time(NULL);

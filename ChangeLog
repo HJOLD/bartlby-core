@@ -1,3 +1,19 @@
+2005-09-09 21:26  hjanuschka
+
+	* src/client/cmd.c: compile warnings fixed (cmd.c)
+
+2005-09-09 21:24  hjanuschka
+
+	* src/client/cmd.c: littel cmd tool for working with passive
+	  services
+
+2005-09-09 21:23  hjanuschka
+
+	* ChangeLog, src/Makefile, src/client/Makefile,
+	  src/client/portier.c: portier: added get_passive cmd added a
+	  little dummy passive portier query tool (wich can set passive
+	  states and recieve passiv service info
+
 2005-09-08 00:36  hjanuschka
 
 	* include/bartlby.h, src/check.c, src/client/portier.c: portier:
