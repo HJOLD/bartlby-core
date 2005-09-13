@@ -22,6 +22,7 @@
 #define STATE_OK 0
 #define STATE_WARNING 1
 #define STATE_CRITICAL 2
+#define STATE_UNKOWN 3
 
 #define SVC_TYPE_ACTIVE 1
 #define SVC_TYPE_PASSIVE 2
