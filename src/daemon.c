@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.3  2005/09/13 19:43:31  hjanuschka
+human readable release code name REL_NAME
+fixed printf() in shutdown daemon *fg*
+
 Revision 1.2  2005/09/13 19:29:18  hjanuschka
 daemon: pidfile, remove pidfile at end
 mysql.c: fixed 2 segfaults under _MALLOC_CHECK=2
@@ -69,7 +73,7 @@ void bartlby_end_daemon(char *cfgfile) {
 	}
 	sprintf(pidfname, "%s/bartlby.pid", pid_def_name);
 	unlink(pidfname);
-	printf("%s Pid file removed", pidfname);
+	_log("%s Pid file removed", pidfname);
 	free(base_dir);
 	free(pid_def_name);
 	

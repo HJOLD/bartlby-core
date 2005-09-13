@@ -1,6 +1,22 @@
+/*
+	Release table
+	
+	angeloi
+	Archangeloi 
+	Archai 
+	Exusiai 
+	Dynameis 
+	Kyriotetes 
+	Throne
+	Cherubim
+	Seraphim
+	
+*/
+
 #define PROGNAME "bartlby"
+#define REL_NAME "Angeloi"
 #define VERSION  "0.9.7rc1"
-#define EXPECTCORE 1009071 //Module V Check's
+#define EXPECTCORE 1009072 //Module V Check's
 
 
 #define STATE_OK 0

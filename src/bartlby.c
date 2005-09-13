@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.10  2005/09/13 19:43:31  hjanuschka
+human readable release code name REL_NAME
+fixed printf() in shutdown daemon *fg*
+
 Revision 1.9  2005/09/13 19:29:18  hjanuschka
 daemon: pidfile, remove pidfile at end
 mysql.c: fixed 2 segfaults under _MALLOC_CHECK=2
@@ -135,7 +139,7 @@ int main(int argc, char ** argv) {
 		}
 	}		
 	
-	_log("%s Version %s (%s/%s) started", PROGNAME, VERSION, __DATE__,__TIME__);
+	_log("%s Version %s (%s) started", PROGNAME, VERSION,REL_NAME);
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
 		daemon_mode=strdup("false");	
@@ -223,7 +227,7 @@ int main(int argc, char ** argv) {
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
 			shm_hdr->current_running=0;
-			sprintf(shm_hdr->version, "%s-%s (%s/%s)", PROGNAME, VERSION, __DATE__,__TIME__);
+			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 			shm_hdr->do_reload=0;
 			
 			
