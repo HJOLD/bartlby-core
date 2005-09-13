@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/13 22:11:52  hjanuschka
+ip_list moved to .cfg
+	allowed_ips
+load limit moved to cfg
+	agent_load_limit
+
+portier now also uses ip list to verify ip of connector
+
+portier: passive check without plg args fixed
+
 Revision 1.5  2005/09/02 02:16:57  hjanuschka
 some trap downs ;-)
 
@@ -66,18 +76,33 @@ int main(int argc, char ** argv) {
 	char plugin_output[1024];
 	struct sockaddr_in name;
    	int namelen = sizeof(name);
+	char * agent_load_limit;
+	char * allowed_ip_list;
+	
 	
 	FILE * fplg;
 	
 	struct sigaction act1, oact1;
 	
-        if(argc < 3) {
-        	_log("Usage: bartlby_agent <IPLIST> <LOAD-LIMIT> <PORT>");
-        	printf("IPLIST is a comma seperated list of IP addresses\n");
+        if(argc < 1) {
+        	_log("Usage: bartlby_agent <CFGFILE>");
+        	
         		
         }
         
-        token=strtok(argv[0],",");
+        agent_load_limit=getConfigValue("agent_load_limit", argv[0]);
+        allowed_ip_list=getConfigValue("allowed_ips", argv[0]);
+        
+        if(agent_load_limit == NULL) {
+        	agent_load_limit=strdup("10");	
+        }
+        if(allowed_ip_list == NULL) {
+        	printf("No Ip Allowed");
+        	exit(1);
+        	
+        }
+        
+        token=strtok(allowed_ip_list,",");
         
         if (getpeername(0,(struct sockaddr *)&name, &namelen) < 0) {
    		//syslog(LOG_ERR, "getpeername: %m");
@@ -93,6 +118,7 @@ int main(int argc, char ** argv) {
         	}
         	token=strtok(NULL, ",");	
         }
+        free(allowed_ip_list);
         if(ip_ok < 0) {
         	sprintf(svc_back, "2|IP Blocked ");
         	bartlby_encode(svc_back, strlen(svc_back));
@@ -118,7 +144,7 @@ int main(int argc, char ** argv) {
 	
     	sprintf(svc_back, "1|ouuutsch");
         
-        plugin_dir=getConfigValue("agent_plugin_dir", argv[2]);
+        plugin_dir=getConfigValue("agent_plugin_dir", argv[0]);
         if(plugin_dir == NULL) {
         	_log("plugin dir failed");	
         	exit(1);
@@ -130,8 +156,8 @@ int main(int argc, char ** argv) {
         fscanf(load, "%f %f %f", &loadavg[0], &loadavg[1], &loadavg[2]);
         fclose(load);
         
-        if(loadavg[0] < atof(argv[1])) {
-		
+        if(loadavg[0] < atof(agent_load_limit)) {
+		free(agent_load_limit);
 		connection_timed_out=0;
 		alarm(CONN_TIMEOUT);
 		//ipmlg]ajgai]Amoowlkecvg~"/j"nmacnjmqv~
@@ -201,6 +227,7 @@ int main(int argc, char ** argv) {
 		        	
         } else { 
         	sprintf(svc_back, "1|LoadLimit reached %.02f skipping Check!|\n", loadavg[0]);
+        	free(agent_load_limit);
         }
 	//printf("SVC_BACK: %s\n", svc_back);
 	syslog(LOG_ERR, "bartlby_agent: %s",svc_back);

@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.3  2005/09/13 22:11:52  hjanuschka
+ip_list moved to .cfg
+	allowed_ips
+load limit moved to cfg
+	agent_load_limit
+
+portier now also uses ip list to verify ip of connector
+
+portier: passive check without plg args fixed
+
 Revision 1.2  2005/09/09 19:26:10  hjanuschka
 compile warnings fixed (cmd.c)
 
@@ -163,17 +173,14 @@ void cmd_get_passive() {
 				token=strtok(NULL, " ");
 				if(token != NULL) {
 					token_t=strtok(NULL, "|");
-					if(token_t != NULL) {
-						printf("%s %s", token, token_t);	
-						
-						printf("\n");
-						close(res);
-						exit(1);
-					} else {
-						close(res);
-						printf("hmmm2\n");	
-						exit(3);
+					if(token_t == NULL) {
+						token_t=strdup("");
 					}
+					printf("%s %s", token, token_t);	
+					printf("\n");
+					close(res);
+					exit(1);
+					
 				} else {
 					close(res);
 					printf("hmmm3\n");	

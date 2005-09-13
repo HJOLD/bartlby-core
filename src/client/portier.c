@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/09/13 22:11:52  hjanuschka
+ip_list moved to .cfg
+	allowed_ips
+load limit moved to cfg
+	agent_load_limit
+
+portier now also uses ip list to verify ip of connector
+
+portier: passive check without plg args fixed
+
 Revision 1.3  2005/09/09 19:23:37  hjanuschka
 portier: added get_passive cmd
 added a little dummy passive portier query tool (wich can set passive states and recieve passiv service info
@@ -65,6 +75,10 @@ int main(int argc, char ** argv) {
 	char svc_in[2048];
 	char svc_out[2048];
 	
+	char * allowed_ip_list;
+	int ip_ok=-1;
+	struct sockaddr_in name;
+   	int namelen = sizeof(name);
 	
 	char * token;
 	
@@ -91,6 +105,36 @@ int main(int argc, char ** argv) {
 	
 	struct shm_header * shm_hdr;
 	struct service * svcmap;
+	
+	
+	allowed_ip_list=getConfigValue("allowed_ips", argv[0]);
+	if(allowed_ip_list == NULL) {
+        	printf("-No Ip Allowed");
+        	exit(1);
+        	
+        }
+	
+	token=strtok(allowed_ip_list,",");
+        
+        if (getpeername(0,(struct sockaddr *)&name, &namelen) < 0) {
+   		//syslog(LOG_ERR, "getpeername: %m");
+   		exit(1);
+   	} else {
+   		//syslog(LOG_INFO, "Connection from %s",	inet_ntoa(name.sin_addr));
+   	}
+        
+        while(token != NULL) {
+        	//printf("CHECKING: %s against %s\n", token, inet_ntoa(name.sin_addr));
+        	if(strcmp(token, inet_ntoa(name.sin_addr)) == 0) {
+        		ip_ok=0;	
+        	}
+        	token=strtok(NULL, ",");	
+        }
+        free(allowed_ip_list);
+        if(ip_ok < 0) {
+        	printf("-IP Blocked\n");
+		exit(1);
+        }	
 	
 	shmtok = getConfigValue("shm_key", argv[0]);
 	
@@ -175,7 +219,7 @@ int main(int argc, char ** argv) {
 						//1|413395|2|dasdsadsadsadas|
 						if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
 							
-							sprintf(svc_out, "+PLG|%s %s\n", svcmap[x].plugin,svcmap[x].plugin_arguments);
+							sprintf(svc_out, "+PLG|%s %s|\n", svcmap[x].plugin,svcmap[x].plugin_arguments);
 							
 						} else {
 							sprintf(svc_out, "-3 Service is not of type 'PASSIVE'");	
@@ -209,7 +253,7 @@ int main(int argc, char ** argv) {
 							sprintf(passive_text, "%s", token);
 							
 						} else {
-							sprintf(passive_text, "(null)");
+							sprintf(passive_text," ");
 									
 						}
 						

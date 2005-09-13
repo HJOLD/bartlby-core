@@ -1,3 +1,24 @@
+2005-09-13 22:46  hjanuschka
+
+	* include/bartlby.h: STATE_UNKOWN Added (for plugins)
+
+2005-09-13 21:43  hjanuschka
+
+	* include/bartlby.h, src/bartlby.c, src/daemon.c: human readable
+	  release code name REL_NAME fixed printf() in shutdown daemon *fg*
+
+2005-09-13 21:30  hjanuschka
+
+	* bartlby.startup: startup script	useses BARTLBY_HOME env to
+	  determe base dir (defaults to /usr/local/bartlby)
+
+2005-09-13 21:29  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/bartlby.c,
+	  src/daemon.c, src/libs/Makefile, src/libs/mysql.c: daemon:
+	  pidfile, remove pidfile at end mysql.c: fixed 2 segfaults under
+	  _MALLOC_CHECK=2
+
 2005-09-11 23:42  hjanuschka
 
 	* src/: check.c, global.c, sched.c: log files are now archived by
