@@ -19,7 +19,7 @@ mysql: ${MYSQL}
 
 
 
-all:    firebird mysql
+all:   mysql
 	
 
 

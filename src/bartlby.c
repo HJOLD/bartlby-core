@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/09/13 19:29:18  hjanuschka
+daemon: pidfile, remove pidfile at end
+mysql.c: fixed 2 segfaults under _MALLOC_CHECK=2
+
 Revision 1.8  2005/09/06 20:59:12  hjanuschka
 performance tests fixes addition's
 
@@ -133,8 +137,11 @@ int main(int argc, char ** argv) {
 	
 	_log("%s Version %s (%s/%s) started", PROGNAME, VERSION, __DATE__,__TIME__);
 	daemon_mode=getConfigValue("daemon", argv[1]);
+	if(daemon_mode == NULL) {
+		daemon_mode=strdup("false");	
+	}
 	if(strcmp(daemon_mode,"true") == 0) {	
-		free(daemon_mode);
+		
 		bartlby_get_daemon(argv[1]);
 	} 	
 	
@@ -245,9 +252,14 @@ int main(int argc, char ** argv) {
 		
 	dlclose(SOHandle);	
 		
-	_log("%s Ended", PROGNAME);	
+	_log("%s Ended(Daemon: %s)", PROGNAME, daemon_mode);	
 		
+	//remove PidFile
+	if(strcmp(daemon_mode,"true") == 0) {	
 		
+		bartlby_end_daemon(argv[1]);
+	} 	
+	free(daemon_mode);
 		
 	return 1;
 }

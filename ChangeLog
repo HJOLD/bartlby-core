@@ -1,3 +1,13 @@
+2005-09-11 23:42  hjanuschka
+
+	* src/: check.c, global.c, sched.c: log files are now archived by
+	  Y.M.d
+
+2005-09-11 11:20  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/check.c, src/trigger.c: logging issue
+	  ;-) ui now can display log in a nice layout ;-)
+
 2005-09-09 21:26  hjanuschka
 
 	* src/client/cmd.c: compile warnings fixed (cmd.c)

@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.14  2005/09/13 19:29:18  hjanuschka
+daemon: pidfile, remove pidfile at end
+mysql.c: fixed 2 segfaults under _MALLOC_CHECK=2
+
 Revision 1.13  2005/09/05 19:53:13  hjanuschka
 2 day uptime without a single sigsegv ;-)
 added daemon function ;-)
@@ -505,8 +509,8 @@ int UpdateService(struct service * svc, char *config) {
 	char * SVC_TIME_FROM, * SVC_TIME_TO;
 	
 	
-	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00"));
-	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00"));
+	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00            "));
+	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00            "));
 	sprintf(SVC_TIME_FROM,"%02d:%02d:00", svc->hour_from, svc->min_from);
 	sprintf(SVC_TIME_TO,"%02d:%02d:00", svc->hour_to, svc->min_to);
 	
@@ -642,8 +646,8 @@ int AddService(struct service * svc, char *config) {
 	char * SVC_TIME_FROM, * SVC_TIME_TO;
 	
 	
-	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00"));
-	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00"));
+	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00                      "));
+	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00                      "));
 	sprintf(SVC_TIME_FROM,"%d:%d:00", svc->hour_from, svc->min_from);
 	sprintf(SVC_TIME_TO,"%d:%d:00", svc->hour_to, svc->min_to);
 	
