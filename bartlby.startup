@@ -1,0 +1,106 @@
+#!/bin/sh
+#
+# poor man's bartlby startup script
+#
+
+
+BTL_DIR=${BARTLBY_HOME:-'/usr/local/bartlby/'}
+BIN_DIR=""
+ETC_DIR=""
+
+export MALLOC_CHECK_=2
+
+
+function bartlby_status {
+	if [ -f $1 ]; then
+		echo "PID file:                 [exists ]";
+	else
+		echo "PID file:                 [missing]";
+	fi;
+	MYPID=`cat $1`;
+	a=`ps ww --pid $MYPID|wc -l`
+	a=`expr $a \- 1`;
+		echo "Processes:                [$a]";
+	if [ $a != 1 ]; then
+		echo "Bartlby seems not to be running";
+		exit 5;
+	fi;
+	
+	echo "Bartlby seems not to be fine";
+}
+function start_bartlby  {
+	if [ -f $1 ]; then
+		echo "PIDFILE: $1 exists (remove it and rerun start)";
+		exit 3;
+	fi;
+	
+	echo "starting bartlby";
+	$BTL_DIR/${BIN_DIR}bartlby $BTL_DIR/${ETC_DIR}bartlby.cfg
+
+}
+
+function stop_bartlby {
+	echo "stopping bartlby";
+	if [ ! -f $1 ];  then
+		echo "PIDFILE $1 does not exists";
+		exit 4;
+	fi;
+	BART_PID=`cat $1`;
+	kill -SIGUSR1 $BART_PID
+	
+}
+
+
+function raiseErr {
+	echo $1;
+	exit $2;
+}
+
+function getConfigValue {
+	if [ ! -f $BTL_DIR/bartlby.cfg ];
+	then
+		raiseErr "Config $BTL_DIR/bartlby.cfg doesnt look like a file"  3
+		
+	fi;
+	
+	r=`cat $BTL_DIR/bartlby.cfg |grep $1|awk -F"=" '{print \$2}'`
+	echo $r;
+
+}
+
+if [ ! -d $BTL_DIR ]; then
+	raiseErr "Dir $BTL_DIR does not exist" 2
+	
+fi;
+
+cd $BTL_DIR;
+PIDDIR=`getConfigValue "pidfile_dir"|tr -d [:cntrl:]`;
+PIDNAME=$PIDDIR/bartlby.pid
+
+
+case $1 in
+	start)
+		
+		start_bartlby $PIDNAME;;
+	stop)
+		
+		stop_bartlby $PIDNAME;;
+	restart)
+		stop_bartlby $PIDNAME;
+		sleep 10;
+		start_bartlby $PIDNAME;;
+		
+	status) 
+		bartlby_status $PIDNAME;;
+		
+
+esac
+
+
+
+
+
+
+
+
+
