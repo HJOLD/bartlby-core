@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.11  2005/09/14 22:01:41  hjanuschka
+debug in data_lib added and removed
+agent: off by two :-) *fG* malloc error producing magic char's  (fixed)
+
 Revision 1.10  2005/09/11 21:42:24  hjanuschka
 log files are now archived by Y.M.d
 
@@ -163,8 +167,8 @@ void bartlby_check_active(struct service * svc) {
 	client_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+30));
 	sprintf(client_request, "%s| %s|", svc->plugin, svc->plugin_arguments);
 	
-	
-	bartlby_encode(client_request, (strlen(svc->plugin)+strlen(svc->plugin_arguments)+3));
+	//_log("Crequest: %s %d", client_request, strlen(client_request));
+	bartlby_encode(client_request, strlen(client_request));
 	
 	
 	alarm(CONN_TIMEOUT);

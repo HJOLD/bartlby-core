@@ -1,3 +1,13 @@
+2005-09-14 00:11  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/client/agent.c, src/client/cmd.c,
+	  src/client/portier.c: ip_list moved to .cfg	  allowed_ips load
+	  limit moved to cfg	 agent_load_limit
+
+	  portier now also uses ip list to verify ip of connector
+
+	  portier: passive check without plg args fixed
+
 2005-09-13 22:46  hjanuschka
 
 	* include/bartlby.h: STATE_UNKOWN Added (for plugins)

@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/14 22:01:41  hjanuschka
+debug in data_lib added and removed
+agent: off by two :-) *fG* malloc error producing magic char's  (fixed)
+
 Revision 1.6  2005/09/13 22:11:52  hjanuschka
 ip_list moved to .cfg
 	allowed_ips
@@ -37,7 +41,7 @@ CVS Header
 
 
 */
-
+#include <malloc.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <stdlib.h>
@@ -191,8 +195,10 @@ int main(int argc, char ** argv) {
 				} else {
 					sprintf(plg_args, "%s", token);
 				}
-				exec_str=malloc(sizeof(char) * (strlen(plugin_path)+strlen(plg_args)));
+				exec_str=malloc(sizeof(char) * (strlen(plugin_path)+strlen(plg_args)+255));
 				sprintf(exec_str, "%s %s", plugin_path, plg_args);
+				//printf("E_STR: P: '%s' A: '%s' F: '%s'\n", plugin_path, plg_args, exec_str);
+				
 				fplg=popen(exec_str, "r");
 				if(fplg != NULL) {
 					if(fgets(plugin_output, 1024, fplg) != NULL) {
