@@ -1,3 +1,9 @@
+2005-09-15 00:01  hjanuschka
+
+	* ChangeLog, src/check.c, src/client/agent.c: debug in data_lib
+	  added and removed agent: off by two :-) *fG* malloc error
+	  producing magic char's  (fixed)
+
 2005-09-14 00:11  hjanuschka
 
 	* ChangeLog, bartlby.cfg, src/client/agent.c, src/client/cmd.c,
