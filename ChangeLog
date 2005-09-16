@@ -1,3 +1,7 @@
+2005-09-15 22:33  hjanuschka
+
+	* ChangeLog: [no log message]
+
 2005-09-15 00:01  hjanuschka
 
 	* ChangeLog, src/check.c, src/client/agent.c: debug in data_lib
