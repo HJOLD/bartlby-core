@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2005/09/18 05:05:43  hjanuschka
+compile warnings
+
 Revision 1.11  2005/09/18 04:04:52  hjanuschka
 replication interface (currently just a try out)
 one instance can now replicate itself to another using portier as a transport way
@@ -72,11 +75,7 @@ CVS header ;-)
 
 
 
-#define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
-    	if((dlmsg=dlerror()) != NULL) { \
-        	_log("Error: %s", dlmsg); \
-        	exit(1); \
-    	}
+
 
 int main(int argc, char ** argv) {
 	
