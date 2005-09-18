@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.3  2005/09/18 05:03:52  hjanuschka
+replication is false by default now
+need to fix the damn write()/read() -> while() sh**
+
 Revision 1.2  2005/09/18 04:04:52  hjanuschka
 replication interface (currently just a try out)
 one instance can now replicate itself to another using portier as a transport way
@@ -128,7 +132,7 @@ int replicate_single(char * hostname, void * shm_addr, char * cfgfile) {
 	
 	SHMSize=cfg_shm_size_bytes*1024*1024;	
 	
-	SHMSize=20000;
+	//SHMSize=20000;
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
 	
@@ -179,7 +183,7 @@ int replicate_single(char * hostname, void * shm_addr, char * cfgfile) {
 		//_log("Result: %s", verstr);
 		
 		alarm(5);
-		if((read_cnt=write(res, shm_addr, SHMSize)) < 0) {
+		if((read_cnt=send(res, shm_addr, SHMSize,0)) < 0) {
 			_log("\twrite timed out");
 			close(res);
 			return -3;

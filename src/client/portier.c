@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/18 05:03:52  hjanuschka
+replication is false by default now
+need to fix the damn write()/read() -> while() sh**
+
 Revision 1.5  2005/09/18 04:04:52  hjanuschka
 replication interface (currently just a try out)
 one instance can now replicate itself to another using portier as a transport way
@@ -254,7 +258,7 @@ int main(int argc, char ** argv) {
 					fflush(stdout);
 					
 					
-					repl_shm_addr=malloc(sizeof(void *)*repl_SHMSize);
+					repl_shm_addr=malloc(repl_SHMSize*2);
 					
 					connection_timed_out=0;
 					alarm(CONN_TIMEOUT);
@@ -274,11 +278,12 @@ int main(int argc, char ** argv) {
 					repl_wrkmap=bartlby_SHM_WorkerMap(repl_shm_addr);
 					
 					
-					/*FILE * fp;
+					FILE * fp;
 					fp=fopen("/var/tmp/1.shm", "wb");
-					fwrite(repl_shm_addr,sizeof(repl_shm_addr), repl_SHMSize, fp);
+					//fwrite(repl_shm_addr,sizeof(repl_shm_addr), repl_SHMSize, fp);
+					write(fileno(fp), repl_shm_addr, read_rtc);
 					fclose(fp);
-					*/
+					
 					printf("+ FIXME !! Read: %d Got: %d Services %d Workers\n",read_rtc, repl_hdr->svccount, repl_hdr->wrkcount);
 					fflush(stdout);
 					free(repl_shm_addr);

@@ -8,6 +8,7 @@ BTL_DIR=${BARTLBY_HOME:-'/usr/local/bartlby/'}
 BIN_DIR=""
 ETC_DIR=""
 
+ulimit -c 1000
 export MALLOC_CHECK_=2
 
 
