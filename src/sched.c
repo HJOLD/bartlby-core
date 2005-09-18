@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.11  2005/09/18 11:28:12  hjanuschka
+replication now works :-)
+core: can run as slave and load data from a file instead of data_lib
+ui: displays a warning if in slave mode to not add/modify servers/services
+portier: recieves and writes shm dump to disk
+so hot stand by should be possible ;-)
+slave also does service checking
+
 Revision 1.10  2005/09/18 01:33:54  hjanuschka
 *** empty log message ***
 
@@ -151,6 +159,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	int shutdown_waits=0;
 	int round_start, round_visitors;
 	
+	char * i_am_a_slave;
 	char * cfg_mps;
 		
 
@@ -257,7 +266,14 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		round_start=time(NULL);
 		round_visitors=0;
 		sleep(SCHED_PAUSE);
-		replication_go(cfgfile, shm_addr, SOHandle);
+		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
+		if(i_am_a_slave == NULL) {
+			replication_go(cfgfile, shm_addr, SOHandle);
+		} else {
+			_log("Skipped repl because me is a slave");	
+			return -2;
+		}
+		free(i_am_a_slave);
 	}
 	return 1;
 	

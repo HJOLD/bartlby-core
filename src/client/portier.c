@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/18 11:28:12  hjanuschka
+replication now works :-)
+core: can run as slave and load data from a file instead of data_lib
+ui: displays a warning if in slave mode to not add/modify servers/services
+portier: recieves and writes shm dump to disk
+so hot stand by should be possible ;-)
+slave also does service checking
+
 Revision 1.6  2005/09/18 05:03:52  hjanuschka
 replication is false by default now
 need to fix the damn write()/read() -> while() sh**
@@ -66,7 +74,7 @@ portier import
 #include <arpa/inet.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
+#include <errno.h>
 
 #include <bartlby.h>
 static int connection_timed_out=0;
@@ -77,6 +85,40 @@ static int connection_timed_out=0;
 #define CMD_REPL 3
 
 #define CONN_TIMEOUT 10
+
+ssize_t	readn(int fd, void *vptr, size_t n)
+{
+	size_t	nleft;
+	ssize_t	nread;
+	char	*ptr;
+
+	ptr = vptr;
+	nleft = n;
+	while (nleft > 0) {
+		if ( (nread = read(fd, ptr, nleft)) < 0) {
+			if (errno == EINTR)
+				nread = 0;		/* and call read() again */
+			else
+				return(-1);
+		} else if (nread == 0)
+			break;				/* EOF */
+
+		nleft -= nread;
+		ptr   += nread;
+	}
+	return(n - nleft);		/* return >= 0 */
+}
+/* end readn */
+
+ssize_t Readn(int fd, void *ptr, size_t nbytes)
+{
+	ssize_t		n;
+
+	if ( (n = readn(fd, ptr, nbytes)) < 0)
+		return -1;
+		
+	return(n);
+}
 
 static void agent_conn_timeout(int signo) {
  	connection_timed_out = 1;
@@ -97,18 +139,13 @@ int main(int argc, char ** argv) {
 	int command;
 	int svc_found=0;
 	
-	char * SOName; //Shared library name
-	void * SOHandle;
-	const char * dlmsg;
+	
 	
 	/////////// Replication ////////////////
 	long repl_SHMSize;
 	void * repl_shm_addr;
-	struct service * repl_svcmap;
-	struct worker * repl_wrkmap;
-	struct shm_header * repl_hdr;
-	int (*addService)(struct service *,char *);
-	int (*addWorker)(struct worker *, char*);
+	char * repl_bdir;
+	
 	int read_rtc;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,28 +268,10 @@ int main(int argc, char ** argv) {
 			case CMD_REPL:
 				token=strtok(NULL, "|");
 				if(token != NULL) {
-					/*
-					long repl_SHMSize;
-					void * repl_shm_addr;
-					struct service * repl_svcmap;
-					struct worker * repl_wrkmap;
-					struct shm_header * repl_hdr;
-					*/
-					SOName = getConfigValue("data_library", argv[0]);
-					if(SOName == NULL) {
-						printf("-No data_library specified in `%s' config file", argv[0]);
-						exit(1);
-					}
-					SOHandle=dlopen(SOName, RTLD_LAZY);
-		
-    					if((dlmsg=dlerror()) != NULL) {
-        					printf("-Error: %s", dlmsg);
-        					exit(1);
-    					}
-					LOAD_SYMBOL(addWorker,SOHandle, "AddWorker");
-					LOAD_SYMBOL(addService,SOHandle, "AddService");
 					
-
+					repl_bdir = getConfigValue("basedir", argv[0]);
+					
+					
 					repl_SHMSize=atol(token);
 					printf("+waiting for: %ld Bytes\n", repl_SHMSize);
 					fflush(stdout);
@@ -261,9 +280,9 @@ int main(int argc, char ** argv) {
 					repl_shm_addr=malloc(repl_SHMSize*2);
 					
 					connection_timed_out=0;
-					alarm(CONN_TIMEOUT);
+					alarm(CONN_TIMEOUT+500);
 					
-					if((read_rtc=read(fileno(stdin), repl_shm_addr, repl_SHMSize)) < 0) {
+					if((read_rtc=Readn(fileno(stdin), repl_shm_addr, repl_SHMSize)) < 0) {
 						printf("-BAD!");
 						exit(1);
 					}
@@ -273,20 +292,21 @@ int main(int argc, char ** argv) {
 						printf("-Timed out!!!\n");
 						exit(1);	
 					}
-					repl_hdr=bartlby_SHM_GetHDR(repl_shm_addr);
-					repl_svcmap=bartlby_SHM_ServiceMap(repl_shm_addr);
-					repl_wrkmap=bartlby_SHM_WorkerMap(repl_shm_addr);
-					
 					
 					FILE * fp;
-					fp=fopen("/var/tmp/1.shm", "wb");
+					char base_fname[2048];
+					sprintf(base_fname, "%s/bartlby.shm.repl", repl_bdir);
+					
+					fp=fopen(base_fname, "wb");
 					//fwrite(repl_shm_addr,sizeof(repl_shm_addr), repl_SHMSize, fp);
 					write(fileno(fp), repl_shm_addr, read_rtc);
 					fclose(fp);
 					
-					printf("+ FIXME !! Read: %d Got: %d Services %d Workers\n",read_rtc, repl_hdr->svccount, repl_hdr->wrkcount);
-					fflush(stdout);
+					printf("+ OK %s\n", base_fname);				
 					free(repl_shm_addr);
+					free(base_fname);
+					free(repl_bdir);
+					
 					exit(1);
 					
 					

@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.13  2005/09/18 11:28:12  hjanuschka
+replication now works :-)
+core: can run as slave and load data from a file instead of data_lib
+ui: displays a warning if in slave mode to not add/modify servers/services
+portier: recieves and writes shm dump to disk
+so hot stand by should be possible ;-)
+slave also does service checking
+
 Revision 1.12  2005/09/18 05:05:43  hjanuschka
 compile warnings
 
@@ -67,6 +75,7 @@ CVS header ;-)
 #include <sys/shm.h>
 #include <sys/wait.h>	
 #include <unistd.h>	
+#include <sys/stat.h>
 
 #include <dlfcn.h>
 
@@ -125,6 +134,12 @@ int main(int argc, char ** argv) {
 		END SHM stuff
 	*/
 
+	/*
+	REPL
+	*/
+		char * i_am_a_slave; //Run from file instead of DATALIB
+		FILE * repl_fp;
+		struct stat repl_st;
 	
 	struct service * svcmap;
 	struct worker * wrkmap;
@@ -202,6 +217,10 @@ int main(int argc, char ** argv) {
 		
 		
 		cfg_shm_size = getConfigValue("shm_size", argv[1]);
+		i_am_a_slave = getConfigValue("i_am_a_slave", argv[1]);
+		if(i_am_a_slave == NULL) {
+			i_am_a_slave=strdup("false");	
+		}
 		if(cfg_shm_size==NULL) {
 			cfg_shm_size_bytes=10;		
 		} else {
@@ -215,25 +234,47 @@ int main(int argc, char ** argv) {
 		
 		if(shm_id != -1) {
 			bartlby_address=shmat(shm_id,NULL,0);
-		
-			shm_hdr=(struct shm_header *)(void *)bartlby_address;
 			
+			shm_hdr=(struct shm_header *)(void *)bartlby_address;
 			svcmap=(struct service *)(void *)bartlby_address+sizeof(struct shm_header);
 			
-			shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
-			shm_hdr->svccount=shm_svc_cnt;
-			
-			svcmap=bartlby_SHM_ServiceMap(bartlby_address);
-			
-			wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
-			shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
-			shm_hdr->wrkcount=shm_wrk_cnt;
+			if(strcmp(i_am_a_slave, "false") != 0) {
+				_log("Slave Mode");
+				
+				if(stat(i_am_a_slave, &repl_st) < 0) {
+					_log("stat failed on: %s", i_am_a_slave);
+					break; //End scheduler	
+				}
+				repl_fp=fopen(i_am_a_slave, "r");
+				read(fileno(repl_fp), bartlby_address, repl_st.st_size);				
+				fclose(repl_fp);
+				
+				
+			} else {
+				_log("Master Mode");	
+				
+				
+				
+				shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
+				shm_hdr->svccount=shm_svc_cnt;
+				
+				svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+				
+				wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
+				shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
+				shm_hdr->wrkcount=shm_wrk_cnt;
+			}
+			free(i_am_a_slave);
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
 			shm_hdr->current_running=0;
 			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 			shm_hdr->do_reload=0;
 			shm_hdr->last_replication=-1;
+			
+			
+			
+			
 			
 			
 		} else {

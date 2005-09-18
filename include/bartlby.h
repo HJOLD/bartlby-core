@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Angeloi"
-#define VERSION  "0.9.7rc1"
-#define EXPECTCORE 1009072 //Module V Check's
+#define REL_NAME "Archangeloi"
+#define VERSION  "0.9.8a"
+#define EXPECTCORE 1009081 //Module V Check's
 
 
 #define STATE_OK 0

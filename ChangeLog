@@ -1,3 +1,26 @@
+2005-09-18 07:05  hjanuschka
+
+	* src/bartlby.c: compile warnings
+
+2005-09-18 07:03  hjanuschka
+
+	* bartlby.cfg, bartlby.startup, src/replication.c,
+	  src/client/portier.c: replication is false by default now need to
+	  fix the damn write()/read() -> while() sh**
+
+2005-09-18 06:04  hjanuschka
+
+	* include/bartlby.h, src/bartlby.c, src/replication.c,
+	  src/client/Makefile, src/client/agent.c, src/client/portier.c:
+	  replication interface (currently just a try out) one instance can
+	  now replicate itself to another using portier as a transport way
+	  FIXME: need to sort out a binary write() problem
+
+2005-09-18 03:33  hjanuschka
+
+	* ChangeLog, include/bartlby.h, src/Makefile, src/replication.c,
+	  src/sched.c: [no log message]
+
 2005-09-18 02:56  hjanuschka
 
 	* ChangeLog: [no log message]

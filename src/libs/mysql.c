@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.15  2005/09/18 11:28:12  hjanuschka
+replication now works :-)
+core: can run as slave and load data from a file instead of data_lib
+ui: displays a warning if in slave mode to not add/modify servers/services
+portier: recieves and writes shm dump to disk
+so hot stand by should be possible ;-)
+slave also does service checking
+
 Revision 1.14  2005/09/13 19:29:18  hjanuschka
 daemon: pidfile, remove pidfile at end
 mysql.c: fixed 2 segfaults under _MALLOC_CHECK=2
@@ -102,6 +110,52 @@ CVS Header
 #define DELETE_WORKER "delete from workers where worker_id=%d"
 #define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s' WHERE worker_id=%d"
 #define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password from workers where worker_id=%d"
+
+
+int PrepareReplication(char * config) {
+	/*
+		modify worker
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	//Delete Servers
+	mysql_query(mysql, "DELETE FROM SERVERS");
+		CHK_ERR(mysql);
+	mysql_query(mysql, "DELETE FROM SERVICES");
+		CHK_ERR(mysql);
+	mysql_query(mysql, "DELETE FROM WORKERS");
+		CHK_ERR(mysql);
+	
+	
+	
+	rtc=1;
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;		
+}
+
 
 int GetWorkerById(int worker_id, struct worker * svc, char * config) {
 	struct service * rsvc;

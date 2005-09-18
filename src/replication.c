@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/09/18 11:28:12  hjanuschka
+replication now works :-)
+core: can run as slave and load data from a file instead of data_lib
+ui: displays a warning if in slave mode to not add/modify servers/services
+portier: recieves and writes shm dump to disk
+so hot stand by should be possible ;-)
+slave also does service checking
+
 Revision 1.3  2005/09/18 05:03:52  hjanuschka
 replication is false by default now
 need to fix the damn write()/read() -> while() sh**
@@ -49,9 +57,41 @@ Revision 1.1  2005/09/18 01:33:54  hjanuschka
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <bartlby.h>
+#include <errno.h>
+
 
 static int connection_timed_out=0;
 
+ssize_t	writen(int fd, const void *vptr, size_t n)
+{
+	size_t		nleft;
+	ssize_t		nwritten;
+	const char	*ptr;
+
+	ptr = vptr;
+	nleft = n;
+	while (nleft > 0) {
+		if ( (nwritten = write(fd, ptr, nleft)) <= 0) {
+			if (errno == EINTR)
+				nwritten = 0;		/* and call write() again */
+			else
+				return(-1);			/* error */
+		}
+
+		nleft -= nwritten;
+		ptr   += nwritten;
+	}
+	return(n);
+}
+/* end writen */
+
+int Writen(int fd, void *ptr, size_t nbytes)
+{
+	if (writen(fd, ptr, nbytes) != nbytes)
+		return -1;
+		
+	return nbytes;
+}
 
 static void bartlby_conn_timeout(int signo) {
  	connection_timed_out = 1;
@@ -182,8 +222,8 @@ int replicate_single(char * hostname, void * shm_addr, char * cfgfile) {
 		
 		//_log("Result: %s", verstr);
 		
-		alarm(5);
-		if((read_cnt=send(res, shm_addr, SHMSize,0)) < 0) {
+		alarm(500);
+		if((read_cnt=Writen(res, shm_addr, SHMSize)) < 0) {
 			_log("\twrite timed out");
 			close(res);
 			return -3;
@@ -192,7 +232,7 @@ int replicate_single(char * hostname, void * shm_addr, char * cfgfile) {
 		
 		alarm(0);
 		connection_timed_out=0;
-		alarm(5);
+		alarm(500);
 		if((read_cnt=read(res, verstr, 1024)) < 0) {
 			_log("repl: Cant get reply");
 			return -1;
