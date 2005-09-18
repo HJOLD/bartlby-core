@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2005/09/18 22:30:28  hjanuschka
+replication works now
+
 Revision 1.11  2005/09/18 11:28:12  hjanuschka
 replication now works :-)
 core: can run as slave and load data from a file instead of data_lib
@@ -271,9 +274,10 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			replication_go(cfgfile, shm_addr, SOHandle);
 		} else {
 			_log("Skipped repl because me is a slave");	
+			free(i_am_a_slave);
 			return -2;
 		}
-		free(i_am_a_slave);
+		
 	}
 	return 1;
 	
