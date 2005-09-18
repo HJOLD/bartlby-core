@@ -112,6 +112,9 @@ void sched_reschedule(struct service * svc);
 void bartlby_check_service(struct service * svc, void *, void *, char *);
 
 
+//Replication
+int replication_go(char *, void *, void *);
+
 //SHM
 
 

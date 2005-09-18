@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2005/09/18 01:33:54  hjanuschka
+*** empty log message ***
+
 Revision 1.9  2005/09/11 21:42:24  hjanuschka
 log files are now archived by Y.M.d
 
@@ -254,6 +257,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		round_start=time(NULL);
 		round_visitors=0;
 		sleep(SCHED_PAUSE);
+		replication_go(cfgfile, shm_addr, SOHandle);
 	}
 	return 1;
 	
