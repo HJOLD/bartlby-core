@@ -31,7 +31,7 @@
 
 #define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
     	if((dlmsg=dlerror()) != NULL) { \
-        	_log("Error: %s", dlmsg); \
+        	_log("-Error: %s", dlmsg); \
         	exit(1); \
     	}
     	
@@ -43,6 +43,7 @@ struct shm_header {
 	        int current_running;
 		char  version[50];
 		int do_reload;
+		int last_replication;
 
 };
 

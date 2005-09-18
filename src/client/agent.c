@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/09/18 04:04:52  hjanuschka
+replication interface (currently just a try out)
+one instance can now replicate itself to another using portier as a transport way
+FIXME: need to sort out a binary write() problem
+
 Revision 1.7  2005/09/14 22:01:41  hjanuschka
 debug in data_lib added and removed
 agent: off by two :-) *fG* malloc error producing magic char's  (fixed)
@@ -184,7 +189,7 @@ int main(int argc, char ** argv) {
 		} else {
 			sprintf(plg, "%s", token);
 			syslog(LOG_ERR, "bartlby_agent: %s",plg);
-			plugin_path=malloc(sizeof(char) * (strlen(plugin_dir)+strlen(plg)));
+			plugin_path=malloc(sizeof(char) * (strlen(plugin_dir)+strlen(plg)+255));
 			sprintf(plugin_path, "%s/%s", plugin_dir, plg);
 			if(stat(plugin_path,&plg_stat) < 0) {
 				sprintf(svc_back, "1|Plugin does not exist (%s)", plugin_path);	

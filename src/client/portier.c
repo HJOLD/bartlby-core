@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/18 04:04:52  hjanuschka
+replication interface (currently just a try out)
+one instance can now replicate itself to another using portier as a transport way
+FIXME: need to sort out a binary write() problem
+
 Revision 1.4  2005/09/13 22:11:52  hjanuschka
 ip_list moved to .cfg
 	allowed_ips
@@ -41,6 +46,7 @@ portier import
 
 
 */
+#include <dlfcn.h>
 #include <time.h>
 #include <stdio.h>
 #include <syslog.h>
@@ -64,6 +70,7 @@ static int connection_timed_out=0;
 
 #define CMD_PASSIVE 1
 #define CMD_GET_PLG 2
+#define CMD_REPL 3
 
 #define CONN_TIMEOUT 10
 
@@ -82,8 +89,23 @@ int main(int argc, char ** argv) {
 	
 	char * token;
 	
+	
 	int command;
 	int svc_found=0;
+	
+	char * SOName; //Shared library name
+	void * SOHandle;
+	const char * dlmsg;
+	
+	/////////// Replication ////////////////
+	long repl_SHMSize;
+	void * repl_shm_addr;
+	struct service * repl_svcmap;
+	struct worker * repl_wrkmap;
+	struct shm_header * repl_hdr;
+	int (*addService)(struct service *,char *);
+	int (*addWorker)(struct worker *, char*);
+	int read_rtc;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	int passive_svcid;
@@ -202,6 +224,72 @@ int main(int argc, char ** argv) {
 	if(token != NULL) {
 		command=atoi(token);
 		switch(command) {
+			case CMD_REPL:
+				token=strtok(NULL, "|");
+				if(token != NULL) {
+					/*
+					long repl_SHMSize;
+					void * repl_shm_addr;
+					struct service * repl_svcmap;
+					struct worker * repl_wrkmap;
+					struct shm_header * repl_hdr;
+					*/
+					SOName = getConfigValue("data_library", argv[0]);
+					if(SOName == NULL) {
+						printf("-No data_library specified in `%s' config file", argv[0]);
+						exit(1);
+					}
+					SOHandle=dlopen(SOName, RTLD_LAZY);
+		
+    					if((dlmsg=dlerror()) != NULL) {
+        					printf("-Error: %s", dlmsg);
+        					exit(1);
+    					}
+					LOAD_SYMBOL(addWorker,SOHandle, "AddWorker");
+					LOAD_SYMBOL(addService,SOHandle, "AddService");
+					
+
+					repl_SHMSize=atol(token);
+					printf("+waiting for: %ld Bytes\n", repl_SHMSize);
+					fflush(stdout);
+					
+					
+					repl_shm_addr=malloc(sizeof(void *)*repl_SHMSize);
+					
+					connection_timed_out=0;
+					alarm(CONN_TIMEOUT);
+					
+					if((read_rtc=read(fileno(stdin), repl_shm_addr, repl_SHMSize)) < 0) {
+						printf("-BAD!");
+						exit(1);
+					}
+					alarm(0);
+					
+					if(connection_timed_out == 1) {
+						printf("-Timed out!!!\n");
+						exit(1);	
+					}
+					repl_hdr=bartlby_SHM_GetHDR(repl_shm_addr);
+					repl_svcmap=bartlby_SHM_ServiceMap(repl_shm_addr);
+					repl_wrkmap=bartlby_SHM_WorkerMap(repl_shm_addr);
+					
+					
+					/*FILE * fp;
+					fp=fopen("/var/tmp/1.shm", "wb");
+					fwrite(repl_shm_addr,sizeof(repl_shm_addr), repl_SHMSize, fp);
+					fclose(fp);
+					*/
+					printf("+ FIXME !! Read: %d Got: %d Services %d Workers\n",read_rtc, repl_hdr->svccount, repl_hdr->wrkcount);
+					fflush(stdout);
+					free(repl_shm_addr);
+					exit(1);
+					
+					
+						
+				} else {
+					sprintf(svc_out, "-7 Bytes not supplied\n");	
+				}
+			break;
 			case CMD_GET_PLG:
 				token=strtok(NULL, "|");
 				if(token != NULL) {
@@ -231,7 +319,7 @@ int main(int argc, char ** argv) {
 					
 					
 				} else {
-					sprintf(svc_out, "SVCID missing\n");	
+					sprintf(svc_out, "-5 SVCID missing\n");	
 					
 				}
 			break;

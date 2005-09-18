@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.11  2005/09/18 04:04:52  hjanuschka
+replication interface (currently just a try out)
+one instance can now replicate itself to another using portier as a transport way
+FIXME: need to sort out a binary write() problem
+
 Revision 1.10  2005/09/13 19:43:31  hjanuschka
 human readable release code name REL_NAME
 fixed printf() in shutdown daemon *fg*
@@ -229,7 +234,7 @@ int main(int argc, char ** argv) {
 			shm_hdr->current_running=0;
 			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 			shm_hdr->do_reload=0;
-			
+			shm_hdr->last_replication=-1;
 			
 			
 		} else {

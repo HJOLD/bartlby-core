@@ -12,7 +12,7 @@ CMD = ../config.o ../global.o cmd.o
 cmd: ${CMD}
 	gcc   -g -I../../include/   -o ../../bartlby_cmd ${CMD}
 portier: ${PORTIER}
-	gcc  -g -I../../include/   -o ../../bartlby_portier ${PORTIER}
+	gcc  -ldl -g -I../../include/   -o ../../bartlby_portier ${PORTIER}
 	
 agent: ${AGENT} 
 	gcc   -g -I../../include/   -o ../../bartlby_agent ${AGENT}
