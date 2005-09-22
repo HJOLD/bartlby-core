@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/09/22 02:55:03  hjanuschka
+agent: def timeout 15
+check: strreplace ' "
+
 Revision 1.8  2005/09/18 04:04:52  hjanuschka
 replication interface (currently just a try out)
 one instance can now replicate itself to another using portier as a transport way
@@ -63,7 +67,7 @@ CVS Header
 #include <bartlby.h>
 static int connection_timed_out=0;
 
-#define CONN_TIMEOUT 10
+#define CONN_TIMEOUT 15
 
 static void agent_conn_timeout(int signo) {
  	connection_timed_out = 1;

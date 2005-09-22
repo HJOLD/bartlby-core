@@ -1,3 +1,17 @@
+2005-09-19 00:30  hjanuschka
+
+	* bartlby.cfg, src/sched.c: replication works now
+
+2005-09-18 13:28  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/bartlby.c,
+	  src/replication.c, src/sched.c, src/client/portier.c,
+	  src/libs/mysql.c: replication now works :-) core: can run as
+	  slave and load data from a file instead of data_lib ui: displays
+	  a warning if in slave mode to not add/modify servers/services
+	  portier: recieves and writes shm dump to disk so hot stand by
+	  should be possible ;-) slave also does service checking
+
 2005-09-18 07:05  hjanuschka
 
 	* src/bartlby.c: compile warnings

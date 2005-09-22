@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.12  2005/09/22 02:55:03  hjanuschka
+agent: def timeout 15
+check: strreplace ' "
+
 Revision 1.11  2005/09/14 22:01:41  hjanuschka
 debug in data_lib added and removed
 agent: off by two :-) *fG* malloc error producing magic char's  (fixed)
@@ -292,6 +296,7 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,char * cfgfile) {
 	char * dlmsg;
 	struct worker * wrkmap;
+	int x;
 	
 	struct shm_header * hdr;
 	
@@ -322,7 +327,10 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 	}
 	
-	
+	for(x=0; x<=strlen(svc->new_server_text); x++) {
+		if(svc->new_server_text[x] == '\'')
+			svc->new_server_text[x]='"';
+	}
 	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
 	doUpdate(svc,cfgfile);
 	
