@@ -1,3 +1,8 @@
+2005-09-22 04:55  hjanuschka
+
+	* ChangeLog, src/check.c, src/client/agent.c: agent: def timeout 15
+	  check: strreplace ' "
+
 2005-09-19 00:30  hjanuschka
 
 	* bartlby.cfg, src/sched.c: replication works now

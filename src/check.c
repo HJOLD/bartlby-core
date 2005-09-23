@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.13  2005/09/23 18:21:18  hjanuschka
+if check times out curren_running gets in negative integer fixed
+default check timeout 15 seconds
+
 Revision 1.12  2005/09/22 02:55:03  hjanuschka
 agent: def timeout 15
 check: strreplace ' "
@@ -79,7 +83,7 @@ CVS Header
 #define RECV_ERROR "Recieve Error"
 #define PROTOCOL_ERROR "Protocol Error"
 
-#define CONN_TIMEOUT 5
+#define CONN_TIMEOUT 15
 
 
 

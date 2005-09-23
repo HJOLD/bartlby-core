@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.13  2005/09/23 18:21:18  hjanuschka
+if check times out curren_running gets in negative integer fixed
+default check timeout 15 seconds
+
 Revision 1.12  2005/09/18 22:30:28  hjanuschka
 replication works now
 
@@ -142,8 +146,11 @@ void sched_wait_open() {
 void sched_reaper(int signum) {
 
 	 while (waitpid (-1, NULL, WNOHANG) > 0) {
-	 	current_running--;
-	 	gshm_hdr->current_running--;
+	 	
+	 	if(gshm_hdr->current_running > 0) {
+	 		current_running--;
+	 		gshm_hdr->current_running--;
+	 	}
 	 }
 	
 	//_log("Child exited cnt @: %d",current_running); 
