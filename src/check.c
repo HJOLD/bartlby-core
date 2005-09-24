@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.14  2005/09/24 10:34:11  hjanuschka
+deadlock sched_wait_open fixed
+
 Revision 1.13  2005/09/23 18:21:18  hjanuschka
 if check times out curren_running gets in negative integer fixed
 default check timeout 15 seconds
@@ -201,7 +204,7 @@ void bartlby_check_active(struct service * svc) {
 	alarm(0);
 	
 	if (return_bytes == -1 || connection_timed_out == 1) {
-            	_log("TIMEOUT");
+            	_log("%s:%d/%s - TIMEOUT", svc->server_name, svc->client_port,svc->service_name );
 		sprintf(svc->new_server_text, "%s", RECV_ERROR);
 		svc->current_state=STATE_CRITICAL;
 		

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.14  2005/09/24 10:34:11  hjanuschka
+deadlock sched_wait_open fixed
+
 Revision 1.13  2005/09/23 18:21:18  hjanuschka
 if check times out curren_running gets in negative integer fixed
 default check timeout 15 seconds
@@ -136,11 +139,17 @@ int sched_check_waiting(struct service * svc) {
 }
 
 void sched_wait_open() {
-	while(current_running != 0 && do_shutdown == 0) {
+	int x;
+	x=0;
+	while(current_running != 0 && do_shutdown == 0 && x < 20) {
 			
 			sleep(1);
+			x++;
 						
 	}	
+	if(x >= 20) {
+		_log("Sched_wait_open: timedout");	
+	}
 }
 
 void sched_reaper(int signum) {
