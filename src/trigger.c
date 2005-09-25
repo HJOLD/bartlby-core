@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/09/25 16:31:05  hjanuschka
+trigger: can now be enabled/disabled per trigger in web ui
+ui: add/modify worker can now set and display workers selected
+datalib: api modifications for trigger enable/disable feature
+
 Revision 1.7  2005/09/25 15:24:22  hjanuschka
 icq.sh trigger for icq in combination with a running licq
 
@@ -151,6 +156,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	struct shm_header * hdr;
 	char * exec_str;
 	FILE * ptrigger;
+	char * find_trigger;
 	char trigger_return[128];
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
@@ -170,6 +176,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	SERVERN SERVICE CUR MSG
 	*/
 	find_str=malloc(10+2);
+	find_trigger=malloc(100+200);
+	
 	sprintf(find_str, "|%d|", svc->service_id);
 	
 	notify_msg=malloc(sizeof(char)*(strlen(NOTIFY_MSG)+strlen(human_state_last)+strlen(human_state)+strlen(svc->service_name)+strlen(PROGNAME)+strlen(VERSION)+strlen(svc->server_name)+strlen(svc->service_name)+strlen(human_state)+strlen(svc->new_server_text)));
@@ -188,6 +196,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 		return;	
 	}
 	while((entry = readdir(dtrigger)) != NULL) {
+		sprintf(find_trigger, "|%s|" , entry->d_name);
 		full_path=malloc(sizeof(char) * (strlen(entry->d_name)+strlen(trigger_dir)+2));
 		sprintf(full_path, "%s/%s", trigger_dir, entry->d_name);
 		if(lstat(full_path, &finfo) < 0) {
@@ -195,31 +204,37 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 			return;	
 		}
 		if(S_ISREG(finfo.st_mode)) {
+			
 			for(x=0; x<hdr->wrkcount; x++) {
 				if(strstr(wrkmap[x].services, find_str) != NULL || strlen(wrkmap[x].services) == 0) {
+					if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
+						
 					
-					if((bartlby_trigger_escalation(&wrkmap[x])) == FL) continue;
-					if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state)) == FL) continue;
-					//_log("EXEC trigger: %s", full_path);
-					_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
-					
-					svc->last_notify_send=time(NULL);
-					wrkmap[x].escalation_time=time(NULL);
-					exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"                         ")+strlen(wrkmap[x].icq)+strlen(wrkmap[x].name)+strlen(notify_msg)+strlen(wrkmap[x].mail)));
-					sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);
-					ptrigger=popen(exec_str, "r");
-					if(ptrigger != NULL) {
-						if(fgets(trigger_return, 1024, ptrigger) != NULL) {
-							trigger_return[strlen(trigger_return)-1]='\0';
-							_log("Trigger returned: `%s'", trigger_return);
+						if((bartlby_trigger_escalation(&wrkmap[x])) == FL) continue;
+						if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state)) == FL) continue;
+						//_log("EXEC trigger: %s", full_path);
+						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
+						
+						svc->last_notify_send=time(NULL);
+						wrkmap[x].escalation_time=time(NULL);
+						exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"                         ")+strlen(wrkmap[x].icq)+strlen(wrkmap[x].name)+strlen(notify_msg)+strlen(wrkmap[x].mail)));
+						sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);
+						ptrigger=popen(exec_str, "r");
+						if(ptrigger != NULL) {
+							if(fgets(trigger_return, 1024, ptrigger) != NULL) {
+								trigger_return[strlen(trigger_return)-1]='\0';
+								_log("Trigger returned: `%s'", trigger_return);
+      							} else {
+      								_log("Trigger empty output");
+      							}
+      							pclose(ptrigger);
       						} else {
-      							_log("Trigger empty output");
+      							_log("trigger failed `%s'", full_path);	
       						}
-      						pclose(ptrigger);
-      					} else {
-      						_log("trigger failed `%s'", full_path);	
-      					}
-					free(exec_str);
+						free(exec_str);
+					} else {
+						_log("Worker: %s does not have trigger: %s", wrkmap[x].name, entry->d_name);
+					}
 				}
 			}	
 		}
@@ -228,6 +243,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 		
 		free(full_path);
 	}
+	free(find_trigger);
 	free(find_str);
 	free(human_state);
 	free(human_state_last);

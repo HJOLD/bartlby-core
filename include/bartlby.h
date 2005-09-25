@@ -96,6 +96,7 @@ struct worker {
 	int escalation_count;
 	int escalation_time;
 	char notify_levels[20];
+	char enabled_triggers[2048];
 	char t[500];
 
 }sa;
