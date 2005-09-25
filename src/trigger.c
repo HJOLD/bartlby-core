@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/25 15:24:22  hjanuschka
+icq.sh trigger for icq in combination with a running licq
+
 Revision 1.6  2005/09/25 13:30:18  hjanuschka
 cfg: jabber variables
 daemon: setenv BARTLBY_HOME (for triggers)
@@ -63,7 +66,7 @@ CVS Header
 #define FL 0
 #define TR 1
 #define ESCALATION_MINUTES 2
-#define ESCALATION_LIMIT 5
+#define ESCALATION_LIMIT 50
 
 int bartlby_trigger_worker_level(struct worker * w, int level) {
 	char * find_level;

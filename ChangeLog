@@ -1,3 +1,20 @@
+2005-09-25 15:30  hjanuschka
+
+	* trigger/jabber.sh: initial import
+
+2005-09-25 15:30  hjanuschka
+
+	* bartlby.cfg, src/check.c, src/config.c, src/daemon.c,
+	  src/sched.c, src/trigger.c, trigger/mail.sh: cfg: jabber
+	  variables daemon: setenv BARTLBY_HOME (for triggers) sched:
+	  wait_open timeout mail.sh: sendmail trigger trigger: $1 == email
+	  $2 == icq $3 == name $4 == msg
+
+2005-09-24 12:34  hjanuschka
+
+	* ChangeLog, src/check.c, src/sched.c: deadlock sched_wait_open
+	  fixed
+
 2005-09-23 20:21  hjanuschka
 
 	* ChangeLog, src/check.c, src/sched.c: if check times out
