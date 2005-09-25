@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.15  2005/09/25 13:30:18  hjanuschka
+cfg: jabber variables
+daemon: setenv BARTLBY_HOME (for triggers)
+sched: wait_open timeout
+mail.sh: sendmail trigger
+trigger: $1 == email
+$2 == icq
+$3 == name
+$4 == msg
+
 Revision 1.14  2005/09/24 10:34:11  hjanuschka
 deadlock sched_wait_open fixed
 
@@ -319,10 +329,10 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		//_log("<%d/%d--DOLOG>%d;%d;);		
 		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		//pos2_pull_trigger(svc);	
-		svc->last_state=svc->current_state;
-		svc->last_check=time(NULL);
-		bartlby_trigger(svc, cfgfile, shm_addr);
 		
+		bartlby_trigger(svc, cfgfile, shm_addr);
+		svc->last_check=time(NULL);
+		svc->last_state=svc->current_state;
 		
 		
 					

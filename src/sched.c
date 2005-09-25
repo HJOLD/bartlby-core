@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.15  2005/09/25 13:30:18  hjanuschka
+cfg: jabber variables
+daemon: setenv BARTLBY_HOME (for triggers)
+sched: wait_open timeout
+mail.sh: sendmail trigger
+trigger: $1 == email
+$2 == icq
+$3 == name
+$4 == msg
+
 Revision 1.14  2005/09/24 10:34:11  hjanuschka
 deadlock sched_wait_open fixed
 
@@ -141,13 +151,20 @@ int sched_check_waiting(struct service * svc) {
 void sched_wait_open() {
 	int x;
 	x=0;
-	while(current_running != 0 && do_shutdown == 0 && x < 20) {
+	int olim;
+	if(current_running == 0) {
+		olim=20;	
+	} else {
+		olim=current_running*20;
+	}
+	
+	while(current_running != 0 && do_shutdown == 0 && x < olim) {
 			
 			sleep(1);
 			x++;
 						
 	}	
-	if(x >= 20) {
+	if(x >= olim) {
 		_log("Sched_wait_open: timedout");	
 	}
 }
@@ -157,8 +174,11 @@ void sched_reaper(int signum) {
 	 while (waitpid (-1, NULL, WNOHANG) > 0) {
 	 	
 	 	if(gshm_hdr->current_running > 0) {
-	 		current_running--;
+	 		
 	 		gshm_hdr->current_running--;
+	 	}
+	 	if( current_running > 0 ) {
+	 		current_running--;	
 	 	}
 	 }
 	

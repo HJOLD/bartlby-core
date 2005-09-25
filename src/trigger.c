@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/25 13:30:18  hjanuschka
+cfg: jabber variables
+daemon: setenv BARTLBY_HOME (for triggers)
+sched: wait_open timeout
+mail.sh: sendmail trigger
+trigger: $1 == email
+$2 == icq
+$3 == name
+$4 == msg
+
 Revision 1.5  2005/09/11 09:20:58  hjanuschka
 logging issue ;-)
 ui now can display log in a nice layout ;-)
@@ -192,8 +202,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 					
 					svc->last_notify_send=time(NULL);
 					wrkmap[x].escalation_time=time(NULL);
-					exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"   ")+strlen(notify_msg)+strlen(wrkmap[x].mail)));
-					sprintf(exec_str, "%s \"%s\" \"%s\"", full_path, wrkmap[x].mail, notify_msg);
+					exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"                         ")+strlen(wrkmap[x].icq)+strlen(wrkmap[x].name)+strlen(notify_msg)+strlen(wrkmap[x].mail)));
+					sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);
 					ptrigger=popen(exec_str, "r");
 					if(ptrigger != NULL) {
 						if(fgets(trigger_return, 1024, ptrigger) != NULL) {

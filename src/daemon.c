@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/09/25 13:30:18  hjanuschka
+cfg: jabber variables
+daemon: setenv BARTLBY_HOME (for triggers)
+sched: wait_open timeout
+mail.sh: sendmail trigger
+trigger: $1 == email
+$2 == icq
+$3 == name
+$4 == msg
+
 Revision 1.3  2005/09/13 19:43:31  hjanuschka
 human readable release code name REL_NAME
 fixed printf() in shutdown daemon *fg*
@@ -125,6 +135,14 @@ void bartlby_get_daemon(char * cfgfile) {
 		fclose(pidfile);
 		_log("pidfile is at: '%s'", pidfname);
 	}
+	
+	if(setenv("BARTLBY_HOME", base_dir,1) == 0) {
+		_log("$BARTLBY_HOME='%s'", base_dir);
+	} else {
+		_log("setenv $BARTLBY_HOME='%s' failed", base_dir);	
+	}
+	
+	
 	free(base_dir);
 	free(pid_def_name);
 	

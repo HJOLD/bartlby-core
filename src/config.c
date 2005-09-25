@@ -16,6 +16,16 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/09/25 13:30:18  hjanuschka
+cfg: jabber variables
+daemon: setenv BARTLBY_HOME (for triggers)
+sched: wait_open timeout
+mail.sh: sendmail trigger
+trigger: $1 == email
+$2 == icq
+$3 == name
+$4 == msg
+
 Revision 1.5  2005/09/05 20:00:54  hjanuschka
 stupid configfile issue fixed
 
@@ -63,7 +73,10 @@ char * getConfigValue(char * key, char * fname) {
 						if(tok == NULL) {
 								return NULL;
 						}
-						tok[strlen(tok)-1]='\0';
+						if(tok[strlen(tok)-1] == '\r') {
+							tok[strlen(tok)-1]='\0';
+						}
+						
 						fclose(fp);
 						return strdup(tok);
 						
