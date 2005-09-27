@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.10  2005/09/27 19:39:01  hjanuschka
+trigger timeout
+agent local timeout
+
 Revision 1.9  2005/09/22 02:55:03  hjanuschka
 agent: def timeout 15
 check: strreplace ' "
@@ -210,6 +214,8 @@ int main(int argc, char ** argv) {
 				
 				fplg=popen(exec_str, "r");
 				if(fplg != NULL) {
+					connection_timed_out=0;
+					alarm(CONN_TIMEOUT);
 					if(fgets(plugin_output, 1024, fplg) != NULL) {
 						plugin_rtc=pclose(fplg);
 						plugin_output[strlen(plugin_output)-1]='\0';
@@ -220,6 +226,11 @@ int main(int argc, char ** argv) {
 						
 						
 					}
+					if(connection_timed_out == 1) {
+						sprintf(svc_back, "1|Plugin timedout - %s", exec_str);
+					}
+					connection_timed_out=0;
+					alarm(0);
 					
 					
 				} else {

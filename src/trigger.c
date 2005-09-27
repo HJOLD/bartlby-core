@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.10  2005/09/27 19:39:00  hjanuschka
+trigger timeout
+agent local timeout
+
 Revision 1.9  2005/09/27 18:21:57  hjanuschka
 *** empty log message ***
 
@@ -75,6 +79,14 @@ CVS Header
 #define TR 1
 #define ESCALATION_MINUTES 2
 #define ESCALATION_LIMIT 50
+
+static int connection_timed_out=0;
+#define CONN_TIMEOUT 15
+
+
+static void trigger_conn_timeout(int signo) {
+ 	connection_timed_out = 1;
+}
 
 int bartlby_trigger_worker_level(struct worker * w, int level) {
 	char * find_level;
@@ -161,6 +173,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	FILE * ptrigger;
 	char * find_trigger;
 	char trigger_return[128];
+	struct sigaction act1, oact1;
+	
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
 	wrkmap=bartlby_SHM_WorkerMap(shm_addr);
@@ -169,6 +183,23 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	if((bartlby_trigger_chk(svc)) == FL) {
 		return;	
 	}
+	
+	act1.sa_handler = trigger_conn_timeout;
+	sigemptyset(&act1.sa_mask);
+	act1.sa_flags=0;
+	#ifdef SA_INTERRUPT
+	act1.sa_flags |= SA_INTERRUPT;
+	#endif
+	if(sigaction(SIGALRM, &act1, &oact1) < 0) {
+		
+		printf("ALARM SETUP ERROR");
+		exit(1);
+				
+		
+	
+		
+	}
+	
 	
 	human_state=bartlby_beauty_state(svc->current_state);
 	human_state_last=bartlby_beauty_state(svc->last_state);
@@ -224,13 +255,23 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 						sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);
 						ptrigger=popen(exec_str, "r");
 						if(ptrigger != NULL) {
+							connection_timed_out=0;
+							alarm(CONN_TIMEOUT);
 							if(fgets(trigger_return, 1024, ptrigger) != NULL) {
 								trigger_return[strlen(trigger_return)-1]='\0';
 								_log("Trigger returned: `%s'", trigger_return);
       							} else {
       								_log("Trigger empty output");
       							}
-      							pclose(ptrigger);
+      							
+      							if(connection_timed_out == 1) {
+      								_log("Trigger timed out");	
+      							}
+      							connection_timed_out=0;
+							alarm(0);
+							if(ptrigger != NULL) {
+      								pclose(ptrigger);
+      							}
       						} else {
       							_log("trigger failed `%s'", full_path);	
       						}
