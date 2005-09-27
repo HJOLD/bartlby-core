@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.17  2005/09/27 18:21:57  hjanuschka
+*** empty log message ***
+
 Revision 1.16  2005/09/25 16:31:05  hjanuschka
 trigger: can now be enabled/disabled per trigger in web ui
 ui: add/modify worker can now set and display workers selected
@@ -92,7 +95,7 @@ CVS Header
 
 #define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://www.januschka.com/BARTLBY"
 #define NAME "MYSQL Connector"
-#define DLVERSION  "0.2.9"
+#define DLVERSION  "0.3.1"
 
 
 

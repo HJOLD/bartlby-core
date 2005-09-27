@@ -1,3 +1,15 @@
+2005-09-25 18:31  hjanuschka
+
+	* include/bartlby.h, src/trigger.c, src/libs/mysql.c: trigger: can
+	  now be enabled/disabled per trigger in web ui ui: add/modify
+	  worker can now set and display workers selected datalib: api
+	  modifications for trigger enable/disable feature
+
+2005-09-25 17:24  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/trigger.c, trigger/icq.sh: icq.sh
+	  trigger for icq in combination with a running licq
+
 2005-09-25 15:30  hjanuschka
 
 	* trigger/jabber.sh: initial import

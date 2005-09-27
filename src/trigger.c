@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/09/27 18:21:57  hjanuschka
+*** empty log message ***
+
 Revision 1.8  2005/09/25 16:31:05  hjanuschka
 trigger: can now be enabled/disabled per trigger in web ui
 ui: add/modify worker can now set and display workers selected
@@ -233,7 +236,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
       						}
 						free(exec_str);
 					} else {
-						_log("Worker: %s does not have trigger: %s", wrkmap[x].name, entry->d_name);
+						//_log("Worker: %s does not have trigger: %s", wrkmap[x].name, entry->d_name);
 					}
 				}
 			}	

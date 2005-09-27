@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.8  2005/09/27 18:21:57  hjanuschka
+*** empty log message ***
+
 Revision 1.7  2005/09/11 21:42:24  hjanuschka
 log files are now archived by Y.M.d
 
@@ -137,7 +140,10 @@ int _log(char * str,  ...) {
    
    	
 	fp=fopen(logfile, "a");   	
-	
+	if(fp == NULL) {
+		perror(logfile);
+		exit(1);	
+	}
    	fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
    	vfprintf(fp, str, argzeiger);
    	fprintf(fp, ";\n");

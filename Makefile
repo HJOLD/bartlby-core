@@ -1,4 +1,5 @@
 SUBDIRS = src/ src/libs/ src/tools/ src/client/
+INST_DIR = /home/bartlby/
 
 DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui
 
@@ -51,3 +52,8 @@ website: changelog
 	done
 	date > /storage/SF.NET/BARTLBY/lastMod
 	scp /storage/SF.NET/BARTLBY/lastMod hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/lastMod
+
+install: all
+	cp bartlby ${INST_DIR} 
+	cp bartlby-dev.cfg ${INST_DIR}
+	chown -R bartlby ${INST_DIR}/
