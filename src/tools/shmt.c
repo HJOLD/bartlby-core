@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.4  2005/09/28 21:46:30  hjanuschka
+converted files to unix
+jabber.sh -> disabled core dumps -> jabblibs segfaults
+                                    will try to patch it later
+
 Revision 1.3  2005/09/03 23:01:13  hjanuschka
 datalib api refined
 moved to version 0.9.7

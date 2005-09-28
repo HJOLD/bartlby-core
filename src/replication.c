@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/09/28 21:46:30  hjanuschka
+converted files to unix
+jabber.sh -> disabled core dumps -> jabblibs segfaults
+                                    will try to patch it later
+
 Revision 1.4  2005/09/18 11:28:12  hjanuschka
 replication now works :-)
 core: can run as slave and load data from a file instead of data_lib

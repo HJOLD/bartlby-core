@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/09/28 21:46:30  hjanuschka
+converted files to unix
+jabber.sh -> disabled core dumps -> jabblibs segfaults
+                                    will try to patch it later
+
 Revision 1.6  2005/09/25 13:30:18  hjanuschka
 cfg: jabber variables
 daemon: setenv BARTLBY_HOME (for triggers)

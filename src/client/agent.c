@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.11  2005/09/28 21:46:30  hjanuschka
+converted files to unix
+jabber.sh -> disabled core dumps -> jabblibs segfaults
+                                    will try to patch it later
+
 Revision 1.10  2005/09/27 19:39:01  hjanuschka
 trigger timeout
 agent local timeout

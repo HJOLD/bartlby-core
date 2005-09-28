@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/09/28 21:46:30  hjanuschka
+converted files to unix
+jabber.sh -> disabled core dumps -> jabblibs segfaults
+                                    will try to patch it later
+
 Revision 1.8  2005/09/27 18:21:57  hjanuschka
 *** empty log message ***
 
