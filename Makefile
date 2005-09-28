@@ -1,7 +1,7 @@
 SUBDIRS = src/ src/libs/ src/tools/ src/client/
 INST_DIR = /home/bartlby/
 
-DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui
+DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui bartlby-docs
 
 all:
 	list='$(SUBDIRS)'; for subdir in $$list; do \

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.16  2005/09/28 21:37:23  hjanuschka
+*** empty log message ***
+
 Revision 1.15  2005/09/25 13:30:18  hjanuschka
 cfg: jabber variables
 daemon: setenv BARTLBY_HOME (for triggers)
@@ -165,6 +168,8 @@ void sched_wait_open() {
 						
 	}	
 	if(x >= olim) {
+		current_running=0;
+		gshm_hdr->current_running=0;
 		_log("Sched_wait_open: timedout");	
 	}
 }

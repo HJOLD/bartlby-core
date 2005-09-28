@@ -7,7 +7,7 @@
 #  $4 == msg
 #####
 
-
+ulimit -c 0 #for jabblib
 
 
 function has_executable {
