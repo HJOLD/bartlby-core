@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.15  2005/09/30 23:58:02  hjanuschka
+*** empty log message ***
+
 Revision 1.14  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -75,6 +78,7 @@ CVS header ;-)
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <time.h>
 #include <string.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -276,6 +280,7 @@ int main(int argc, char ** argv) {
 			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 			shm_hdr->do_reload=0;
 			shm_hdr->last_replication=-1;
+			shm_hdr->startup_time=time(NULL);
 			
 			
 			

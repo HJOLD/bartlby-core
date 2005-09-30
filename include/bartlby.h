@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Archangeloi"
-#define VERSION  "0.9.8a"
-#define EXPECTCORE 1009081 //Module V Check's
+#define REL_NAME "Archai"
+#define VERSION  "0.9.8b"
+#define EXPECTCORE 1009082 //Module V Check's
 
 
 #define STATE_OK 0
@@ -44,6 +44,7 @@ struct shm_header {
 		char  version[50];
 		int do_reload;
 		int last_replication;
+		int startup_time;
 
 };
 
