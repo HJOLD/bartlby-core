@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.19  2005/09/30 21:01:45  hjanuschka
+delete server deletes now also the services ;-)
+
 Revision 1.18  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -114,10 +117,16 @@ CVS Header
 #define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d where server_id=%d"
 #define SERVER_SELECTOR "select server_name, server_ip, server_port from servers where server_id=%d"
 
+
+#define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
+
 #define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d)"
 #define DELETE_SERVICE "delete from services where service_id=%d"
 #define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s' where service_id=%d"
 #define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+
+
+
 
 #define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, enabled_services, notify_levels, worker_active, worker_name, password,enabled_triggers) VALUES('%s', '%s', '%s','%s', %d, '%s', '%s', '%s')"
 #define DELETE_WORKER "delete from workers where worker_id=%d"
@@ -939,6 +948,16 @@ int DeleteServer(int server_id, char * config) {
 	
 	//Log("dbg", sqlupd);
 	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	
+	
+	//DELETE_SERVICE_BY_SERVER
+	sqlupd=malloc(sizeof(char)*(strlen(DELETE_SERVICE_BY_SERVER)+20));
+	sprintf(sqlupd, DELETE_SERVICE_BY_SERVER, server_id);
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
