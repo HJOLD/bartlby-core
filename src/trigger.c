@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2005/10/03 20:48:19  hjanuschka
+*** empty log message ***
+
 Revision 1.11  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -116,7 +119,7 @@ int bartlby_trigger_worker_level(struct worker * w, int level) {
 
 int bartlby_trigger_escalation(struct worker *w) {
 	if(w->active != 1) {
-		_log("Worker: %s is inactive", w->mail);
+		//_log("Worker: %s is inactive", w->mail);
 		return FL;	
 	}
 	if((time(NULL) - w->escalation_time) >= (ESCALATION_MINUTES*60)) {
