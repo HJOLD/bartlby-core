@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2005/10/09 14:44:09  hjanuschka
+agent announces OS and version
+
 Revision 1.11  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -77,6 +80,8 @@ CVS Header
 static int connection_timed_out=0;
 
 #define CONN_TIMEOUT 15
+#define MYOS "Linux"
+#define MYVERSION "0.9"
 
 static void agent_conn_timeout(int signo) {
  	connection_timed_out = 1;
@@ -111,7 +116,8 @@ int main(int argc, char ** argv) {
         	
         		
         }
-        
+        printf("OS: %s V: %s\n",MYOS, MYVERSION);
+        fflush(stdout);
         agent_load_limit=getConfigValue("agent_load_limit", argv[0]);
         allowed_ip_list=getConfigValue("allowed_ips", argv[0]);
         

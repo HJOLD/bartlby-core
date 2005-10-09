@@ -1,3 +1,27 @@
+2005-10-03 22:48  hjanuschka
+
+	* src/trigger.c: [no log message]
+
+2005-10-01 01:58  hjanuschka
+
+	* include/bartlby.h, src/bartlby.c: [no log message]
+
+2005-09-30 23:01  hjanuschka
+
+	* src/libs/mysql.c: delete server deletes now also the services ;-)
+
+2005-09-28 23:46  hjanuschka
+
+	* ChangeLog, Makefile, include/bartlby.h, src/Makefile,
+	  src/bartlby.c, src/check.c, src/config.c, src/daemon.c,
+	  src/global.c, src/lib, src/replication.c, src/sched.c, src/shm.c,
+	  src/trigger.c, src/client/Makefile, src/client/agent.c,
+	  src/client/cmd.c, src/client/portier.c, src/libs/Makefile,
+	  src/libs/firebird.c, src/libs/mysql.c, src/tools/Makefile,
+	  src/tools/shmt.c: converted files to unix jabber.sh -> disabled
+	  core dumps -> jabblibs segfaults
+	  will try to patch it later
+
 2005-09-28 23:37  hjanuschka
 
 	* ChangeLog, Makefile, src/sched.c, trigger/jabber.sh: [no log

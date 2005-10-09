@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.17  2005/10/09 14:44:09  hjanuschka
+agent announces OS and version
+
 Revision 1.16  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -188,6 +191,23 @@ void bartlby_check_active(struct service * svc) {
 		close(client_socket);
 		return;
 	} 
+	connection_timed_out=0;
+	alarm(CONN_TIMEOUT);
+	return_bytes=recv(client_socket, return_buffer, 1024, 0);
+	alarm(0);
+	
+	if (return_bytes == -1 || connection_timed_out == 1) {
+            	_log("%s:%d/%s - TIMEOUT", svc->server_name, svc->client_port,svc->service_name );
+		sprintf(svc->new_server_text, "%s", RECV_ERROR);
+		svc->current_state=STATE_CRITICAL;
+		
+		close(client_socket);
+		return;
+        } 
+      
+	
+	return_buffer[return_bytes-1]='\0';
+	//_log("Client: %s", return_buffer);
 	connection_timed_out=0;
 	
 	client_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+30));

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.18  2005/10/09 14:44:09  hjanuschka
+agent announces OS and version
+
 Revision 1.17  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -289,7 +292,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 							break;
 							case 0:
 								
-								//signal(SIGCHLD, sched_reaper);
+								signal(SIGCHLD, sched_reaper);
 								
 								bartlby_check_service(&services[x], shm_addr, SOHandle, cfgfile);	
 								shmdt(shm_addr);
@@ -311,7 +314,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 		}
 		sched_wait_open();
-		//_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
+		_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		round_start=time(NULL);
 		round_visitors=0;
 		sleep(SCHED_PAUSE);
