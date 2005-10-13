@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2005/10/13 22:42:29  hjanuschka
+portier/cmd: get_services -> recieve a list of passive services
+
 Revision 1.8  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -88,6 +91,7 @@ static int connection_timed_out=0;
 #define CMD_PASSIVE 1
 #define CMD_GET_PLG 2
 #define CMD_REPL 3
+#define CMD_SVCLIST 4
 
 #define CONN_TIMEOUT 10
 
@@ -155,6 +159,7 @@ int main(int argc, char ** argv) {
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	int passive_svcid;
+	int passive_serverid;
 	int passive_state;
 	char passive_text[2048];
 	char * passive_beauty;
@@ -411,6 +416,23 @@ int main(int argc, char ** argv) {
 				} else {
 					sprintf(svc_out, "SVCID missing\n");	
 					
+				}
+			break;
+			case CMD_SVCLIST:
+				token=strtok(NULL, "|");
+				if(token != NULL) {
+					passive_serverid=atoi(token);
+					sprintf(svc_out, " ");
+					for(x=0; x<shm_hdr->svccount; x++) {
+						if(svcmap[x].server_id == passive_serverid && svcmap[x].service_type == SVC_TYPE_PASSIVE) {
+							printf("%d", svcmap[x].service_id);
+							printf(" ");	
+						}
+					}
+					printf("\n");
+					fflush(stdout);
+				} else {
+					sprintf(svc_out, "-5 server_id missing");	
 				}
 			break;
 			default:

@@ -1,3 +1,8 @@
+2005-10-14 00:13  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/check.c, src/sched.c, src/trigger.c:
+	  logging improved, check fixup
+
 2005-10-09 16:44  hjanuschka
 
 	* ChangeLog, bartlby.cfg, src/check.c, src/sched.c,

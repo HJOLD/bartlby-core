@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2005/10/13 22:42:29  hjanuschka
+portier/cmd: get_services -> recieve a list of passive services
+
 Revision 1.4  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -207,6 +210,54 @@ void cmd_get_passive() {
 	}	
 }
 
+void cmd_get_services() {
+	int res;
+	char verstr[2048];
+	char cmdstr[2048];
+	char result[2048];
+	
+	int rc;
+	
+	res=connect_to(passive_host, passive_port);
+	if(res > 0) {
+		
+		connection_timed_out=0;
+		alarm(5);
+		if(read(res, verstr, 1024) < 0) {
+			printf("BAD!\n");
+			exit(1);
+		}
+		if(verstr[0] != '+') {
+			printf("Server said a bad result: '%s'\n", verstr);
+			close(res);
+			exit(1);
+		}
+		alarm(0);
+		//printf("Connected to: %s\n", verstr);		
+		sprintf(cmdstr, "4|%d|\n", passive_service);
+		
+		connection_timed_out=0;
+		alarm(5);
+		if(write(res, cmdstr, 1024) < 0) {
+			printf("BAD2!\n");
+			exit(1);
+		}
+		alarm(0);
+		connection_timed_out=0;
+		alarm(5);
+		while((rc=read(res, result, 1024)) > 0) {
+			result[rc-1]='\0';
+			printf("%s", result);
+		}
+		
+			
+	} else {
+		
+		printf("Connect failed\n");
+		exit(2);	
+	}	
+}
+
 void cmd_set_passive() {
 	int res;
 	char verstr[2048];
@@ -338,6 +389,8 @@ int main(int argc, char ** argv) {
 		cmd_get_passive();		
 	} else if (strcmp(passive_action, "set_passive") == 0) {
 		cmd_set_passive();
+	} else if(strcmp(passive_action, "get_services") == 0) {
+		cmd_get_services();	
 	} else {
 		printf("Hmm action is pretty unusefull\n");
 	}
