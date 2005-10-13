@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.19  2005/10/13 22:13:14  hjanuschka
+logging improved, check fixup
+
 Revision 1.18  2005/10/09 14:44:09  hjanuschka
 agent announces OS and version
 
@@ -314,7 +317,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 		}
 		sched_wait_open();
-		_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
+		if(time(NULL)-round_start > SCHED_PAUSE) {
+			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
+		}
 		round_start=time(NULL);
 		round_visitors=0;
 		sleep(SCHED_PAUSE);

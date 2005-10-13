@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.13  2005/10/13 22:13:14  hjanuschka
+logging improved, check fixup
+
 Revision 1.12  2005/10/03 20:48:19  hjanuschka
 *** empty log message ***
 
@@ -267,9 +270,9 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 							alarm(CONN_TIMEOUT);
 							if(fgets(trigger_return, 1024, ptrigger) != NULL) {
 								trigger_return[strlen(trigger_return)-1]='\0';
-								_log("Trigger returned: `%s'", trigger_return);
+								_log("Trigger(%s/%s) returned: `%s'", entry->d_name, wrkmap[x].name, trigger_return);
       							} else {
-      								_log("Trigger empty output");
+      								_log("Trigger(%s/%s) empty output", entry->d_name, wrkmap[x].name);
       							}
       							
       							if(connection_timed_out == 1) {

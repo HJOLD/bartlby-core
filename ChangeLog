@@ -1,3 +1,8 @@
+2005-10-09 16:44  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/check.c, src/sched.c,
+	  src/client/agent.c: agent announces OS and version
+
 2005-10-03 22:48  hjanuschka
 
 	* src/trigger.c: [no log message]

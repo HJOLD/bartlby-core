@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.18  2005/10/13 22:13:14  hjanuschka
+logging improved, check fixup
+
 Revision 1.17  2005/10/09 14:44:09  hjanuschka
 agent announces OS and version
 
@@ -139,6 +142,9 @@ void bartlby_check_active(struct service * svc) {
 	struct hostent * remote_host;
 	struct sigaction act1, oact1;
 	
+	/* in case something will went wrong*/
+	svc->current_state=STATE_CRITICAL;
+	
 	
 	connection_timed_out=0;
 	
@@ -261,7 +267,7 @@ void bartlby_check_active(struct service * svc) {
         		sprintf(svc->new_server_text, "%s", return_token);
         	} else {
         		
-        		sprintf(svc->new_server_text, " ");
+        		sprintf(svc->new_server_text, "(empty output)");
         		
         	}	
         } else {
