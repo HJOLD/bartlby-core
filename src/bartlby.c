@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.16  2005/10/25 20:36:32  hjanuschka
+startup time is'nt reset on cfg reload now
+
 Revision 1.15  2005/09/30 23:58:02  hjanuschka
 *** empty log message ***
 
@@ -117,6 +120,7 @@ int main(int argc, char ** argv) {
 	char * (*GetName)();
 	long   (*ExpectVersion)();
 	
+	int global_startup_time;
 	int (*GetServiceMap)(struct service *, char *);
 	int (*GetWorkerMap)(struct worker *,char *);
 	long cfg_shm_size_bytes;
@@ -155,7 +159,7 @@ int main(int argc, char ** argv) {
 
 	int exi_code;
 	
-	
+	global_startup_time=time(NULL);
 	
 	// Parse Config
 	if(argc >= 2) {
@@ -222,6 +226,7 @@ int main(int argc, char ** argv) {
 	free(SOName);
 	
 	exi_code=0;
+	
 	while(exi_code != 1) {
 		
 		
@@ -278,10 +283,11 @@ int main(int argc, char ** argv) {
 			_log("Workers: %d", shm_hdr->wrkcount);
 			shm_hdr->current_running=0;
 			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
+						
 			shm_hdr->do_reload=0;
 			shm_hdr->last_replication=-1;
-			shm_hdr->startup_time=time(NULL);
-			
+			//shm_hdr->startup_time=time(NULL);
+			shm_hdr->startup_time=global_startup_time;
 			
 			
 			

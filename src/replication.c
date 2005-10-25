@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2005/10/25 20:36:32  hjanuschka
+startup time is'nt reset on cfg reload now
+
 Revision 1.5  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -314,9 +317,9 @@ int replication_go(char * cfgfile, void * shm_addr, void * SOHandle) {
 				} else {
 					repl_rtc=replicate_single(replication_host, shm_addr,cfgfile);	
 					if(repl_rtc >= 0) {
-						_log("\tReplication OK");	
+						_log("\t%s Replication OK",replication_host);	
 					} else {
-						_log("\tReplication FAILED");
+						_log("\t%s Replication FAILED",replication_host);
 					}
 				}
 			

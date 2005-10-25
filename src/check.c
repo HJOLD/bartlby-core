@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.19  2005/10/25 20:36:32  hjanuschka
+startup time is'nt reset on cfg reload now
+
 Revision 1.18  2005/10/13 22:13:14  hjanuschka
 logging improved, check fixup
 
@@ -142,8 +145,6 @@ void bartlby_check_active(struct service * svc) {
 	struct hostent * remote_host;
 	struct sigaction act1, oact1;
 	
-	/* in case something will went wrong*/
-	svc->current_state=STATE_CRITICAL;
 	
 	
 	connection_timed_out=0;
