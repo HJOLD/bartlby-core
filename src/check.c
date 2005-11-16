@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.20  2005/11/16 23:51:29  hjanuschka
+version bump 0.9.9a (Exusiai)
+replication tests minor fixes
+
 Revision 1.19  2005/10/25 20:36:32  hjanuschka
 startup time is'nt reset on cfg reload now
 
@@ -220,7 +224,7 @@ void bartlby_check_active(struct service * svc) {
 	client_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+30));
 	sprintf(client_request, "%s| %s|", svc->plugin, svc->plugin_arguments);
 	
-	//_log("Crequest: %s %d", client_request, strlen(client_request));
+	//_log("Crequest(%s): %s %d",svc->server_name, client_request, strlen(client_request));
 	bartlby_encode(client_request, strlen(client_request));
 	
 	

@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.17  2005/11/16 23:51:29  hjanuschka
+version bump 0.9.9a (Exusiai)
+replication tests minor fixes
+
 Revision 1.16  2005/10/25 20:36:32  hjanuschka
 startup time is'nt reset on cfg reload now
 
@@ -152,6 +156,7 @@ int main(int argc, char ** argv) {
 	*/
 		char * i_am_a_slave; //Run from file instead of DATALIB
 		FILE * repl_fp;
+		
 		struct stat repl_st;
 	
 	struct service * svcmap;

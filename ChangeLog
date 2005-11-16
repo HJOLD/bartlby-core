@@ -1,3 +1,8 @@
+2005-10-25 22:36  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/bartlby.c, src/check.c,
+	  src/replication.c: startup time is'nt reset on cfg reload now
+
 2005-10-14 00:42  hjanuschka
 
 	* ChangeLog, src/client/cmd.c, src/client/portier.c: portier/cmd:
