@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.14  2005/11/27 02:04:42  hjanuschka
+setuid/setgid for security and web ui
+
 Revision 1.13  2005/10/13 22:13:14  hjanuschka
 logging improved, check fixup
 
@@ -85,7 +88,7 @@ CVS Header
 
 #include <bartlby.h>
 
-#define NOTIFY_MSG "     State Change %s to %s (%s)\\n*********** %s %s ********************\\n[  Server: %s, Service: %s, State: %s]\\n%s"
+#define NOTIFY_MSG "     State Change %s (%s)\\n*********** %s %s ********************\\n[  Server: %s, Service: %s, State: %s]\\n%s"
 #define FL 0
 #define TR 1
 #define ESCALATION_MINUTES 2
@@ -187,6 +190,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	struct sigaction act1, oact1;
 	
 	
+	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
 	wrkmap=bartlby_SHM_WorkerMap(shm_addr);
 	
@@ -226,7 +230,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	sprintf(find_str, "|%d|", svc->service_id);
 	
 	notify_msg=malloc(sizeof(char)*(strlen(NOTIFY_MSG)+strlen(human_state_last)+strlen(human_state)+strlen(svc->service_name)+strlen(PROGNAME)+strlen(VERSION)+strlen(svc->server_name)+strlen(svc->service_name)+strlen(human_state)+strlen(svc->new_server_text)));
-	sprintf(notify_msg, NOTIFY_MSG, human_state_last, human_state, svc->service_name, PROGNAME, VERSION, svc->server_name, svc->service_name, human_state, svc->new_server_text);
+	sprintf(notify_msg, NOTIFY_MSG, human_state, svc->service_name, PROGNAME, VERSION, svc->server_name, svc->service_name, human_state, svc->new_server_text);
 	
 	
 	

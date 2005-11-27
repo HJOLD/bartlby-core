@@ -1,3 +1,9 @@
+2005-11-17 00:51  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/bartlby.c,
+	  src/check.c: version bump 0.9.9a (Exusiai) replication tests
+	  minor fixes
+
 2005-10-25 22:36  hjanuschka
 
 	* ChangeLog, bartlby.cfg, src/bartlby.c, src/check.c,

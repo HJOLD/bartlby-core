@@ -28,6 +28,7 @@
 #define SVC_TYPE_PASSIVE 2
 #define SVC_TYPE_GROUP 3
 
+#define SVC_THRESHOLD 10
 
 #define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
     	if((dlmsg=dlerror()) != NULL) { \
@@ -81,6 +82,7 @@ struct service {
 	int service_type;
 	int service_passive_timeout;
 	
+	int service_threshold;
 };
 
 struct worker {

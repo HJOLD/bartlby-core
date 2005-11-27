@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.21  2005/11/27 02:04:42  hjanuschka
+setuid/setgid for security and web ui
+
 Revision 1.20  2005/11/16 23:51:29  hjanuschka
 version bump 0.9.9a (Exusiai)
 replication tests minor fixes
@@ -365,14 +368,16 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		//_log("<%d/%d--DOLOG>%d;%d;);		
 		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		//pos2_pull_trigger(svc);	
-		
 		bartlby_trigger(svc, cfgfile, shm_addr);
+		
 		svc->last_check=time(NULL);
 		svc->last_state=svc->current_state;
 		
 		
 					
 	} else {
+		
+		
 		if(svc->service_type != SVC_TYPE_PASSIVE) {
 			
 			svc->last_check=time(NULL);

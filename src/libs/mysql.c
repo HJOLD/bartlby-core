@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.20  2005/11/27 02:04:43  hjanuschka
+setuid/setgid for security and web ui
+
 Revision 1.19  2005/09/30 21:01:45  hjanuschka
 delete server deletes now also the services ;-)
 
@@ -1336,7 +1339,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].service_active=atoi(row[20]);
       			
       			svcs[i].flap_count=0;
-      			
+      			svcs[i].service_threshold=0;
       			
       			//Log("load", "%s -> %s", svcs[i].plugin, svcs[i].plugin_arguments);
       			//int notify_enabled;
