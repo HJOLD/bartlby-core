@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.21  2005/12/13 23:17:53  hjanuschka
+setuid before creating shm segment
+
 Revision 1.20  2005/11/27 02:04:43  hjanuschka
 setuid/setgid for security and web ui
 
@@ -1339,7 +1342,10 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].service_active=atoi(row[20]);
       			
       			svcs[i].flap_count=0;
-      			svcs[i].service_threshold=0;
+      			
+      			
+      			svcs[i].notify_last_state=svcs[i].current_state;
+      			svcs[i].notify_last_time=time(NULL);
       			
       			//Log("load", "%s -> %s", svcs[i].plugin, svcs[i].plugin_arguments);
       			//int notify_enabled;

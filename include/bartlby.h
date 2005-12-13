@@ -82,7 +82,11 @@ struct service {
 	int service_type;
 	int service_passive_timeout;
 	
-	int service_threshold;
+	int notify_last_state;
+	int notify_last_time;
+	
+	
+	
 };
 
 struct worker {

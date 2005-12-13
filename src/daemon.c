@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2005/12/13 23:17:53  hjanuschka
+setuid before creating shm segment
+
 Revision 1.6  2005/11/27 02:04:42  hjanuschka
 setuid/setgid for security and web ui
 
@@ -106,19 +109,15 @@ void bartlby_get_daemon(char * cfgfile) {
 	char pidfname[1024];
 	char pidstr[1024];
 	char * pid_def_name;
-	char * cfg_user;
-	struct passwd * ui;
+	
+	
 	
 	
 	
 	base_dir = getConfigValue("basedir", cfgfile);
 	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
-	cfg_user = getConfigValue("user", cfgfile);
 	
-	if(cfg_user == NULL) {
-		_log("user not set in config file");
-		exit(2);			
-	}
+	
 	
 	if(base_dir == NULL) {
 		
@@ -142,14 +141,6 @@ void bartlby_get_daemon(char * cfgfile) {
 	_log("basedir set to:%s", base_dir);
 	umask(0);
 	
-	ui=getpwnam(cfg_user);
-	if(ui == NULL) {
-		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
-	} else {
-		setuid(ui->pw_uid);
-		setgid(ui->pw_gid);
-		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
-	}
 	
 	sprintf(pidfname, "%s/bartlby.pid", pid_def_name);
 	pidfile=fopen(pidfname, "w");
@@ -169,7 +160,7 @@ void bartlby_get_daemon(char * cfgfile) {
 		_log("setenv $BARTLBY_HOME='%s' failed", base_dir);	
 	}
 	
-	free(cfg_user);
+	
 	free(base_dir);
 	free(pid_def_name);
 	

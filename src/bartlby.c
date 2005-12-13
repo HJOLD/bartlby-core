@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.18  2005/12/13 23:17:53  hjanuschka
+setuid before creating shm segment
+
 Revision 1.17  2005/11/16 23:51:29  hjanuschka
 version bump 0.9.9a (Exusiai)
 replication tests minor fixes
@@ -92,6 +95,8 @@ CVS header ;-)
 #include <sys/wait.h>	
 #include <unistd.h>	
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include <dlfcn.h>
 
@@ -162,7 +167,20 @@ int main(int argc, char ** argv) {
 	struct service * svcmap;
 	struct worker * wrkmap;
 
+
+	char * cfg_user;
+	struct passwd * ui;
+	
 	int exi_code;
+	
+	
+	cfg_user = getConfigValue("user", argv[1]);
+	if(cfg_user == NULL) {
+		_log("user not set in config file");
+		exit(2);			
+	}
+	
+	
 	
 	global_startup_time=time(NULL);
 	
@@ -231,6 +249,16 @@ int main(int argc, char ** argv) {
 	free(SOName);
 	
 	exi_code=0;
+	
+	ui=getpwnam(cfg_user);
+	if(ui == NULL) {
+		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
+	} else {
+		setuid(ui->pw_uid);
+		setgid(ui->pw_gid);
+		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
+	}
+	
 	
 	while(exi_code != 1) {
 		
@@ -330,6 +358,6 @@ int main(int argc, char ** argv) {
 		bartlby_end_daemon(argv[1]);
 	} 	
 	free(daemon_mode);
-		
+	free(cfg_user);
 	return 1;
 }
