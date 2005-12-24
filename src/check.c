@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.22  2005/12/24 17:53:41  hjanuschka
+performance interface i.e: for adding RRD tools or something like that
+
 Revision 1.21  2005/11/27 02:04:42  hjanuschka
 setuid/setgid for security and web ui
 
@@ -103,6 +106,7 @@ CVS Header
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include <bartlby.h>
 
@@ -134,7 +138,7 @@ static void bartlby_conn_timeout(int signo) {
  	connection_timed_out = 1;
 }
 
-void bartlby_check_active(struct service * svc) {
+void bartlby_check_active(struct service * svc, char * cfgfile) {
 	int client_socket;
 	int client_connect_retval=-1;
 	int return_bytes;
@@ -144,7 +148,10 @@ void bartlby_check_active(struct service * svc) {
 	char * client_request;
 	char * return_token;
 	
-	
+	struct stat perf_s;
+	char perf_out[2048];
+	char * cfg_perf_dir;
+	char * perf_trigger;
 	
 	char return_delimeter[]="|";
 	
@@ -152,7 +159,7 @@ void bartlby_check_active(struct service * svc) {
 	struct hostent * remote_host;
 	struct sigaction act1, oact1;
 	
-	
+	FILE * perf_p;
 	
 	connection_timed_out=0;
 	
@@ -260,11 +267,71 @@ void bartlby_check_active(struct service * svc) {
 		close(client_socket);
 		return;
         } 
+        
+        bartlby_decode(return_buffer, return_bytes);
+        return_buffer[return_bytes-1]='\0';
+        if(return_bytes >= 5) {
+        	//_log("%s/%s -> 0=>%c, 1=>%c,2=>%c,3=>%c,4=>%c,5=>%c", svc->server_name, svc->service_name, return_buffer[0],return_buffer[1],return_buffer[2],return_buffer[3],return_buffer[4],return_buffer[5]);
+        	if(strncmp(return_buffer, "PERF: ", 6) == 0) {
+        	//if(return_buffer[0] == 'P' && return_buffer[1] == 'E' && return_buffer[2] == 'R' && return_buffer[3] == 'F' && return_buffer[4] == ':' && return_buffer[5] == ' ') {
+        		//Perfway ;-)
+        		cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
+        		if(cfg_perf_dir != NULL) {
+        			perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+30+strlen(svc->plugin)+return_bytes+20));
+        			sprintf(perf_trigger, "%s/%s", cfg_perf_dir, svc->plugin);
+        			if(stat(perf_trigger, &perf_s) < 0) {
+        				_log("Performance Trigger: %s not found", perf_trigger);	
+        			} else {
+        				sprintf(perf_trigger, "%s/%s %d %s", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
+        				perf_p=popen(perf_trigger, "r");
+        				if(perf_p != NULL) {
+        					if(fgets(perf_out, 1024, perf_p) != NULL) {
+        						
+        						_log("@PERF@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, perf_out);
+        					} else {
+        						_log("fgets(%s) EMPTY output", perf_trigger);
+        					}
+        					pclose(perf_p);
+        				} else {
+        					_log("popen(%s) failed", perf_trigger);	
+        				}
+        			}
+        			
+        			free(perf_trigger);
+        			free(cfg_perf_dir);	
+        		}
+        		
+        		
+        		
+        		//Read again for result
+        		alarm(0);
+			connection_timed_out=0;
+			
+			alarm(CONN_TIMEOUT);
+			return_bytes=recv(client_socket, return_buffer, 1024, 0);
+			alarm(0);
+			
+			if (return_bytes == -1 || connection_timed_out == 1) {
+        		    	_log("%s:%d/%s - TIMEOUT AFETER performance", svc->server_name, svc->client_port,svc->service_name );
+				sprintf(svc->new_server_text, "%s", RECV_ERROR);
+				svc->current_state=STATE_CRITICAL;
+				
+				close(client_socket);
+				return;
+        		} 
+        		
+        		bartlby_decode(return_buffer, return_bytes);
+        		return_buffer[return_bytes-1]='\0';
+        		
+        		
+	        }
+	}
+        
         close(client_socket);
         
-	bartlby_decode(return_buffer, return_bytes);
+	//bartlby_decode(return_buffer, return_bytes);
 	
-	return_buffer[return_bytes-1]='\0';
+	
 	
 	return_token = strtok(return_buffer, return_delimeter);
         if(return_token != NULL) {
@@ -421,7 +488,7 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		return;	
 	}
 	if(svc->service_type == SVC_TYPE_ACTIVE) {
-		bartlby_check_active(svc);
+		bartlby_check_active(svc,cfgfile);
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;		
 	}

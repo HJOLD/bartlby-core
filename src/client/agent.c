@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.13  2005/12/24 17:53:41  hjanuschka
+performance interface i.e: for adding RRD tools or something like that
+
 Revision 1.12  2005/10/09 14:44:09  hjanuschka
 agent announces OS and version
 
@@ -228,9 +231,27 @@ int main(int argc, char ** argv) {
 					connection_timed_out=0;
 					alarm(CONN_TIMEOUT);
 					if(fgets(plugin_output, 1024, fplg) != NULL) {
-						plugin_rtc=pclose(fplg);
-						plugin_output[strlen(plugin_output)-1]='\0';
-						sprintf(svc_back, "%d|%s\n", WEXITSTATUS(plugin_rtc), plugin_output);		
+						if(strncmp(plugin_output, "PERF: ", 6) == 0) {
+							bartlby_encode(plugin_output, strlen(plugin_output)-1);
+							printf("%s\n",plugin_output);
+							fflush(stdout);
+							if(fgets(plugin_output, 1024, fplg) != NULL) {
+								plugin_rtc=pclose(fplg);
+								plugin_output[strlen(plugin_output)-1]='\0';
+								sprintf(svc_back, "%d|%s\n", WEXITSTATUS(plugin_rtc), plugin_output);		
+							} else {
+								plugin_rtc=pclose(fplg);
+								sprintf(svc_back, "%d|No Output(Perf) - %s", WEXITSTATUS(plugin_rtc), exec_str);	
+							
+							}
+							
+						} else {
+							plugin_rtc=pclose(fplg);
+							plugin_output[strlen(plugin_output)-1]='\0';
+							sprintf(svc_back, "%d|%s\n", WEXITSTATUS(plugin_rtc), plugin_output);		
+						}
+						
+						
 					} else {
 						plugin_rtc=pclose(fplg);
 						sprintf(svc_back, "%d|No Output - %s", WEXITSTATUS(plugin_rtc), exec_str);	

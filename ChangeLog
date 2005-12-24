@@ -1,3 +1,14 @@
+2005-12-14 00:17  hjanuschka
+
+	* bartlby.cfg, include/bartlby.h, src/bartlby.c, src/daemon.c,
+	  src/libs/mysql.c: setuid before creating shm segment
+
+2005-11-27 03:04  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/check.c,
+	  src/daemon.c, src/trigger.c, src/libs/mysql.c: setuid/setgid for
+	  security and web ui
+
 2005-11-17 00:51  hjanuschka
 
 	* ChangeLog, bartlby.cfg, include/bartlby.h, src/bartlby.c,
