@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.14  2005/12/25 23:01:16  hjanuschka
+stress testing with RRD
+perf fixes
+
 Revision 1.13  2005/12/24 17:53:41  hjanuschka
 performance interface i.e: for adding RRD tools or something like that
 
@@ -82,7 +86,7 @@ CVS Header
 #include <bartlby.h>
 static int connection_timed_out=0;
 
-#define CONN_TIMEOUT 15
+#define CONN_TIMEOUT 20
 #define MYOS "Linux"
 #define MYVERSION "0.9"
 

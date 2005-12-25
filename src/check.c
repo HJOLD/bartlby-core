@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.26  2005/12/25 23:01:16  hjanuschka
+stress testing with RRD
+perf fixes
+
 Revision 1.25  2005/12/25 12:55:45  hjanuschka
 service_check_timeout is dynamic now
 
@@ -162,6 +166,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	char perf_out[2048];
 	char * cfg_perf_dir;
 	char * perf_trigger;
+	int perf_child;
 	
 	char return_delimeter[]="|";
 	
@@ -294,7 +299,23 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         			} else {
         				
         				sprintf(perf_trigger, "%s/%s %d %s 2>&1", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
-        				perf_p=popen(perf_trigger, "r");
+        				
+        				switch(perf_child=fork()) {
+        					case -1:
+        						_log("fork error");
+        					break;
+        					
+        					case 0:
+        						system(perf_trigger);
+        						exit(1);
+        					break;	
+        					default:
+        						_log("Forked perf trigger %s", perf_trigger);
+        						
+        					break;
+        				}
+        				_log("perf after fork");
+        				/*perf_p=popen(perf_trigger, "r");
         				if(perf_p != NULL) {
         					if(fgets(perf_out, 1024, perf_p) != NULL) {
         						//_log("CMD: %s", perf_trigger);
@@ -307,9 +328,11 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         				} else {
         					_log("popen(%s) failed", perf_trigger);	
         				}
+        				*/
+        				
         			}
-        			
         			free(perf_trigger);
+        			
         			free(cfg_perf_dir);	
         		}
         		
