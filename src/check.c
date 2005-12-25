@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.23  2005/12/25 00:30:08  hjanuschka
+perf trigger: envs, BARTLBY_CURR_HOST, BARTLBY_CURR_SERVICE, BARTLBY_CURR_PLUGIN set right before trigger is executed
+
 Revision 1.22  2005/12/24 17:53:41  hjanuschka
 performance interface i.e: for adding RRD tools or something like that
 
@@ -277,17 +280,19 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         		//Perfway ;-)
         		cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
         		if(cfg_perf_dir != NULL) {
-        			perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+30+strlen(svc->plugin)+return_bytes+20));
+        			perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+50+strlen(svc->plugin)+return_bytes+20));
         			sprintf(perf_trigger, "%s/%s", cfg_perf_dir, svc->plugin);
         			if(stat(perf_trigger, &perf_s) < 0) {
         				_log("Performance Trigger: %s not found", perf_trigger);	
         			} else {
-        				sprintf(perf_trigger, "%s/%s %d %s", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
+        				
+        				sprintf(perf_trigger, "%s/%s %d %s 2>&1", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
         				perf_p=popen(perf_trigger, "r");
         				if(perf_p != NULL) {
         					if(fgets(perf_out, 1024, perf_p) != NULL) {
-        						
-        						_log("@PERF@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, perf_out);
+        						//_log("CMD: %s", perf_trigger);
+        						//_log("Perf Out: %s", perf_out);
+        						//_log("@PERF@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, perf_out);
         					} else {
         						_log("fgets(%s) EMPTY output", perf_trigger);
         					}
@@ -467,6 +472,12 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 	//_log("check service");
 	int ctime, pdiff;
 	//_log("<%d/%d -- CHECK >: %s",svc->current_state,svc->last_state, svc->service_name);
+	
+	
+	setenv("BARTLBY_CURR_PLUGIN", svc->plugin,1);
+	setenv("BARTLBY_CURR_HOST", svc->server_name,1);
+	setenv("BARTLBY_CURR_SERVICE", svc->service_name,1);
+	
 	if(svc->service_type == SVC_TYPE_GROUP) {
 		bartlby_check_group(svc, shm_addr);
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
