@@ -1,0 +1,60 @@
+#!/bin/sh
+#2559 PERF: 0.54 0.64 0.65
+# Load Plugin Functions
+
+function getConfigValue {
+	if [ ! -f $BARTLBY_CONFIG/bartlby.cfg ];
+	then
+		raiseErr "Config $BARTLBY_CONFIG/bartlby.cfg doesnt look like a file"  3
+		
+	fi;
+	
+	r=`cat $BARTLBY_CONFIG/bartlby.cfg |grep $1|awk -F"=" '{print \$2}'`
+	echo $r;
+
+}
+
+
+RRD_HTDOCS=$(getConfigValue performance_rrd_htdocs|tr -d [:blank:]);
+
+
+RRDFILE="${RRD_HTDOCS}/${1}_bartlby_load.rrd";
+
+PNGFILE="${RRD_HTDOCS}/${1}_bartlby_load.png";
+PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_load7.png";
+
+/usr/bin/rrdtool update $RRDFILE N:$3:$4:$5
+
+
+nice -n 19 /usr/local/rrdtool/bin/rrdtool graph $PNGFILE --start -129600 \
+-a PNG -t "Load Average ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 100 -M \
+DEF:load1=${RRDFILE}:load1:AVERAGE \
+DEF:load5=${RRDFILE}:load5:AVERAGE \
+DEF:load15=${RRDFILE}:load15:AVERAGE \
+VDEF:load1l=load1,LAST \
+VDEF:load5l=load5,LAST \
+VDEF:load15l=load15,LAST \
+AREA:load1#ff0000:"1 Minutes,   last\:" GPRINT:load1l:"%5.2lf\n" \
+AREA:load5#ff9900:"5 Minutes,  last\:" GPRINT:load5l:"%5.2lf     generated @ \n" \
+AREA:load15#ffff00:"15 Minutes, last\:" GPRINT:load15l:"%5.2lf    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
+LINE1:load5#ff9900:"" \
+LINE1:load1#ff0000:"" > /dev/null
+
+# 7 Tage - Load Average
+nice -n 19 /usr/local/rrdtool/bin/rrdtool graph $PNGFILE_SEVEN --start -604800 \
+-a PNG -t "Load Average ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 100 \
+DEF:load1=${RRDFILE}:load1:AVERAGE \
+DEF:load5=${RRDFILE}:load5:AVERAGE \
+DEF:load15=${RRDFILE}:load15:AVERAGE \
+VDEF:load1l=load1,LAST \
+VDEF:load5l=load5,LAST \
+VDEF:load15l=load15,LAST \
+AREA:load1#ff0000:"1 Minutes,   last\:" GPRINT:load1l:"%5.2lf\n" \
+AREA:load5#ff9900:"5 Minutes,  last\:" GPRINT:load5l:"%5.2lf     Generated @ \n" \
+AREA:load15#ffff00:"15 Minutes, last\:" GPRINT:load15l:"%5.2lf    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
+LINE1:load5#ff9900:"" \
+LINE1:load1#ff0000:"" > /dev/null
+
+
+
+echo -n "$RRDFILE done";

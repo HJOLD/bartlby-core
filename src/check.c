@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.24  2005/12/25 00:38:04  hjanuschka
+perf_trigger: BARTLBY_CONFIG env set
+              sample (bartlby_load) RRD+graph sample performance trigger
+
 Revision 1.23  2005/12/25 00:30:08  hjanuschka
 perf trigger: envs, BARTLBY_CURR_HOST, BARTLBY_CURR_SERVICE, BARTLBY_CURR_PLUGIN set right before trigger is executed
 
@@ -473,7 +477,7 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 	int ctime, pdiff;
 	//_log("<%d/%d -- CHECK >: %s",svc->current_state,svc->last_state, svc->service_name);
 	
-	
+	setenv("BARTLBY_CONFIG", cfgfile,1);
 	setenv("BARTLBY_CURR_PLUGIN", svc->plugin,1);
 	setenv("BARTLBY_CURR_HOST", svc->server_name,1);
 	setenv("BARTLBY_CURR_SERVICE", svc->service_name,1);
