@@ -1,3 +1,26 @@
+2005-12-25 01:53  hjanuschka
+
+	* bartlby.cfg, perf/bartlby_load: perf fixes (path to rrd tool via
+	  cfg file), trigger gets BARTLBY_CONFIG
+
+2005-12-25 01:38  hjanuschka
+
+	* bartlby.cfg, perf/bartlby_load, src/check.c: perf_trigger:
+	  BARTLBY_CONFIG env set	       sample (bartlby_load)
+	  RRD+graph sample performance trigger
+
+2005-12-25 01:30  hjanuschka
+
+	* src/check.c: perf trigger: envs, BARTLBY_CURR_HOST,
+	  BARTLBY_CURR_SERVICE, BARTLBY_CURR_PLUGIN set right before
+	  trigger is executed
+
+2005-12-24 18:53  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/check.c, src/client/agent.c:
+	  performance interface i.e: for adding RRD tools or something like
+	  that
+
 2005-12-14 00:17  hjanuschka
 
 	* bartlby.cfg, include/bartlby.h, src/bartlby.c, src/daemon.c,

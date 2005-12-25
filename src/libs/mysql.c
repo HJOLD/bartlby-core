@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.22  2005/12/25 12:55:45  hjanuschka
+service_check_timeout is dynamic now
+
 Revision 1.21  2005/12/13 23:17:53  hjanuschka
 setuid before creating shm segment
 
@@ -113,9 +116,9 @@ CVS Header
 
 
 
-#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
+#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers"
-#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d where service_id=%d"
+#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d, service_check_timeout=%d where service_id=%d"
 
 
 #define ADD_SERVER "insert into servers (server_name,server_ip,server_port) VALUES('%s','%s', '%d')"
@@ -126,10 +129,10 @@ CVS Header
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
-#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d)"
+#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d)"
 #define DELETE_SERVICE "delete from services where service_id=%d"
-#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s' where service_id=%d"
-#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d where service_id=%d"
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout  from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 
@@ -562,7 +565,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->service_passive_timeout=atoi(row[19]);
       		
       		svc->service_active=atoi(row[20]);
-      		
+      		svc->service_check_timeout=atoi(row[21]);
       		svc->flap_count=0;
       		
       	} else {
@@ -645,6 +648,7 @@ int UpdateService(struct service * svc, char *config) {
 	svc->plugin_arguments,
 	svc->service_passive_timeout,
 	svc->service_var,
+	svc->service_check_timeout,
 	svc->service_id
 	
 	);
@@ -783,7 +787,8 @@ int AddService(struct service * svc, char *config) {
 	svc->check_interval,
 	svc->service_type,
 	svc->service_var,
-	svc->service_passive_timeout
+	svc->service_passive_timeout,
+	svc->service_check_timeout
 	);
 	
 	//Log("dbg", sqlupd);
@@ -1071,7 +1076,7 @@ int doUpdate(struct service * svc, char * config) {
 	
 	sqlupd=malloc(sizeof(char) *(strlen(SERVICE_UPDATE_TEXT)+sizeof(struct service)+255));
 	
-	sprintf(sqlupd, SERVICE_UPDATE_TEXT, svc->last_check, svc->new_server_text, svc->current_state, svc->service_active, svc->notify_enabled, svc->service_id);
+	sprintf(sqlupd, SERVICE_UPDATE_TEXT, svc->last_check, svc->new_server_text, svc->current_state, svc->service_active, svc->notify_enabled, svc->service_check_timeout, svc->service_id);
 	
 	
 	mysql_query(mysql, sqlupd);
@@ -1340,7 +1345,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			
       			svcs[i].service_passive_timeout=atoi(row[19]);
       			svcs[i].service_active=atoi(row[20]);
-      			
+      			svcs[i].service_check_timeout=atoi(row[21]);
       			svcs[i].flap_count=0;
       			
       			

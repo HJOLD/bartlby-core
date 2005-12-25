@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.20  2005/12/25 12:55:45  hjanuschka
+service_check_timeout is dynamic now
+
 Revision 1.19  2005/10/13 22:13:14  hjanuschka
 logging improved, check fixup
 
@@ -167,7 +170,7 @@ void sched_wait_open() {
 	x=0;
 	int olim;
 	if(current_running == 0) {
-		olim=20;	
+		olim=200;	
 	} else {
 		olim=current_running*20;
 	}
@@ -285,6 +288,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 			if(current_running < cfg_max_parallel) { 
 				if(sched_check_waiting(&services[x]) == 1) {
+						//_log("SVC timeout: %d", services[x].service_check_timeout);
 						round_visitors++;
 				 		//services[x].last_check=time(NULL);
 						child_pid=fork();

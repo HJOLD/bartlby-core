@@ -84,7 +84,7 @@ struct service {
 	
 	int notify_last_state;
 	int notify_last_time;
-	
+	int service_check_timeout;
 	
 	
 };

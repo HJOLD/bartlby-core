@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.25  2005/12/25 12:55:45  hjanuschka
+service_check_timeout is dynamic now
+
 Revision 1.24  2005/12/25 00:38:04  hjanuschka
 perf_trigger: BARTLBY_CONFIG env set
               sample (bartlby_load) RRD+graph sample performance trigger
@@ -209,7 +212,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	
 		
 	}
-	alarm(CONN_TIMEOUT);
+	alarm(svc->service_check_timeout);
 	client_connect_retval = connect(client_socket, (void *) &remote_side, sizeof(remote_side));
 	alarm(0);
 	
@@ -220,7 +223,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 		return;
 	} 
 	connection_timed_out=0;
-	alarm(CONN_TIMEOUT);
+	alarm(svc->service_check_timeout);
 	return_bytes=recv(client_socket, return_buffer, 1024, 0);
 	alarm(0);
 	
@@ -245,7 +248,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	bartlby_encode(client_request, strlen(client_request));
 	
 	
-	alarm(CONN_TIMEOUT);
+	alarm(svc->service_check_timeout);
 	send(client_socket, client_request, (strlen(svc->plugin)+strlen(svc->plugin_arguments)+3),0);
 	//_log("sending `%s`", client_request);
 	if(connection_timed_out == 1) {
@@ -262,7 +265,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	alarm(0);
 	connection_timed_out=0;
 	
-	alarm(CONN_TIMEOUT);
+	alarm(svc->service_check_timeout);
 	return_bytes=recv(client_socket, return_buffer, 1024, 0);
 	alarm(0);
 	
@@ -316,7 +319,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         		alarm(0);
 			connection_timed_out=0;
 			
-			alarm(CONN_TIMEOUT);
+			alarm(svc->service_check_timeout);
 			return_bytes=recv(client_socket, return_buffer, 1024, 0);
 			alarm(0);
 			
