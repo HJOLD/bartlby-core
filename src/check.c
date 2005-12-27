@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.27  2005/12/27 22:00:14  hjanuschka
+*** empty log message ***
+
 Revision 1.26  2005/12/25 23:01:16  hjanuschka
 stress testing with RRD
 perf fixes
@@ -310,11 +313,11 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         						exit(1);
         					break;	
         					default:
-        						_log("Forked perf trigger %s", perf_trigger);
+        						//_log("Forked perf trigger %s", perf_trigger);
         						
         					break;
         				}
-        				_log("perf after fork");
+        				//_log("perf after fork");
         				/*perf_p=popen(perf_trigger, "r");
         				if(perf_p != NULL) {
         					if(fgets(perf_out, 1024, perf_p) != NULL) {

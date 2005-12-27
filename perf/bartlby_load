@@ -31,7 +31,7 @@ $RRDTOOL update $RRDFILE N:$3:$4:$5
 
 
 $RRDTOOL graph $PNGFILE --start -86400 \
--a PNG -t "Load Average Last 24 Hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 100 -M \
+-a PNG -t "Load Average Last 24 Hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 -M \
 DEF:load1=${RRDFILE}:load1:AVERAGE \
 DEF:load5=${RRDFILE}:load5:AVERAGE \
 DEF:load15=${RRDFILE}:load15:AVERAGE \
@@ -46,7 +46,7 @@ LINE1:load1#ff0000:"" > /dev/null
 
 # 7 Tage - Load Average
 $RRDTOOL graph $PNGFILE_SEVEN --start -604800 \
--a PNG -t "Load Average Last 7 Days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 100 \
+-a PNG -t "Load Average Last 7 Days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 \
 DEF:load1=${RRDFILE}:load1:AVERAGE \
 DEF:load5=${RRDFILE}:load5:AVERAGE \
 DEF:load15=${RRDFILE}:load15:AVERAGE \
