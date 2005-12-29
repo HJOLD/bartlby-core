@@ -30,6 +30,9 @@
 
 #define SVC_THRESHOLD 10
 
+#define PERF_TYPE_SVC_TIME 1
+#define PERF_TYPE_ROUND_TIME 2 
+
 #define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
     	if((dlmsg=dlerror()) != NULL) { \
         	_log("-Error: %s", dlmsg); \
@@ -132,6 +135,8 @@ struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
 
 
+int bartlby_core_perf_track(struct  service * svc, int value, int type, char * cfg);
+int bartlby_milli_timediff(struct timeval end, struct timeval start);
 
 void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr);
 //Global :-)

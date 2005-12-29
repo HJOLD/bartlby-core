@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.21  2005/12/29 20:05:55  hjanuschka
+core statistic (should be used in debug mode only produces a biiiig file)
+
 Revision 1.20  2005/12/25 12:55:45  hjanuschka
 service_check_timeout is dynamic now
 
@@ -108,6 +111,8 @@ CVS Header
 #include <time.h>
 #include <sys/wait.h>  
 #include <unistd.h>
+#include <sys/time.h>
+
 
 #include <bartlby.h>
 
@@ -217,6 +222,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	int shutdown_waits=0;
 	int round_start, round_visitors;
 	
+	
+	struct timeval check_start, check_end, stat_round_start, stat_round_end;
+	
 	char * i_am_a_slave;
 	char * cfg_mps;
 		
@@ -281,6 +289,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		//_log("Exsisting shm with %d elements",  *shm_wrk_cnt);
 		round_start=time(NULL);
+		gettimeofday(&stat_round_start,NULL);
 		round_visitors=0;	
 		
 		for(x=0; x<gshm_hdr->svccount; x++) {
@@ -301,7 +310,16 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								
 								signal(SIGCHLD, sched_reaper);
 								
+								gettimeofday(&check_start, NULL);
+																
 								bartlby_check_service(&services[x], shm_addr, SOHandle, cfgfile);	
+								
+								gettimeofday(&check_end, NULL);
+								
+								
+								bartlby_core_perf_track(&services[x], bartlby_milli_timediff(check_end,check_start), PERF_TYPE_SVC_TIME, cfgfile);
+								
+								
 								shmdt(shm_addr);
 								exit(0);
 								
@@ -326,6 +344,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		}
 		round_start=time(NULL);
 		round_visitors=0;
+		
+		//Log Round End
+		gettimeofday(&stat_round_end,NULL);
+		bartlby_core_perf_track(&services[0], bartlby_milli_timediff(stat_round_end,stat_round_start), PERF_TYPE_ROUND_TIME, cfgfile);
+		
+		
 		sleep(SCHED_PAUSE);
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
 		if(i_am_a_slave == NULL) {
