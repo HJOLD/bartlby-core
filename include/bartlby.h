@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Exusiai"
-#define VERSION  "0.9.9a"
-#define EXPECTCORE 1009091 //Module V Check's
+#define REL_NAME "Dynameis"
+#define VERSION  "0.1.2a"
+#define EXPECTCORE 1001020 //Module V Check's
 
 
 #define STATE_OK 0
