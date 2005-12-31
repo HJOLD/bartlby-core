@@ -29,7 +29,6 @@ PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_load7.png";
 $RRDTOOL update $RRDFILE N:$3:$4:$5
 
 
-
 $RRDTOOL graph $PNGFILE --start -86400 \
 -a PNG -t "Load Average Last 24 Hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 -M \
 DEF:load1=${RRDFILE}:load1:AVERAGE \

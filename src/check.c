@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.28  2005/12/31 00:29:44  hjanuschka
+some more perf fixes during high load test
+
 Revision 1.27  2005/12/27 22:00:14  hjanuschka
 *** empty log message ***
 
@@ -274,7 +277,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	connection_timed_out=0;
 	
 	alarm(svc->service_check_timeout);
-	return_bytes=recv(client_socket, return_buffer, 1024, 0);
+	return_bytes=recv(client_socket, return_buffer, 256, 0);
 	alarm(0);
 	
 	if (return_bytes == -1 || connection_timed_out == 1) {
@@ -301,8 +304,9 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         				_log("Performance Trigger: %s not found", perf_trigger);	
         			} else {
         				
-        				sprintf(perf_trigger, "%s/%s %d %s 2>&1", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
-        				
+        				sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
+        				_log("'%s'", return_buffer);
+        				_log("-------------> \n \t\t\t %s\n<-------------\n", perf_trigger);
         				switch(perf_child=fork()) {
         					case -1:
         						_log("fork error");
@@ -360,7 +364,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         		
         		bartlby_decode(return_buffer, return_bytes);
         		return_buffer[return_bytes-1]='\0';
-        		
+        		_log("RB: '%s'", return_buffer);
         		
 	        }
 	}

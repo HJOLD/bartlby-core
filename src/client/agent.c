@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.15  2005/12/31 00:29:44  hjanuschka
+some more perf fixes during high load test
+
 Revision 1.14  2005/12/25 23:01:16  hjanuschka
 stress testing with RRD
 perf fixes
@@ -239,6 +242,7 @@ int main(int argc, char ** argv) {
 							bartlby_encode(plugin_output, strlen(plugin_output)-1);
 							printf("%s\n",plugin_output);
 							fflush(stdout);
+							sleep(1);
 							if(fgets(plugin_output, 1024, fplg) != NULL) {
 								plugin_rtc=pclose(fplg);
 								plugin_output[strlen(plugin_output)-1]='\0';
