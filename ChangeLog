@@ -1,3 +1,18 @@
+2005-12-31 01:29  hjanuschka
+
+	* bartlby.cfg, perf/bartlby_load, src/check.c, src/client/agent.c:
+	  some more perf fixes during high load test
+
+2005-12-30 21:19  hjanuschka
+
+	* bartlby.cfg, include/bartlby.h: version bump 0.1.2a (Dynameis)
+
+2005-12-29 21:05  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/Makefile,
+	  src/perf.c, src/sched.c: core statistic (should be used in debug
+	  mode only produces a biiiig file)
+
 2005-12-28 22:40  hjanuschka
 
 	* ChangeLog, bartlby.cfg: inline documentation of each variable in

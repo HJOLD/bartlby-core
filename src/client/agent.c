@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.16  2006/01/08 16:17:24  hjanuschka
+mysql shema^
+
 Revision 1.15  2005/12/31 00:29:44  hjanuschka
 some more perf fixes during high load test
 
@@ -89,7 +92,7 @@ CVS Header
 #include <bartlby.h>
 static int connection_timed_out=0;
 
-#define CONN_TIMEOUT 20
+#define CONN_TIMEOUT 40
 #define MYOS "Linux"
 #define MYVERSION "0.9"
 

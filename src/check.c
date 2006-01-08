@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.29  2006/01/08 16:17:24  hjanuschka
+mysql shema^
+
 Revision 1.28  2005/12/31 00:29:44  hjanuschka
 some more perf fixes during high load test
 
@@ -305,8 +308,8 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         			} else {
         				
         				sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
-        				_log("'%s'", return_buffer);
-        				_log("-------------> \n \t\t\t %s\n<-------------\n", perf_trigger);
+        				//_log("'%s'", return_buffer);
+        				//_log("-------------> \n \t\t\t %s\n<-------------\n", perf_trigger);
         				switch(perf_child=fork()) {
         					case -1:
         						_log("fork error");
@@ -364,7 +367,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         		
         		bartlby_decode(return_buffer, return_bytes);
         		return_buffer[return_bytes-1]='\0';
-        		_log("RB: '%s'", return_buffer);
+        		//_log("RB: '%s'", return_buffer);
         		
 	        }
 	}

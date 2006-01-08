@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.19  2006/01/08 16:17:24  hjanuschka
+mysql shema^
+
 Revision 1.18  2005/12/13 23:17:53  hjanuschka
 setuid before creating shm segment
 
@@ -330,7 +333,6 @@ int main(int argc, char ** argv) {
 			
 			
 			_log("SHM is already exsisting do a `ipcrm shm SHMID' or something like that");
-			system("ipcs -m|grep \"0x\"|awk '{if($2 != 0) {print \"ipcrm shm \" $2; } }'|sh");
 			exit(1);
 		}
 		

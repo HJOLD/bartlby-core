@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.23  2006/01/08 16:17:24  hjanuschka
+mysql shema^
+
 Revision 1.22  2005/12/25 12:55:45  hjanuschka
 service_check_timeout is dynamic now
 
@@ -548,7 +551,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->min_to=atoi(row[15]);
       		
       		svc->notify_enabled=atoi(row[16]);
-      		svc->last_notify_send=time(NULL);
+      		//svc->last_notify_send=time(NULL);
       		
       		//svc.service_type, svc.service_var, svc.service_passive_timeout
       		svc->service_type = atoi(row[17]);
