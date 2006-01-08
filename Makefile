@@ -15,6 +15,8 @@ install:
 	mkdir -p ${BARTLBY_HOME}/var/
 	cp -v bartlby.cfg ${BARTLBY_HOME}
 	cp -v bartlby.startup ${BARTLBY_HOME}
+	cp -va trigger ${BARTLBY_HOME}
+	cp -va perf ${BARTLBY_HOME}
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make install); \
 	done

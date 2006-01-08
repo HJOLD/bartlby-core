@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.17  2006/01/08 23:20:41  hjanuschka
+install target
+
 Revision 1.16  2006/01/08 16:17:24  hjanuschka
 mysql shema^
 
@@ -131,8 +134,8 @@ int main(int argc, char ** argv) {
         }
         printf("OS: %s V: %s\n",MYOS, MYVERSION);
         fflush(stdout);
-        agent_load_limit=getConfigValue("agent_load_limit", argv[0]);
-        allowed_ip_list=getConfigValue("allowed_ips", argv[0]);
+        agent_load_limit=getConfigValue("agent_load_limit", argv[argc-1]);
+        allowed_ip_list=getConfigValue("allowed_ips", argv[argc-1]);
         
         if(agent_load_limit == NULL) {
         	agent_load_limit=strdup("10");	
@@ -185,7 +188,7 @@ int main(int argc, char ** argv) {
 	
     	sprintf(svc_back, "1|ouuutsch");
         
-        plugin_dir=getConfigValue("agent_plugin_dir", argv[0]);
+        plugin_dir=getConfigValue("agent_plugin_dir", argv[argc-1]);
         if(plugin_dir == NULL) {
         	_log("plugin dir failed");	
         	exit(1);
