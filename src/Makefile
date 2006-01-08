@@ -7,6 +7,9 @@ OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o repl
 	gcc -g  -I../include/  -Wall -g -c $<
 
 
+install:
+	cp -v ../bartlby ${BARTLBY_HOME}/bin/
+	
 
 bartlby: ${OBJS}
 	gcc  -g -I../include/ -ldl  -o ../bartlby ${OBJS}

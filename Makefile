@@ -7,6 +7,17 @@ all:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make all); \
 	done
+	
+install:
+	mkdir -p ${BARTLBY_HOME}/bin/
+	mkdir -p ${BARTLBY_HOME}/etc/
+	mkdir -p ${BARTLBY_HOME}/lib/
+	mkdir -p ${BARTLBY_HOME}/var/
+	cp -v bartlby.cfg ${BARTLBY_HOME}
+	cp -v bartlby.startup ${BARTLBY_HOME}
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && make install); \
+	done
 
 
 clean:
@@ -53,7 +64,3 @@ website: changelog
 	date > /storage/SF.NET/BARTLBY/lastMod
 	scp /storage/SF.NET/BARTLBY/lastMod hjanuschka@shell.sourceforge.net:/home/users/h/hj/hjanuschka/bartlby/htdocs/lastMod
 
-install: all
-	cp bartlby ${INST_DIR} 
-	cp bartlby-dev.cfg ${INST_DIR}
-	chown -R bartlby ${INST_DIR}/
