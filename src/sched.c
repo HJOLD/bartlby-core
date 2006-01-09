@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.22  2006/01/09 23:53:10  hjanuschka
+minor changes
+
 Revision 1.21  2005/12/29 20:05:55  hjanuschka
 core statistic (should be used in debug mode only produces a biiiig file)
 
@@ -116,8 +119,6 @@ CVS Header
 
 #include <bartlby.h>
 
-
-#define SCHED_PAUSE 10
 
 
 void catch_signal(int signum);
@@ -221,7 +222,8 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	int cfg_max_parallel=0;
 	int shutdown_waits=0;
 	int round_start, round_visitors;
-	
+	char * cfg_sched_pause;
+	int sched_pause;
 	
 	struct timeval check_start, check_end, stat_round_start, stat_round_end;
 	
@@ -254,6 +256,15 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);
 	gshm_hdr->do_reload=0;
+	
+	cfg_sched_pause = getConfigValue("sched_round_pause", cfgfile);
+	if(cfg_sched_pause == NULL) {
+		sched_pause=10;	
+		_log("info: sched_pause defaulted to: %d Seconds (set sched_round_pause to modify)", sched_pause);
+	} else {
+		sched_pause=atoi(cfg_sched_pause);
+		free(cfg_sched_pause);
+	}
 	
 	while(1) {
 		if(gshm_hdr->do_reload == 1) {
@@ -339,7 +350,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 		}
 		sched_wait_open();
-		if(time(NULL)-round_start > SCHED_PAUSE) {
+		if(time(NULL)-round_start > sched_pause) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		}
 		round_start=time(NULL);
@@ -350,7 +361,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		bartlby_core_perf_track(&services[0], bartlby_milli_timediff(stat_round_end,stat_round_start), PERF_TYPE_ROUND_TIME, cfgfile);
 		
 		
-		sleep(SCHED_PAUSE);
+		sleep(sched_pause);
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
 		if(i_am_a_slave == NULL) {
 			replication_go(cfgfile, shm_addr, SOHandle);

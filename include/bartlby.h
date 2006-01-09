@@ -149,4 +149,6 @@ void bartlby_end_daemon(char *cfgfile);
 void bartlby_get_daemon(char * cfgfile);
 void set_cfg(char * cfg);
 
+
+
 extern char config_file[255];

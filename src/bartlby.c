@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.20  2006/01/09 23:53:10  hjanuschka
+minor changes
+
 Revision 1.19  2006/01/08 16:17:24  hjanuschka
 mysql shema^
 
@@ -110,7 +113,7 @@ CVS header ;-)
 
 
 
-int main(int argc, char ** argv) {
+int main(int argc, char ** argv, char ** envp) {
 	
 	
 	/*
@@ -197,7 +200,7 @@ int main(int argc, char ** argv) {
 		}
 	}		
 	
-	_log("%s Version %s (%s) started", PROGNAME, VERSION,REL_NAME);
+	_log("%s Version %s (%s) started. compiled %s/%s", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
 		daemon_mode=strdup("false");	
@@ -263,6 +266,7 @@ int main(int argc, char ** argv) {
 	}
 	
 	
+		
 	while(exi_code != 1) {
 		
 		

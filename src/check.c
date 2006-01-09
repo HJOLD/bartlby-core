@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.30  2006/01/09 23:53:10  hjanuschka
+minor changes
+
 Revision 1.29  2006/01/08 16:17:24  hjanuschka
 mysql shema^
 
@@ -295,9 +298,8 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         bartlby_decode(return_buffer, return_bytes);
         return_buffer[return_bytes-1]='\0';
         if(return_bytes >= 5) {
-        	//_log("%s/%s -> 0=>%c, 1=>%c,2=>%c,3=>%c,4=>%c,5=>%c", svc->server_name, svc->service_name, return_buffer[0],return_buffer[1],return_buffer[2],return_buffer[3],return_buffer[4],return_buffer[5]);
+        	
         	if(strncmp(return_buffer, "PERF: ", 6) == 0) {
-        	//if(return_buffer[0] == 'P' && return_buffer[1] == 'E' && return_buffer[2] == 'R' && return_buffer[3] == 'F' && return_buffer[4] == ':' && return_buffer[5] == ' ') {
         		//Perfway ;-)
         		cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
         		if(cfg_perf_dir != NULL) {
@@ -308,8 +310,6 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         			} else {
         				
         				sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
-        				//_log("'%s'", return_buffer);
-        				//_log("-------------> \n \t\t\t %s\n<-------------\n", perf_trigger);
         				switch(perf_child=fork()) {
         					case -1:
         						_log("fork error");
@@ -324,21 +324,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         						
         					break;
         				}
-        				//_log("perf after fork");
-        				/*perf_p=popen(perf_trigger, "r");
-        				if(perf_p != NULL) {
-        					if(fgets(perf_out, 1024, perf_p) != NULL) {
-        						//_log("CMD: %s", perf_trigger);
-        						//_log("Perf Out: %s", perf_out);
-        						//_log("@PERF@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, perf_out);
-        					} else {
-        						_log("fgets(%s) EMPTY output", perf_trigger);
-        					}
-        					pclose(perf_p);
-        				} else {
-        					_log("popen(%s) failed", perf_trigger);	
-        				}
-        				*/
+        				
         				
         			}
         			free(perf_trigger);
@@ -380,7 +366,12 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	
 	return_token = strtok(return_buffer, return_delimeter);
         if(return_token != NULL) {
-        	svc->current_state=atoi(return_token);
+        	//Verfiy result code to be 0-2 :-) 
+        	if(return_token[0] != '0' && return_token[0] != '1' && return_token[0] != '2') {
+        		svc->current_state=STATE_UNKOWN;	
+        	} else {
+        		svc->current_state=atoi(return_token);
+        	}
         	
         	return_token = strtok(NULL, return_delimeter);
         	if(return_token != NULL) {
