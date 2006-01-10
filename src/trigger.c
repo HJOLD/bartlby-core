@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.15  2006/01/10 22:37:25  hjanuschka
+some changes
+	trigger msg comes out of cfgfile with some $VAR macros
+
 Revision 1.14  2005/11/27 02:04:42  hjanuschka
 setuid/setgid for security and web ui
 
@@ -88,7 +92,7 @@ CVS Header
 
 #include <bartlby.h>
 
-#define NOTIFY_MSG "     State Change %s (%s)\\n*********** %s %s ********************\\n[  Server: %s, Service: %s, State: %s]\\n%s"
+#define DEFAULT_NOTIFY_MSG "State Change ($READABLE_STATE)\\n*********** $PROGNAME $VERSION ********************\\n[  Server: $SERVER, Service: $SERVICE, State: $READABLE_STATE]\\n%$MESSAGE"
 #define FL 0
 #define TR 1
 #define ESCALATION_MINUTES 2
@@ -171,6 +175,7 @@ int bartlby_trigger_chk(struct service *svc) {
 	
 }
 
+
 void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	char * trigger_dir;
 	struct dirent *entry;
@@ -178,7 +183,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	char * full_path;
 	struct stat finfo;	
 	int x;
-	char * human_state, * human_state_last;
+	
 	char * notify_msg;
 	char * find_str;
 	struct worker * wrkmap;
@@ -188,8 +193,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	char * find_trigger;
 	char trigger_return[128];
 	struct sigaction act1, oact1;
-	
-	
+	char * cfg_trigger_msg;
+	int notify_mem;
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
 	wrkmap=bartlby_SHM_WorkerMap(shm_addr);
@@ -216,8 +221,6 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	}
 	
 	
-	human_state=bartlby_beauty_state(svc->current_state);
-	human_state_last=bartlby_beauty_state(svc->last_state);
 	
 	/*
 	LAST CUR SERVICE
@@ -228,9 +231,21 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	find_trigger=malloc(100+200);
 	
 	sprintf(find_str, "|%d|", svc->service_id);
+	cfg_trigger_msg=getConfigValue("trigger_msg", cfgfile);
+	if(cfg_trigger_msg == NULL) {
+		cfg_trigger_msg=strdup(DEFAULT_NOTIFY_MSG);	
+	}
+	notify_mem=(strlen(cfg_trigger_msg)+40+strlen(svc->service_name)+strlen(PROGNAME)+strlen(VERSION)+strlen(svc->server_name)+strlen(svc->service_name)+40+strlen(svc->new_server_text));
+	notify_msg=malloc(sizeof(char)*notify_mem);
+	sprintf(notify_msg, "%s", cfg_trigger_msg);
+	//$VARS
 	
-	notify_msg=malloc(sizeof(char)*(strlen(NOTIFY_MSG)+strlen(human_state_last)+strlen(human_state)+strlen(svc->service_name)+strlen(PROGNAME)+strlen(VERSION)+strlen(svc->server_name)+strlen(svc->service_name)+strlen(human_state)+strlen(svc->new_server_text)));
-	sprintf(notify_msg, NOTIFY_MSG, human_state, svc->service_name, PROGNAME, VERSION, svc->server_name, svc->service_name, human_state, svc->new_server_text);
+	bartlby_replace_svc_in_str(notify_msg, svc, notify_mem);
+	
+	
+	free(cfg_trigger_msg);
+	
+	
 	
 	
 	
@@ -304,8 +319,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	}
 	free(find_trigger);
 	free(find_str);
-	free(human_state);
-	free(human_state_last);
+	
+	
 	free(notify_msg);
 	closedir(dtrigger);
 }

@@ -149,6 +149,7 @@ void bartlby_end_daemon(char *cfgfile);
 void bartlby_get_daemon(char * cfgfile);
 void set_cfg(char * cfg);
 
-
+void str_replace(char *str, const char *from, const char *to, int maxlen);
+void bartlby_replace_svc_in_str(char * str, struct service * svc, int max);
 
 extern char config_file[255];

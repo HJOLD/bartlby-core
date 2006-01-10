@@ -1,3 +1,28 @@
+2006-01-10 01:00  hjanuschka
+
+	* Makefile, src/Makefile, src/client/Makefile, src/libs/Makefile:
+	  make install fixes
+
+2006-01-10 00:53  hjanuschka
+
+	* bartlby.cfg, include/bartlby.h, src/bartlby.c, src/check.c,
+	  src/sched.c: minor changes
+
+2006-01-09 00:20  hjanuschka
+
+	* Makefile, bartlby.cfg, mysql.shema, src/Makefile,
+	  src/client/agent.c: install target
+
+2006-01-08 17:39  hjanuschka
+
+	* Makefile, src/Makefile, src/client/Makefile, src/libs/Makefile:
+	  make install
+
+2006-01-08 17:17  hjanuschka
+
+	* ChangeLog, bartlby.cfg, mysql.shema, src/bartlby.c, src/check.c,
+	  src/client/agent.c, src/libs/mysql.c: mysql shema^
+
 2005-12-31 01:29  hjanuschka
 
 	* bartlby.cfg, perf/bartlby_load, src/check.c, src/client/agent.c:

@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.10  2006/01/10 22:37:25  hjanuschka
+some changes
+	trigger msg comes out of cfgfile with some $VAR macros
+
 Revision 1.9  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -159,4 +163,42 @@ int _log(char * str,  ...) {
    	free(logfile);
    	free(logfile_dd);
 	return 1;   
+}
+
+
+void str_replace(char *str, const char *from, const char *to, int maxlen)
+{
+  char  *pstr   = str;
+  int   fromlen = strlen(from);
+  int   tolen   = strlen(to);
+  
+  while (*pstr != '\0' && pstr - str < maxlen) {
+    if (strncmp(pstr, from, fromlen) != 0) {
+      *pstr++;
+      continue;
+    }
+    memmove(pstr + tolen, pstr + fromlen, maxlen - ((pstr + tolen) - str) - 1);
+    memcpy(pstr, to, tolen);
+    pstr += tolen;
+  }
+}
+
+void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
+	char * human_state, * human_state_last;
+	
+	human_state=bartlby_beauty_state(svc->current_state);
+	human_state_last=bartlby_beauty_state(svc->last_state);
+	
+	str_replace(str,"$READABLE_STATE", human_state, max); 
+	str_replace(str,"$PROGNAME", PROGNAME, max); 
+	str_replace(str,"$VERSION", VERSION, max); 
+	str_replace(str,"$SERVER", svc->server_name, max); 
+	str_replace(str,"$SERVICE", svc->service_name, max); 
+	str_replace(str,"$MESSAGE", svc->new_server_text, max); 
+	
+	
+	
+	
+	free(human_state_last);
+	free(human_state);
 }
