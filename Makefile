@@ -8,7 +8,7 @@ all:
 	  test "$$subdir" = . || (cd $$subdir && make all); \
 	done
 	
-install:
+install: all
 	mkdir -p ${BARTLBY_HOME}/bin/
 	mkdir -p ${BARTLBY_HOME}/etc/
 	mkdir -p ${BARTLBY_HOME}/lib/

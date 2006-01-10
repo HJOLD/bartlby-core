@@ -18,7 +18,7 @@ mysql: ${MYSQL}
 	gcc -static -I /usr/include/mysql/ -lmysqlclient -fPIC -shared  -g -I../../include/ -o ../../mysql.so ${MYSQL}
 
 
-install:
+install: all
 	cp -v ../../mysql.so ${BARTLBY_HOME}/lib/
 
 all:   mysql

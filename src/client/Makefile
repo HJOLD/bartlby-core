@@ -18,7 +18,7 @@ agent: ${AGENT}
 	gcc   -g -I../../include/   -o ../../bartlby_agent ${AGENT}
 
 
-install:
+install: all
 	cp -v ../../bartlby_cmd ${BARTLBY_HOME}/bin/
 	cp -v ../../bartlby_portier ${BARTLBY_HOME}/bin/
 	cp -v ../../bartlby_agent ${BARTLBY_HOME}/bin/
