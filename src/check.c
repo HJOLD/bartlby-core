@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.31  2006/01/16 20:51:41  hjanuschka
+performance stuff moved to perf.c
+timeing information on perf handler
+
 Revision 1.30  2006/01/09 23:53:10  hjanuschka
 minor changes
 
@@ -174,11 +178,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	char * client_request;
 	char * return_token;
 	
-	struct stat perf_s;
-	char perf_out[2048];
-	char * cfg_perf_dir;
-	char * perf_trigger;
-	int perf_child;
+	
 	
 	char return_delimeter[]="|";
 	
@@ -301,38 +301,8 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
         	
         	if(strncmp(return_buffer, "PERF: ", 6) == 0) {
         		//Perfway ;-)
-        		cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
-        		if(cfg_perf_dir != NULL) {
-        			perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+50+strlen(svc->plugin)+return_bytes+20));
-        			sprintf(perf_trigger, "%s/%s", cfg_perf_dir, svc->plugin);
-        			if(stat(perf_trigger, &perf_s) < 0) {
-        				_log("Performance Trigger: %s not found", perf_trigger);	
-        			} else {
-        				
-        				sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
-        				switch(perf_child=fork()) {
-        					case -1:
-        						_log("fork error");
-        					break;
-        					
-        					case 0:
-        						system(perf_trigger);
-        						exit(1);
-        					break;	
-        					default:
-        						//_log("Forked perf trigger %s", perf_trigger);
-        						
-        					break;
-        				}
-        				
-        				
-        			}
-        			free(perf_trigger);
-        			
-        			free(cfg_perf_dir);	
-        		}
-        		
-        		
+			
+			bartlby_perf_track(svc,return_buffer, return_bytes, cfgfile);       		
         		
         		//Read again for result
         		alarm(0);

@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/01/16 20:51:41  hjanuschka
+performance stuff moved to perf.c
+timeing information on perf handler
+
 Revision 1.1  2005/12/29 20:05:55  hjanuschka
 core statistic (should be used in debug mode only produces a biiiig file)
 
@@ -29,7 +33,8 @@ core statistic (should be used in debug mode only produces a biiiig file)
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <sys/stat.h>
+#include <sys/time.h>
 
 
 
@@ -60,3 +65,48 @@ int bartlby_core_perf_track(struct service * svc, int value, int type, char * cf
 	}
 	return -1;	
 }
+
+void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile) {
+	struct stat perf_s;
+	char perf_out[2048];
+	char * cfg_perf_dir;
+	char * perf_trigger;
+	int perf_child;
+	struct timeval stat_end, stat_start;
+	
+	cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
+	if(cfg_perf_dir != NULL) {
+		perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+50+strlen(svc->plugin)+return_bytes+20));
+		sprintf(perf_trigger, "%s/%s", cfg_perf_dir, svc->plugin);
+		if(stat(perf_trigger, &perf_s) < 0) {
+			_log("Performance Trigger: %s not found", perf_trigger);	
+		} else {
+			
+			sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
+			switch(perf_child=fork()) {
+				case -1:
+					_log("fork error");
+				break;
+				
+				case 0:
+					gettimeofday(&stat_start,NULL);
+					system(perf_trigger);
+					gettimeofday(&stat_end,NULL);
+					_log("@PERF@%d|%s:%d/%s", bartlby_milli_timediff(stat_end,stat_start),svc->server_name,svc->client_port, svc->service_name);
+					exit(1);
+				break;	
+				default:
+					//_log("Forked perf trigger %s", perf_trigger);
+					
+				break;
+			}
+			
+			
+		}
+		free(perf_trigger);
+		
+		free(cfg_perf_dir);	
+	}	
+	
+}
+

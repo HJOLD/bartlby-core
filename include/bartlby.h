@@ -134,7 +134,7 @@ struct service * bartlby_SHM_ServiceMap(void *);
 struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
 
-
+void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile);
 int bartlby_core_perf_track(struct  service * svc, int value, int type, char * cfg);
 int bartlby_milli_timediff(struct timeval end, struct timeval start);
 
