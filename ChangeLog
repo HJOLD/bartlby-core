@@ -1,3 +1,14 @@
+2006-01-16 21:51  hjanuschka
+
+	* include/bartlby.h, src/check.c, src/perf.c: performance stuff
+	  moved to perf.c timeing information on perf handler
+
+2006-01-10 23:37  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/global.c,
+	  src/trigger.c: some changes  trigger msg comes out of cfgfile
+	  with some $VAR macros
+
 2006-01-10 01:00  hjanuschka
 
 	* Makefile, src/Makefile, src/client/Makefile, src/libs/Makefile:

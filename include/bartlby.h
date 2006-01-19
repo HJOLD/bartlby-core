@@ -24,6 +24,10 @@
 #define STATE_CRITICAL 2
 #define STATE_UNKOWN 3
 
+
+#define DT_SERVICE 1
+#define DT_SERVER 2
+
 #define SVC_TYPE_ACTIVE 1
 #define SVC_TYPE_PASSIVE 2
 #define SVC_TYPE_GROUP 3
@@ -44,11 +48,13 @@
 struct shm_header {
 	        int svccount;
 	        int wrkcount;
+	        
 	        int current_running;
 		char  version[50];
 		int do_reload;
 		int last_replication;
 		int startup_time;
+		int dtcount;
 
 };
 
@@ -112,6 +118,17 @@ struct worker {
 }sa;
 
 
+struct downtime {
+	int downtime_id;
+	int downtime_type;
+	int downtime_from;
+	int downtime_to;
+	char downtime_notice[2048];
+	int service_id;
+	
+}sb;
+
+
 
 
 char * getConfigValue(char *, char *);
@@ -129,8 +146,9 @@ int replication_go(char *, void *, void *);
 
 //SHM
 
-
+int GetDowntimeMap(struct downtime * svcs, char * config);
 struct service * bartlby_SHM_ServiceMap(void *);
+struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr);
 struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
 
@@ -151,5 +169,8 @@ void set_cfg(char * cfg);
 
 void str_replace(char *str, const char *from, const char *to, int maxlen);
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max);
+
+
+int bartlby_is_in_downtime(void * bartlby_address, struct service * svc);
 
 extern char config_file[255];

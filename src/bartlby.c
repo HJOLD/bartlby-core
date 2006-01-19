@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.21  2006/01/19 23:30:22  hjanuschka
+introducing downtime's
+
 Revision 1.20  2006/01/09 23:53:10  hjanuschka
 minor changes
 
@@ -138,6 +141,7 @@ int main(int argc, char ** argv, char ** envp) {
 	int global_startup_time;
 	int (*GetServiceMap)(struct service *, char *);
 	int (*GetWorkerMap)(struct worker *,char *);
+	int (*GetDowntimeMap)(struct downtime *, char *);
 	long cfg_shm_size_bytes;
 	char *  cfg_shm_size;
 	/*
@@ -153,6 +157,7 @@ int main(int argc, char ** argv, char ** envp) {
 		void * bartlby_address;
 		int shm_svc_cnt;
 		int shm_wrk_cnt;
+		int shm_dt_cnt;
 		
 		struct shmid_ds shm_desc;
 		long SHMSize;
@@ -172,7 +177,7 @@ int main(int argc, char ** argv, char ** envp) {
 	
 	struct service * svcmap;
 	struct worker * wrkmap;
-
+	struct downtime * dtmap;
 
 	char * cfg_user;
 	struct passwd * ui;
@@ -222,6 +227,7 @@ int main(int argc, char ** argv, char ** envp) {
     	LOAD_SYMBOL(GetVersion,SOHandle, "GetVersion");
     	LOAD_SYMBOL(GetServiceMap,SOHandle, "GetServiceMap");
     	LOAD_SYMBOL(GetWorkerMap,SOHandle, "GetWorkerMap");
+    	LOAD_SYMBOL(GetDowntimeMap,SOHandle, "GetDowntimeMap");
     	LOAD_SYMBOL(GetName,SOHandle, "GetName");
     	LOAD_SYMBOL(ExpectVersion,SOHandle, "ExpectVersion");
     	
@@ -317,10 +323,18 @@ int main(int argc, char ** argv, char ** envp) {
 				wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
 				shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
 				shm_hdr->wrkcount=shm_wrk_cnt;
+				
+				dtmap=(struct downtime *)(void *)&wrkmap[shm_wrk_cnt]+20;
+				shm_dt_cnt=GetDowntimeMap(dtmap, argv[1]);
+				shm_hdr->dtcount=shm_dt_cnt;
+				
+				
+				
 			}
 			free(i_am_a_slave);
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
+			_log("Downtimes: %d", shm_hdr->dtcount);
 			shm_hdr->current_running=0;
 			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 						

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2006/01/19 23:30:22  hjanuschka
+introducing downtime's
+
 Revision 1.3  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -40,7 +43,20 @@ struct shm_header * bartlby_SHM_GetHDR(void * shm_addr) {
 	return (struct shm_header *)(void *)shm_addr;
 }
 
-
+struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr) {
+	//Is beyond the 3 integers :-)
+	struct shm_header * hdr;
+	struct service * svcmap;
+	struct worker * wrkmap;
+	
+	hdr=bartlby_SHM_GetHDR(shm_addr);
+	
+	svcmap=bartlby_SHM_ServiceMap(shm_addr);
+	wrkmap=(struct worker *)(void*)&svcmap[hdr->svccount]+20;
+	
+	
+	return (struct downtime *)(void *)&wrkmap[hdr->wrkcount]+20;
+}
 
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr) {
 	//Is beyond the 3 integers :-)

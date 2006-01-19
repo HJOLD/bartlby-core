@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.23  2006/01/19 23:30:22  hjanuschka
+introducing downtime's
+
 Revision 1.22  2006/01/09 23:53:10  hjanuschka
 minor changes
 
@@ -150,7 +153,7 @@ void sched_reschedule(struct service * svc) {
 	//_log("Set last_check to %d on %s:%d/%s(%s)", svc->last_check, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 }
 
-int sched_check_waiting(struct service * svc) {
+int sched_check_waiting(void * shm_addr, struct service * svc) {
 	int cur_time;
 	int my_diff;
 	time_t tnow;
@@ -165,8 +168,9 @@ int sched_check_waiting(struct service * svc) {
 	
 	if(svc->service_active == 1 && my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to) {
 		//_log("Mydiff %d >= %d, %d>=%d, %d<=%d %d>=%d %d<=%d", my_diff, svc->check_interval,tmnow->tm_hour,svc->hour_from,tmnow->tm_hour , svc->hour_to,tmnow->tm_min , svc->min_from ,tmnow->tm_min , svc->min_to);	
-		
-		return 1;
+		if(bartlby_is_in_downtime(shm_addr, svc) > 0) {
+			return 1;
+		}
 	}	
 	return -1;
 }
@@ -307,7 +311,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 			
 			if(current_running < cfg_max_parallel) { 
-				if(sched_check_waiting(&services[x]) == 1) {
+				if(sched_check_waiting(shm_addr, &services[x]) == 1) {
 						//_log("SVC timeout: %d", services[x].service_check_timeout);
 						round_visitors++;
 				 		//services[x].last_check=time(NULL);

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.24  2006/01/19 23:30:22  hjanuschka
+introducing downtime's
+
 Revision 1.23  2006/01/08 16:17:24  hjanuschka
 mysql shema^
 
@@ -144,6 +147,246 @@ CVS Header
 #define DELETE_WORKER "delete from workers where worker_id=%d"
 #define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s', enabled_triggers='%s' WHERE worker_id=%d"
 #define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers where worker_id=%d"
+
+#define UPDATE_DOWNTIME "update downtime set downtime_notice='%s', downtime_from=%d,downtime_to=%d, service_id=%d, downtime_type=%d where downtime_id=%d"
+#define DEL_DOWNTIME "delete from downtime where downtime_id=%d"
+#define ADD_DOWNTIME "INSERT INTO downtime(downtime_type, downtime_from,downtime_to,service_id, downtime_notice) VALUES(%d,%d,%d,%d, '%s')"
+#define DOWNTIME_SEL "select downtime_id, downtime_type, downtime_from, downtime_to, downtime_notice, service_id from downtime"
+
+int UpdateDowntime(struct downtime * svc, char *config) {
+	/*
+		modify worker
+	*/
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_DOWNTIME)+sizeof(struct downtime)+200));
+	sprintf(sqlupd, UPDATE_DOWNTIME, svc->downtime_notice, svc->downtime_from, svc->downtime_to, svc->service_id, svc->downtime_type, svc->downtime_id);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=1;
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;	
+}
+
+int DeleteDowntime(int downtime_id, char * config) {
+	
+	MYSQL *mysql;
+
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(DEL_DOWNTIME)+20));
+	sprintf(sqlupd, DEL_DOWNTIME, downtime_id);
+	
+	//Log("dbg", sqlupd);
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return 1;		
+	
+	
+}
+
+int AddDowntime(struct downtime * svc, char *config) {
+	
+	MYSQL *mysql;
+	int rtc;
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(ADD_DOWNTIME)+sizeof(struct downtime)+40));
+	sprintf(sqlupd, ADD_DOWNTIME, svc->downtime_type, svc->downtime_from, svc->downtime_to, svc->service_id, svc->downtime_notice);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+	
+	
+	free(sqlupd);
+	rtc=mysql_insert_id(mysql);
+	mysql_close(mysql);
+		
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return rtc;	
+}	
+
+int GetDowntimeMap(struct downtime * svcs, char * config) {
+	
+	MYSQL *mysql;
+	MYSQL_ROW  row;
+	MYSQL_RES  *res;
+	
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+	int i=0;
+	
+	
+
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+      	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	mysql_query(mysql, DOWNTIME_SEL);
+		CHK_ERR(mysql);
+      	res = mysql_store_result(mysql);
+      		CHK_ERR(mysql);
+      	
+      	
+      	if(mysql_num_rows(res) > 0) {
+      		
+      		while ( (row=mysql_fetch_row(res)) != NULL) {
+
+  			if(row[0] != NULL) {
+      				
+      				svcs[i].downtime_id = atoi(row[0]);
+      			} else {
+      				svcs[i].downtime_id = -1;    				
+      			}
+      			
+      			if(row[1] != NULL) {
+      				
+      				svcs[i].downtime_type = atoi(row[1]);
+      			} else {
+      				svcs[i].downtime_type = -1;    				
+      			}
+      			if(row[2] != NULL) {
+      				
+      				svcs[i].downtime_from = atoi(row[2]);
+      			} else {
+      				svcs[i].downtime_from = -1;    				
+      			}
+      			if(row[3] != NULL) {
+      				
+      				svcs[i].downtime_to = atoi(row[3]);
+      			} else {
+      				svcs[i].downtime_to = -1;    				
+      			}
+      			
+      			if(row[4] != NULL) {
+      				//svcs[i].icq=malloc(strlen(row[1])*sizeof(char)+2);
+      				sprintf(svcs[i].downtime_notice, "%s", row[4]);
+      			} else {
+      				sprintf(svcs[i].downtime_notice, "(null)");     				
+      			}
+      			if(row[5] != NULL) {
+      				
+      				svcs[i].service_id = atoi(row[5]);
+      			} else {
+      				svcs[i].service_id = -1;    				
+      			}
+      			
+      			
+      			i++;
+      		}
+      		
+      		mysql_free_result(res);
+      		mysql_close(mysql);
+      		free(mysql_host);
+		free(mysql_user);
+		free(mysql_pw);
+		free(mysql_db);
+      		return i;
+      	} else { 
+      		_log( "no worker found!");	
+      	}
+	
+	
+	
+	
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return -1;
+	
+	
+}
+
 
 
 int PrepareReplication(char * config) {
