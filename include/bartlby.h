@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Dynameis"
-#define VERSION  "0.1.2a"
-#define EXPECTCORE 1001020 //Module V Check's
+#define REL_NAME "Kyriotetes"
+#define VERSION  "1.1.3a"
+#define EXPECTCORE 1101030 //Module V Check's
 
 
 #define STATE_OK 0
@@ -95,6 +95,8 @@ struct service {
 	int notify_last_time;
 	int service_check_timeout;
 	
+	char server_icon[1024];
+	
 	
 };
 
@@ -172,5 +174,5 @@ void bartlby_replace_svc_in_str(char * str, struct service * svc, int max);
 
 
 int bartlby_is_in_downtime(void * bartlby_address, struct service * svc);
-
+ssize_t recvall(int _socket, char* buffer, int max_len,int flags);
 extern char config_file[255];

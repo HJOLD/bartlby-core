@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.18  2006/01/29 15:53:05  hjanuschka
+server icon
+
 Revision 1.17  2006/01/08 23:20:41  hjanuschka
 install target
 
@@ -141,7 +144,7 @@ int main(int argc, char ** argv) {
         	agent_load_limit=strdup("10");	
         }
         if(allowed_ip_list == NULL) {
-        	printf("No Ip Allowed");
+        	printf("No Ip Allowed\n");
         	exit(1);
         	
         }
@@ -164,9 +167,10 @@ int main(int argc, char ** argv) {
         }
         free(allowed_ip_list);
         if(ip_ok < 0) {
+        	sleep(1);
         	sprintf(svc_back, "2|IP Blocked ");
         	bartlby_encode(svc_back, strlen(svc_back));
-		printf("%s", svc_back);	
+		printf("%s\n", svc_back);	
 		exit(1);
         }
         

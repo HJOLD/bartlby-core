@@ -1,3 +1,9 @@
+2006-01-20 00:30  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/Makefile,
+	  src/bartlby.c, src/downtime.c, src/sched.c, src/shm.c,
+	  src/libs/mysql.c: introducing downtime's
+
 2006-01-16 21:51  hjanuschka
 
 	* include/bartlby.h, src/check.c, src/perf.c: performance stuff

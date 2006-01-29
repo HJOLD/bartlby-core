@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.25  2006/01/29 15:53:05  hjanuschka
+server icon
+
 Revision 1.24  2006/01/19 23:30:22  hjanuschka
 introducing downtime's
 
@@ -122,15 +125,15 @@ CVS Header
 
 
 
-#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
+#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico  from services svc, servers srv where svc.server_id=srv.server_id and srv.server_enabled=1 ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d, service_check_timeout=%d where service_id=%d"
 
 
-#define ADD_SERVER "insert into servers (server_name,server_ip,server_port) VALUES('%s','%s', '%d')"
+#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico) VALUES('%s','%s', '%d', '%s')"
 #define DELETE_SERVER "delete from servers where server_id=%d"
-#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d where server_id=%d"
-#define SERVER_SELECTOR "select server_name, server_ip, server_port from servers where server_id=%d"
+#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s' where server_id=%d"
+#define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico from servers where server_id=%d"
 
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
@@ -1110,6 +1113,11 @@ int GetServerById(int server_id, struct service * svc, char * config) {
       		} else {
       			svc->client_port=-1;	
       		}
+      		if(row[3] != NULL) {
+      			sprintf(svc->server_icon, "%s", row[3]);
+      		} else {
+      			sprintf(svc->server_icon, "(null)");
+      		}
       	} else {
 		rsvc=NULL;
 	}
@@ -1153,8 +1161,8 @@ int ModifyServer(struct service * svc, char *config) {
       		CHK_ERR(mysql);
 	
 	
-	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20));
-	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_id);
+	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20+strlen(svc->server_icon)));
+	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_icon, svc->server_id);
 	
 	//Log("dbg", sqlupd);
 	
@@ -1259,8 +1267,8 @@ int AddServer(struct service * svc, char *config) {
       		CHK_ERR(mysql);
 	
 	
-	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20));
-	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port);
+	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20+strlen(svc->server_icon)));
+	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port, svc->server_icon);
 	
 	//Log("dbg", sqlupd);
 	
@@ -1592,6 +1600,11 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].service_passive_timeout=atoi(row[19]);
       			svcs[i].service_active=atoi(row[20]);
       			svcs[i].service_check_timeout=atoi(row[21]);
+      			if(row[22] != NULL) {
+      				sprintf(svcs[i].server_icon, "%s", row[22]);	
+      			} else {
+      				sprintf(svcs[i].server_icon, "(null)");
+      			}
       			svcs[i].flap_count=0;
       			
       			
