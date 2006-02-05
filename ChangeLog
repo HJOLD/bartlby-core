@@ -1,3 +1,12 @@
+2006-02-02 23:14  hjanuschka
+
+	* mysql.shema: fixed mysql.shema
+
+2006-01-29 16:53  hjanuschka
+
+	* ChangeLog, bartlby.cfg, include/bartlby.h, src/client/agent.c,
+	  src/libs/mysql.c: server icon
+
 2006-01-20 00:30  hjanuschka
 
 	* ChangeLog, bartlby.cfg, include/bartlby.h, src/Makefile,

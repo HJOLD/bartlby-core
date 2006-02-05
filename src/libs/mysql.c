@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.26  2006/02/05 21:49:47  hjanuschka
+*** empty log message ***
+
 Revision 1.25  2006/01/29 15:53:05  hjanuschka
 server icon
 
@@ -115,7 +118,7 @@ CVS Header
       		 		return -1; \
       			}\
       		} else {\
-      			_log("Null Exception %s:%d", __FILE__, __LINE__); \
+      			_log("Mysql Error %s:%d", __FILE__, __LINE__); \
       			return -1; \
       		}
 
@@ -1481,7 +1484,7 @@ int GetServiceMap(struct service * svcs, char * config) {
 	char * mysql_pw = getConfigValue("mysql_pw", config);
 	char * mysql_db = getConfigValue("mysql_db", config);
 	int i=0;
-	
+	set_cfg(config);
 	mysql=mysql_init(NULL);
 		CHK_ERR(mysql);
 	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);

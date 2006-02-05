@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.22  2006/02/05 21:49:47  hjanuschka
+*** empty log message ***
+
 Revision 1.21  2006/01/19 23:30:22  hjanuschka
 introducing downtime's
 
@@ -316,6 +319,7 @@ int main(int argc, char ** argv, char ** envp) {
 				
 				
 				shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
+				
 				shm_hdr->svccount=shm_svc_cnt;
 				
 				svcmap=bartlby_SHM_ServiceMap(bartlby_address);
@@ -344,7 +348,14 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr->startup_time=global_startup_time;
 			
 			
-			
+			if(shm_hdr->wrkcount <= 0) {
+				_log("Found workers are below zero (%d) maybe your datalib config isnt OK or you havent completed the setup", shm_hdr->wrkcount);
+				shmdt(bartlby_address);
+				shm_id = shmget(ftok(shmtok, 32), 0, 0600);
+				shmctl(shm_id, IPC_RMID, &shm_desc);
+				break;
+				
+			}
 			
 			
 		} else {
