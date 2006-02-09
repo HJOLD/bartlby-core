@@ -16,6 +16,18 @@ $Source$
 
 
 $Log$
+Revision 1.11  2006/02/09 00:14:50  hjanuschka
+datalib: mysql/ catch failed logins
+core: fixed some setuid problems with datalib
+core: zero worker detected and logged
+core: network code re-worked, much faster and cleaner now
+core: encode/decode removed
+php: encode/decode removed
+ui: topology map manager added
+ui: nicer menu (flap)
+ui: server_detail (added)
+startup sh: pre-start check if logfile is writeable
+
 Revision 1.10  2006/01/10 22:37:25  hjanuschka
 some changes
 	trigger msg comes out of cfgfile with some $VAR macros
@@ -97,7 +109,7 @@ void bartlby_decode(char * msg, int length) {
 	int x;
 		
 	for(x=0; x<length; x++) {
-		msg[x]=2^msg[x];	
+		//msg[x]=2^msg[x];	
 		
 	}
 	
@@ -105,7 +117,7 @@ void bartlby_decode(char * msg, int length) {
 void bartlby_encode(char * msg, int length) {
 	int x;
 	for(x=0; x<length; x++) {
-		msg[x]=msg[x]^2;	
+		//msg[x]=msg[x]^2;	
 	}
 	
 }

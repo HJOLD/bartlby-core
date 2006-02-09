@@ -1,3 +1,8 @@
+2006-02-05 22:49  hjanuschka
+
+	* ChangeLog, bartlby.cfg, src/bartlby.c, src/libs/mysql.c: [no log
+	  message]
+
 2006-02-02 23:14  hjanuschka
 
 	* mysql.shema: fixed mysql.shema

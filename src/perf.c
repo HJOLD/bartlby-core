@@ -16,6 +16,18 @@ $Source$
 
 
 $Log$
+Revision 1.3  2006/02/09 00:14:50  hjanuschka
+datalib: mysql/ catch failed logins
+core: fixed some setuid problems with datalib
+core: zero worker detected and logged
+core: network code re-worked, much faster and cleaner now
+core: encode/decode removed
+php: encode/decode removed
+ui: topology map manager added
+ui: nicer menu (flap)
+ui: server_detail (added)
+startup sh: pre-start check if logfile is writeable
+
 Revision 1.2  2006/01/16 20:51:41  hjanuschka
 performance stuff moved to perf.c
 timeing information on perf handler
@@ -92,7 +104,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 					gettimeofday(&stat_start,NULL);
 					system(perf_trigger);
 					gettimeofday(&stat_end,NULL);
-					_log("@PERF@%d|%s:%d/%s", bartlby_milli_timediff(stat_end,stat_start),svc->server_name,svc->client_port, svc->service_name);
+					//_log("@PERF@%d|%s:%d/%s", bartlby_milli_timediff(stat_end,stat_start),svc->server_name,svc->client_port, svc->service_name);
 					exit(1);
 				break;	
 				default:

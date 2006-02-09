@@ -17,6 +17,7 @@ function bartlby_status {
 		echo "PID file:                 [exists ]";
 	else
 		echo "PID file:                 [missing]";
+		exit;
 	fi;
 	MYPID=`cat $1`;
 	a=`ps ww --pid $MYPID|wc -l`
@@ -64,7 +65,7 @@ function getConfigValue {
 		
 	fi;
 	
-	r=`cat $BTL_DIR/bartlby.cfg |grep $1|awk -F"=" '{print \$2}'`
+	r=`cat $BTL_DIR/bartlby.cfg |grep "^${1}"|awk -F"=" '{print \$2}'`
 	echo $r;
 
 }
@@ -76,8 +77,30 @@ fi;
 
 cd $BTL_DIR;
 PIDDIR=`getConfigValue "pidfile_dir"|tr -d [:cntrl:]`;
+LOGDIR=`getConfigValue "logfile"|tr -d [:cntrl:]`;
+RUSER=`getConfigValue "user"|tr -d [:cntrl:]`;
 PIDNAME=$PIDDIR/bartlby.pid
 
+
+#Check if LogPermission is OK
+if [ $USER != $RUSER ]; 
+then
+	su -c "echo 1 > ${LOGDIR}.$(date +%Y.%m.%d)" - $RUSER
+	EXC=$?;
+	if [ $EXC != 0 ];
+	then
+		raiseErr "either the user '${RUSER}' does not exist or the logfile: ${LOGDIR}.$(date +%Y.%m.%d) does not exist or is not writeable" 5
+	
+	fi;
+else
+	echo 1 > ${LOGDIR}.$(date +%Y.%m.%d)
+	EXC=$?;
+	if [ $EXC != 0 ];
+	then
+		raiseErr "either the user '${RUSER}' does not exist or the logfile: ${LOGDIR}.$(date +%Y.%m.%d) does not exist or is not writeable" 5
+	fi;
+		
+fi;
 
 case $1 in
 	start)
@@ -93,6 +116,8 @@ case $1 in
 		
 	status) 
 		bartlby_status $PIDNAME;;
+	*)
+		echo "bartlby.startup [stop|start|restart|status]"
 		
 
 esac

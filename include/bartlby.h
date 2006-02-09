@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Kyriotetes"
-#define VERSION  "1.1.3a"
-#define EXPECTCORE 1101030 //Module V Check's
+#define REL_NAME "Throne"
+#define VERSION  "1.1.4a"
+#define EXPECTCORE 1101040 //Module V Check's
 
 
 #define STATE_OK 0
@@ -172,6 +172,7 @@ void set_cfg(char * cfg);
 void str_replace(char *str, const char *from, const char *to, int maxlen);
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max);
 
+void bartlby_action_handle_reply_line(struct service * svc, char * line, char *cfgfile);
 
 int bartlby_is_in_downtime(void * bartlby_address, struct service * svc);
 ssize_t recvall(int _socket, char* buffer, int max_len,int flags);

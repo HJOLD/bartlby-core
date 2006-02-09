@@ -16,6 +16,18 @@ $Source$
 
 
 $Log$
+Revision 1.19  2006/02/09 00:14:50  hjanuschka
+datalib: mysql/ catch failed logins
+core: fixed some setuid problems with datalib
+core: zero worker detected and logged
+core: network code re-worked, much faster and cleaner now
+core: encode/decode removed
+php: encode/decode removed
+ui: topology map manager added
+ui: nicer menu (flap)
+ui: server_detail (added)
+startup sh: pre-start check if logfile is writeable
+
 Revision 1.18  2006/01/29 15:53:05  hjanuschka
 server icon
 
@@ -194,7 +206,7 @@ int main(int argc, char ** argv) {
         
         plugin_dir=getConfigValue("agent_plugin_dir", argv[argc-1]);
         if(plugin_dir == NULL) {
-        	_log("plugin dir failed");	
+        	_log("plugin dir failed\n");	
         	exit(1);
         }
         
@@ -210,7 +222,7 @@ int main(int argc, char ** argv) {
 		alarm(CONN_TIMEOUT);
 		//ipmlg]ajgai]Amoowlkecvg~"/j"nmacnjmqv~
 		if(read(fileno(stdin), svc_in, 1024) < 0) {
-			printf("BAD!");
+			printf("BAD!\n");
 			exit(1);
 		}
 		alarm(0);
