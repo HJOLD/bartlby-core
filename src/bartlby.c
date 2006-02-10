@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.23  2006/02/10 23:54:46  hjanuschka
+SIRENE mode added
+
 Revision 1.22  2006/02/05 21:49:47  hjanuschka
 *** empty log message ***
 
@@ -142,6 +145,7 @@ int main(int argc, char ** argv, char ** envp) {
 	long   (*ExpectVersion)();
 	
 	int global_startup_time;
+	
 	int (*GetServiceMap)(struct service *, char *);
 	int (*GetWorkerMap)(struct worker *,char *);
 	int (*GetDowntimeMap)(struct downtime *, char *);
@@ -346,6 +350,8 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr->last_replication=-1;
 			//shm_hdr->startup_time=time(NULL);
 			shm_hdr->startup_time=global_startup_time;
+			
+			shm_hdr->sirene_mode=0; //Default disable	
 			
 			
 			if(shm_hdr->wrkcount <= 0) {

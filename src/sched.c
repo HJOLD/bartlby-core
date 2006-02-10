@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.24  2006/02/10 23:54:46  hjanuschka
+SIRENE mode added
+
 Revision 1.23  2006/01/19 23:30:22  hjanuschka
 introducing downtime's
 
@@ -271,6 +274,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	}
 	
 	while(1) {
+		
 		if(gshm_hdr->do_reload == 1) {
 			_log("queuing Reload");	
 			while(current_running != 0) {
@@ -298,9 +302,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 				}	
 			}	
 			break;
-		 }
+		}
 		
-		
+		if(gshm_hdr->sirene_mode == 1) {
+			//We are in Sirene Mode dont check anything just notifie workers that something b ad is going on
+			bartlby_check_sirene(cfgfile,shm_addr);
+			continue;	
+		}
 		
 		//_log("Exsisting shm with %d elements",  *shm_wrk_cnt);
 		round_start=time(NULL);
@@ -369,6 +377,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
 		if(i_am_a_slave == NULL) {
 			replication_go(cfgfile, shm_addr, SOHandle);
+			
 		} else {
 			_log("Skipped repl because me is a slave");	
 			free(i_am_a_slave);

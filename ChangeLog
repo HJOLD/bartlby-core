@@ -1,3 +1,14 @@
+2006-02-09 01:14  hjanuschka
+
+	* ChangeLog, bartlby.cfg, bartlby.startup, include/bartlby.h,
+	  src/check.c, src/global.c, src/perf.c, src/client/agent.c:
+	  datalib: mysql/ catch failed logins core: fixed some setuid
+	  problems with datalib core: zero worker detected and logged core:
+	  network code re-worked, much faster and cleaner now core:
+	  encode/decode removed php: encode/decode removed ui: topology map
+	  manager added ui: nicer menu (flap) ui: server_detail (added)
+	  startup sh: pre-start check if logfile is writeable
+
 2006-02-05 22:49  hjanuschka
 
 	* ChangeLog, bartlby.cfg, src/bartlby.c, src/libs/mysql.c: [no log

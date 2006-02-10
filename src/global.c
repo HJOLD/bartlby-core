@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2006/02/10 23:54:46  hjanuschka
+SIRENE mode added
+
 Revision 1.11  2006/02/09 00:14:50  hjanuschka
 datalib: mysql/ catch failed logins
 core: fixed some setuid problems with datalib
@@ -97,6 +100,9 @@ char * bartlby_beauty_state(int status) {
 		break;
 		case STATE_CRITICAL:
 			ret=strdup("CRITICAL");
+		break;
+		case STATE_SIRENE:
+			ret=strdup("SIRENE");
 		break;
 		
 		default:

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.33  2006/02/10 23:54:46  hjanuschka
+SIRENE mode added
+
 Revision 1.32  2006/02/09 00:14:50  hjanuschka
 datalib: mysql/ catch failed logins
 core: fixed some setuid problems with datalib
@@ -665,7 +668,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		//_log("<%d/%d--DOLOG>%d;%d;);		
 		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		//pos2_pull_trigger(svc);	
-		bartlby_trigger(svc, cfgfile, shm_addr);
+		bartlby_trigger(svc, cfgfile, shm_addr, 1);
 		
 		svc->last_check=time(NULL);
 		svc->last_state=svc->current_state;

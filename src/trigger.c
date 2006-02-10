@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.16  2006/02/10 23:54:46  hjanuschka
+SIRENE mode added
+
 Revision 1.15  2006/01/10 22:37:25  hjanuschka
 some changes
 	trigger msg comes out of cfgfile with some $VAR macros
@@ -176,7 +179,7 @@ int bartlby_trigger_chk(struct service *svc) {
 }
 
 
-void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
+void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check) {
 	char * trigger_dir;
 	struct dirent *entry;
 	DIR * dtrigger;
@@ -199,9 +202,10 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 	hdr=bartlby_SHM_GetHDR(shm_addr);
 	wrkmap=bartlby_SHM_WorkerMap(shm_addr);
 	
-	
-	if((bartlby_trigger_chk(svc)) == FL) {
-		return;	
+	if(do_check == 1) {
+		if(bartlby_trigger_chk(svc) == FL) {
+			return;	
+		}
 	}
 	
 	act1.sa_handler = trigger_conn_timeout;
@@ -270,12 +274,13 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr) {
 		if(S_ISREG(finfo.st_mode)) {
 			
 			for(x=0; x<hdr->wrkcount; x++) {
-				if(strstr(wrkmap[x].services, find_str) != NULL || strlen(wrkmap[x].services) == 0) {
+				if(strstr(wrkmap[x].services, find_str) != NULL || strlen(wrkmap[x].services) == 0 || do_check == 0) {
 					if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
 						
-					
+						
 						if((bartlby_trigger_escalation(&wrkmap[x])) == FL) continue;
 						if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state)) == FL) continue;
+						
 						//_log("EXEC trigger: %s", full_path);
 						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
 						

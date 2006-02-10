@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.20  2006/02/10 23:54:46  hjanuschka
+SIRENE mode added
+
 Revision 1.19  2006/02/09 00:14:50  hjanuschka
 datalib: mysql/ catch failed logins
 core: fixed some setuid problems with datalib
@@ -179,7 +182,7 @@ int main(int argc, char ** argv) {
         }
         free(allowed_ip_list);
         if(ip_ok < 0) {
-        	sleep(1);
+        	//sleep(1);
         	sprintf(svc_back, "2|IP Blocked ");
         	bartlby_encode(svc_back, strlen(svc_back));
 		printf("%s\n", svc_back);	
@@ -264,7 +267,7 @@ int main(int argc, char ** argv) {
 							bartlby_encode(plugin_output, strlen(plugin_output)-1);
 							printf("%s\n",plugin_output);
 							fflush(stdout);
-							sleep(1);
+							//sleep(1);
 							if(fgets(plugin_output, 1024, fplg) != NULL) {
 								plugin_rtc=pclose(fplg);
 								plugin_output[strlen(plugin_output)-1]='\0';

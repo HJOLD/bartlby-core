@@ -23,6 +23,7 @@
 #define STATE_WARNING 1
 #define STATE_CRITICAL 2
 #define STATE_UNKOWN 3
+#define STATE_SIRENE 7
 
 
 #define DT_SERVICE 1
@@ -55,6 +56,7 @@ struct shm_header {
 		int last_replication;
 		int startup_time;
 		int dtcount;
+		int sirene_mode;
 
 };
 
@@ -96,6 +98,7 @@ struct service {
 	int service_check_timeout;
 	
 	char server_icon[1024];
+	
 	
 	
 };
@@ -158,7 +161,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 int bartlby_core_perf_track(struct  service * svc, int value, int type, char * cfg);
 int bartlby_milli_timediff(struct timeval end, struct timeval start);
 
-void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr);
+void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check);
 //Global :-)
 int _log(char * str,  ...);
 void bartlby_decode(char * msg, int length);
@@ -173,7 +176,7 @@ void str_replace(char *str, const char *from, const char *to, int maxlen);
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max);
 
 void bartlby_action_handle_reply_line(struct service * svc, char * line, char *cfgfile);
-
+void bartlby_check_sirene(char * configfile, void * bartlby_address);
 int bartlby_is_in_downtime(void * bartlby_address, struct service * svc);
 ssize_t recvall(int _socket, char* buffer, int max_len,int flags);
 extern char config_file[255];

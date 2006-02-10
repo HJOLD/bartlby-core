@@ -85,7 +85,7 @@ PIDNAME=$PIDDIR/bartlby.pid
 #Check if LogPermission is OK
 if [ $USER != $RUSER ]; 
 then
-	su -c "echo 1 > ${LOGDIR}.$(date +%Y.%m.%d)" - $RUSER
+	su -c "echo 1 >> ${LOGDIR}.$(date +%Y.%m.%d)" - $RUSER
 	EXC=$?;
 	if [ $EXC != 0 ];
 	then
@@ -93,7 +93,7 @@ then
 	
 	fi;
 else
-	echo 1 > ${LOGDIR}.$(date +%Y.%m.%d)
+	echo 1 >> ${LOGDIR}.$(date +%Y.%m.%d)
 	EXC=$?;
 	if [ $EXC != 0 ];
 	then
