@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.34  2006/02/12 00:15:34  hjanuschka
+Makefile.conf added
+Local checks implemented
+minor active check fixes and clean ups for re-use with local checks
+
 Revision 1.33  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -152,6 +157,8 @@ CVS Header
 #include <time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <bartlby.h>
 
@@ -184,7 +191,109 @@ static void bartlby_conn_timeout(int signo) {
  	connection_timed_out = 1;
 }
 
-
+void bartlby_check_local(struct service * svc, char * cfgfile) {
+	struct sigaction act1, oact1;
+	char * file_request;
+	char c;
+	char * plugin_dir;
+	FILE * fp;
+	int plugin_rtc;
+	
+	int round;
+	char * rmessage, *rmessage_temp;
+	struct stat plg_stat;
+	
+	act1.sa_handler = bartlby_conn_timeout;
+	sigemptyset(&act1.sa_mask);
+	act1.sa_flags=0;
+	#ifdef SA_INTERRUPT
+	act1.sa_flags |= SA_INTERRUPT;
+	#endif
+	
+	if(sigaction(SIGALRM, &act1, &oact1) < 0) {
+		
+		sprintf(svc->new_server_text, "%s", ALARM_ERROR);
+		svc->current_state=STATE_CRITICAL;
+				
+		return;
+	
+		
+	}
+	plugin_dir=getConfigValue("agent_plugin_dir", cfgfile);
+        if(plugin_dir == NULL) {
+        	
+        	sprintf(svc->new_server_text, "Plugin dir failed 'agent_plugin_dir' not set");
+		svc->current_state=STATE_CRITICAL;		  	
+		return;
+        }
+	connection_timed_out=0;
+	file_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+30+strlen(plugin_dir)));
+	sprintf(file_request, "%s/%s",plugin_dir, svc->plugin);
+	
+	if(stat(file_request, &plg_stat) < 0) {
+		//oops file is not here
+		sprintf(svc->new_server_text, "Plugin does not exist");
+		svc->current_state=STATE_CRITICAL;		  	
+		free(plugin_dir);
+		free(file_request);	
+		return;
+	}
+	strcat(file_request, " ");
+	strcat(file_request, svc->plugin_arguments);
+	
+	signal(SIGPIPE,SIG_DFL);
+	signal(SIGCHLD,SIG_DFL);
+		
+	fp=popen(file_request, "r");
+	if(fp != NULL) {
+		connection_timed_out=0;
+		alarm(svc->service_check_timeout);
+		
+		
+		rmessage_temp=malloc(sizeof(char)*(1024*4));
+		rmessage=malloc(sizeof(char)*(1024*4));
+		memset(rmessage, '\0', sizeof(char)*(1024*4));
+		memset(rmessage_temp, '\0', sizeof(char)*(1024*4));
+		round=0;
+		while((c=fgetc(fp)) != EOF && connection_timed_out != 1 && round < 1024*4){
+			rmessage_temp[round]=c;	
+			round++;
+		}
+		plugin_rtc=pclose(fp);
+		
+		rmessage_temp[round]='\0';
+		
+		
+		alarm(0);
+		
+		
+		
+		if(connection_timed_out == 1) {
+			//alarm has reached
+			
+			sprintf(svc->new_server_text, "Timed out");
+			svc->current_state=STATE_CRITICAL;
+			return;
+				
+		} 
+		
+		connection_timed_out = 0;
+		sprintf(rmessage, "%d|%s", WEXITSTATUS(plugin_rtc), rmessage_temp); 
+		
+		bartlby_action_handle_reply(svc, rmessage, cfgfile);
+		
+		free(rmessage_temp);
+		free(rmessage);
+		
+	} else {
+		sprintf(svc->new_server_text, "popen failed on (%s)", file_request);
+		svc->current_state=STATE_CRITICAL;
+	}	
+	free(file_request);
+	free(plugin_dir);
+	
+	return;	
+}
 
 void bartlby_check_active(struct service * svc, char * cfgfile) {
 	int client_socket;
@@ -209,9 +318,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	*/
 	char * rmessage;
 	int sum_rmessage;
-	int char_idx=0, cur_char_idx=0;
 	
-	char * curr_line;
 	
 	
 	
@@ -300,6 +407,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	memset(rmessage, '\0', sizeof(char)*(1024*4));
 	alarm(svc->service_check_timeout);
 	connection_timed_out=0;
+	sum_rmessage=0;
 	while((return_bytes=recv(client_socket, return_buffer, 1024, 0)) > 0 &&  sum_rmessage < 1024*4 && connection_timed_out == 0) {
 		return_buffer[return_bytes] = '\0';
 		strcat(rmessage, return_buffer);		
@@ -309,32 +417,55 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	//_log("ALL: '%s'", rmessage);
 	
 	//Check if timed out or Receive error
-	if(connection_timed_out == 1 || return_bytes < 0) {
+	if(connection_timed_out == 1 || sum_rmessage <= 0) {
 		
 		if(connection_timed_out == 1) {
 			sprintf(svc->new_server_text, "%s", TIMEOUT_ERROR);
-		} else {
-			sprintf(svc->new_server_text, "%s", RECV_ERROR);
-		}
+		} else if(sum_rmessage <= 0) {
+			_log("%d recv error() '%s'", return_bytes, rmessage);
+			sprintf(svc->new_server_text, "%s %d", RECV_ERROR, return_bytes);
+		} 
 		svc->current_state=STATE_CRITICAL;
 		free(rmessage);
 		return;
 	}
+	
 	alarm(0);
 	close(client_socket);
 	
 	
+	bartlby_action_handle_reply(svc, rmessage, cfgfile);
 	
+	free(rmessage);
+	
+        return;
+		
+}
+void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * cfgfile) {
+	int char_idx=0, cur_char_idx=0;
+	
+	char * curr_line;
+	int data_is_ok;
 	
 	cur_char_idx=0;
+	char_idx=0;
 	curr_line=malloc(sizeof(char) * (strlen(rmessage)+20));
+	
+	
+	
+	data_is_ok=0;
    	while(char_idx < strlen(rmessage)) {
    		//_log("%c", rmessage[cur_char_idx]);
    		
    		curr_line[cur_char_idx]=rmessage[char_idx];
+   		
    		if(rmessage[char_idx] == '\n' || char_idx == strlen(rmessage)) {
    			curr_line[cur_char_idx]='\0';
-   			bartlby_action_handle_reply_line(svc, curr_line, cfgfile);
+   			
+   			if(strlen(curr_line) > 0) {
+   				data_is_ok=bartlby_action_handle_reply_line(svc, curr_line, cfgfile);
+   			}
+   			
    			cur_char_idx=0;	
    			char_idx++;
    			continue;	
@@ -342,25 +473,30 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
    		cur_char_idx++;
    		char_idx++;
    	}
+   	
 	free(curr_line);
-	free(rmessage);
 	
-        return;
-		
+	if(data_is_ok != 1) {
+		//Maybe we did'nt receive any data like 0|Result\n
+		sprintf(svc->new_server_text, "%s (1)", PROTOCOL_ERROR);
+		svc->current_state=STATE_CRITICAL;	
+	}
+	
 }
-void bartlby_action_handle_reply_line(struct service * svc, char * line, char * cfgfile) {
+int bartlby_action_handle_reply_line(struct service * svc, char * line, char * cfgfile) {
 	char * return_token;
+	
 	if(strlen(line) == 0) {
-		return;	
+		return 2;	
 	}
 	if(strncmp(line, "OS:", 3) == 0) {
 		//_log("OS: '%s'", line);
-		return;	
+		return 0;	
 	}	
 	if(strncmp(line, "PERF: ", 6) == 0) {
 		//_log("PERF: '%s'", line);
 		bartlby_perf_track(svc,line, strlen(line), cfgfile);	
-		return;
+		return 0;
 	}
 	//_log("DATA: '%s'", line);
 	return_token = strtok(line, "|");
@@ -380,211 +516,17 @@ void bartlby_action_handle_reply_line(struct service * svc, char * line, char * 
         		sprintf(svc->new_server_text, "(empty output)");
         		
         	}	
-        	return;
+        	return 1;
         } else {
         	
         	sprintf(svc->new_server_text, PROTOCOL_ERROR);
         	svc->current_state=STATE_CRITICAL;
-        	return;
+        	return 1;
         }
 	
 	
 	
 }
-
-/* 
-void bartlby_check_active_old(struct service * svc, char * cfgfile) {
-	int client_socket;
-	int client_connect_retval=-1;
-	int return_bytes;
-	
-	
-	char return_buffer[1024];
-	char * client_request;
-	char * return_token;
-	
-	
-	
-	char return_delimeter[]="|";
-	
-	struct sockaddr_in remote_side;
-	struct hostent * remote_host;
-	struct sigaction act1, oact1;
-	
-	
-	
-	connection_timed_out=0;
-	
-	if((remote_host = gethostbyname(svc->client_ip)) == 0) {
-		
-		sprintf(svc->new_server_text, "%s", DNS_ERROR);
-		svc->current_state=STATE_CRITICAL;
-		
-		return;
-	}
-	memset(&remote_side, '\0', sizeof(remote_side));
-	remote_side.sin_family=AF_INET;
-	remote_side.sin_addr.s_addr = htonl(INADDR_ANY);
-	remote_side.sin_addr.s_addr = ((struct in_addr *) (remote_host->h_addr))->s_addr;
-	remote_side.sin_port=htons(svc->client_port);
-	
-	if((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-			
-		
-		sprintf(svc->new_server_text, "%s", SOCKET_CREATE_ERROR);
-		svc->current_state=STATE_CRITICAL;
-				
-		return;
-			
-			
-	}
-	act1.sa_handler = bartlby_conn_timeout;
-	sigemptyset(&act1.sa_mask);
-	act1.sa_flags=0;
-	#ifdef SA_INTERRUPT
-	act1.sa_flags |= SA_INTERRUPT;
-	#endif
-	
-	if(sigaction(SIGALRM, &act1, &oact1) < 0) {
-		
-		sprintf(svc->new_server_text, "%s", ALARM_ERROR);
-		svc->current_state=STATE_CRITICAL;
-				
-		return;
-	
-		
-	}
-	alarm(svc->service_check_timeout);
-	client_connect_retval = connect(client_socket, (void *) &remote_side, sizeof(remote_side));
-	alarm(0);
-	
-	if(connection_timed_out == 1 || client_connect_retval == -1) {
-		sprintf(svc->new_server_text, "%s", CONN_ERROR);
-		svc->current_state=STATE_CRITICAL;
-		close(client_socket);
-		return;
-	} 
-	connection_timed_out=0;
-	alarm(svc->service_check_timeout);
-	return_bytes=recv(client_socket, return_buffer, 1024, 0);
-	alarm(0);
-	
-	if (return_bytes == -1 || connection_timed_out == 1) {
-            	_log("%s:%d/%s - TIMEOUT", svc->server_name, svc->client_port,svc->service_name );
-		sprintf(svc->new_server_text, "%s", RECV_ERROR);
-		svc->current_state=STATE_CRITICAL;
-		
-		close(client_socket);
-		return;
-        } 
-      
-	
-	return_buffer[return_bytes-1]='\0';
-	//_log("Client: %s", return_buffer);
-	connection_timed_out=0;
-	
-	client_request=malloc(sizeof(char)*(strlen(svc->plugin)+strlen(svc->plugin_arguments)+30));
-	sprintf(client_request, "%s| %s|", svc->plugin, svc->plugin_arguments);
-	
-	//_log("Crequest(%s): %s %d",svc->server_name, client_request, strlen(client_request));
-	bartlby_encode(client_request, strlen(client_request));
-	
-	
-	alarm(svc->service_check_timeout);
-	send(client_socket, client_request, (strlen(svc->plugin)+strlen(svc->plugin_arguments)+3),0);
-	//_log("sending `%s`", client_request);
-	if(connection_timed_out == 1) {
-		
-		
-		sprintf(svc->new_server_text, "%s", CONN_ERROR);
-		svc->current_state=STATE_CRITICAL;
-		free(client_request);
-		return;
-	}
-	free(client_request);
-	
-	
-	alarm(0);
-	connection_timed_out=0;
-	
-	alarm(svc->service_check_timeout);
-	return_bytes=recv(client_socket, return_buffer, 256, 0);
-	alarm(0);
-	
-	if (return_bytes == -1 || connection_timed_out == 1) {
-            	_log("%s:%d/%s - TIMEOUT", svc->server_name, svc->client_port,svc->service_name );
-		sprintf(svc->new_server_text, "%s", RECV_ERROR);
-		svc->current_state=STATE_CRITICAL;
-		
-		close(client_socket);
-		return;
-        } 
-        
-        bartlby_decode(return_buffer, return_bytes);
-        return_buffer[return_bytes-1]='\0';
-        if(return_bytes >= 5) {
-        	
-        	if(strncmp(return_buffer, "PERF: ", 6) == 0) {
-        		//Perfway ;-)
-			
-			bartlby_perf_track(svc,return_buffer, return_bytes, cfgfile);       		
-        		
-        		//Read again for result
-        		alarm(0);
-			connection_timed_out=0;
-			
-			alarm(svc->service_check_timeout);
-			return_bytes=recv(client_socket, return_buffer, 1024, 0);
-			alarm(0);
-			
-			if (return_bytes == -1 || connection_timed_out == 1) {
-        		    	_log("%s:%d/%s - TIMEOUT AFETER performance", svc->server_name, svc->client_port,svc->service_name );
-				sprintf(svc->new_server_text, "%s", RECV_ERROR);
-				svc->current_state=STATE_CRITICAL;
-				
-				close(client_socket);
-				return;
-        		} 
-        		
-        		bartlby_decode(return_buffer, return_bytes);
-        		return_buffer[return_bytes-1]='\0';
-        		//_log("RB: '%s'", return_buffer);
-        		
-	        }
-	}
-        
-        close(client_socket);
-        
-	//bartlby_decode(return_buffer, return_bytes);
-	
-	
-	
-	return_token = strtok(return_buffer, return_delimeter);
-        if(return_token != NULL) {
-        	//Verfiy result code to be 0-2 :-) 
-        	if(return_token[0] != '0' && return_token[0] != '1' && return_token[0] != '2') {
-        		svc->current_state=STATE_UNKOWN;	
-        	} else {
-        		svc->current_state=atoi(return_token);
-        	}
-        	
-        	return_token = strtok(NULL, return_delimeter);
-        	if(return_token != NULL) {
-        		sprintf(svc->new_server_text, "%s", return_token);
-        	} else {
-        		
-        		sprintf(svc->new_server_text, "(empty output)");
-        		
-        	}	
-        } else {
-        	
-        	sprintf(svc->new_server_text, PROTOCOL_ERROR);
-        	svc->current_state=STATE_CRITICAL;
-        }	
-        return;
-		
-}
-*/
 
 void bartlby_check_group(struct service * svc, void * shm_addr) {
 	struct shm_header * hdr;
@@ -731,9 +673,15 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;		
 	}
+	if(svc->service_type == SVC_TYPE_LOCAL) {
+		bartlby_check_local(svc,cfgfile);
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;		
+	}
 	
-	
-	
+	_log("Undefined service check type: %d", svc->service_type);
+	sprintf(svc->new_server_text, "undefined service type (%d)", svc->service_type);
+	svc->current_state=STATE_CRITICAL;
 	
 	return;
 }

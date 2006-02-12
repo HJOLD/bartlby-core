@@ -1,3 +1,5 @@
+include ../../Makefile.conf
+
 AGENT = ../config.o ../global.o agent.o
 PORTIER = ../config.o ../global.o  ../shm.o portier.o
 CMD = ../config.o ../global.o cmd.o
@@ -6,22 +8,22 @@ CMD = ../config.o ../global.o cmd.o
 
 .c.o:
 
-	gcc -g   -I../../include -Wall -g -c $<
+	$(CC) $(EXTRAOPTIONS)   $(INCLUDE_LL)  -c $<
 
 
 cmd: ${CMD}
-	gcc   -g -I../../include/   -o ../../bartlby_cmd ${CMD}
+	$(CC)   $(EXTRAOPTIONS) $(INCLUDE_LL)   -o ../../bartlby_cmd ${CMD}
 portier: ${PORTIER}
-	gcc  -ldl -g -I../../include/   -o ../../bartlby_portier ${PORTIER}
+	$(CC)  $(LDL) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o ../../bartlby_portier ${PORTIER}
 	
 agent: ${AGENT} 
-	gcc   -g -I../../include/   -o ../../bartlby_agent ${AGENT}
+	$(CC)   $(EXTRAOPTIONS) $(INCLUDE_LL)   -o ../../bartlby_agent ${AGENT}
 
 
 install: all
-	cp -v ../../bartlby_cmd ${BARTLBY_HOME}/bin/
-	cp -v ../../bartlby_portier ${BARTLBY_HOME}/bin/
-	cp -v ../../bartlby_agent ${BARTLBY_HOME}/bin/
+	$(CPPVA) ../../bartlby_cmd ${BARTLBY_HOME}/bin/
+	$(CPPVA) ../../bartlby_portier ${BARTLBY_HOME}/bin/
+	$(CPPVA) ../../bartlby_agent ${BARTLBY_HOME}/bin/
 	
 all:    agent portier cmd
 	
@@ -29,4 +31,4 @@ all:    agent portier cmd
 
 
 clean:
-	rm -fv *.o 
+	$(RMVFR) *.o 

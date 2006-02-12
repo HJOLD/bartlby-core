@@ -1,4 +1,6 @@
-FIREBIRD = ../global.o firebird.o ../config.o
+include ../../Makefile.conf
+
+
 MYSQL = ../global.o ../config.o mysql.o
 
 
@@ -7,19 +9,17 @@ MYSQL = ../global.o ../config.o mysql.o
 
 .c.o:
 
-	gcc -g  -I/usr/include/mysql/ -I../../include -Wall -g -c $<
+	$(CC) $(EXTRAOPTIONS)  $(INCLUDE_MYSQL) $(INCLUDE_LL) -c $<
 
 
 
-firebird: ${FIREBIRD}
-	gcc  -lfbclient -fPIC -shared  -g -I../../include/ -o ../../firebird.so ${FIREBIRD}
 
 mysql: ${MYSQL}
-	gcc -static -I /usr/include/mysql/ -lmysqlclient -fPIC -shared  -g -I../../include/ -o ../../mysql.so ${MYSQL}
+	$(CC) -static $(INCLUDE_MYSQL) $(LMYSQL) $(DYNLINK)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o ../../mysql.so ${MYSQL}
 
 
 install: all
-	cp -v ../../mysql.so ${BARTLBY_HOME}/lib/
+	$(CPPVA) ../../mysql.so ${BARTLBY_HOME}/lib/
 
 all:   mysql
 	
@@ -27,4 +27,4 @@ all:   mysql
 
 
 clean:
-	rm -fv *.o 
+	$(RMVFR) *.o 

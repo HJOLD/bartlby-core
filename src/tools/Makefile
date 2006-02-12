@@ -1,3 +1,5 @@
+include ../../Makefile.conf
+
 SHMT = ../shm.o ../config.o ../global.o shmt.o
 
 
@@ -6,13 +8,13 @@ SHMT = ../shm.o ../config.o ../global.o shmt.o
 
 .c.o:
 
-	gcc -g   -I../../include -Wall -g -c $<
+	$(CC) $(EXTRAOPTIONS)   $(INCLUDE_LL)  -c $<
 
 
 
 
 shmt: ${SHMT}
-	gcc  -g -I../../include/ -o ../../shmt ${SHMT}
+	$(CC)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o ../../shmt ${SHMT}
 
 
 
@@ -22,4 +24,4 @@ all:    shmt
 
 
 clean:
-	rm -fv *.o 
+	$(RMVFR) *.o 

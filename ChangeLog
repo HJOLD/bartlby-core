@@ -1,3 +1,10 @@
+2006-02-11 00:54  hjanuschka
+
+	* ChangeLog, bartlby.cfg, bartlby.startup, include/bartlby.h,
+	  src/Makefile, src/ack.c, src/bartlby.c, src/check.c,
+	  src/global.c, src/sched.c, src/trigger.c, src/client/agent.c:
+	  SIRENE mode added
+
 2006-02-09 01:14  hjanuschka
 
 	* ChangeLog, bartlby.cfg, bartlby.startup, include/bartlby.h,

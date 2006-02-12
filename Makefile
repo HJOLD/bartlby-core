@@ -1,5 +1,7 @@
+include Makefile.conf
+
 SUBDIRS = src/ src/libs/ src/tools/ src/client/
-INST_DIR = /home/bartlby/
+
 
 DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui bartlby-docs
 
@@ -9,14 +11,14 @@ all:
 	done
 	
 install: all
-	mkdir -p ${BARTLBY_HOME}/bin/
-	mkdir -p ${BARTLBY_HOME}/etc/
-	mkdir -p ${BARTLBY_HOME}/lib/
-	mkdir -p ${BARTLBY_HOME}/var/
-	cp -v bartlby.cfg ${BARTLBY_HOME}
-	cp -v bartlby.startup ${BARTLBY_HOME}
-	cp -va trigger ${BARTLBY_HOME}
-	cp -va perf ${BARTLBY_HOME}
+	$(MKDIRP) ${BARTLBY_HOME}/bin/
+	$(MKDIRP) ${BARTLBY_HOME}/etc/
+	$(MKDIRP) ${BARTLBY_HOME}/lib/
+	$(MKDIRP) ${BARTLBY_HOME}/var/
+	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}
+	$(CPPVA) bartlby.startup ${BARTLBY_HOME}
+	$(CPPVA) trigger ${BARTLBY_HOME}
+	$(CPPVA) perf ${BARTLBY_HOME}
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make install); \
 	done
@@ -35,10 +37,10 @@ cvs-clean: changelog
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make clean); \
 	done
-	rm -f *.so
-	rm -f bartlby
-	rm -f shmt
-	rm -f bartlby_agent
+	$(RMVFR) *.so
+	$(RMVFR) bartlby
+	$(RMVFR) shmt
+	$(RMVFR) bartlby_agent
 	
 cvs: cvs-clean
 	cvs commit;

@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.21  2006/02/12 00:15:34  hjanuschka
+Makefile.conf added
+Local checks implemented
+minor active check fixes and clean ups for re-use with local checks
+
 Revision 1.20  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -159,7 +164,9 @@ int main(int argc, char ** argv) {
         	agent_load_limit=strdup("10");	
         }
         if(allowed_ip_list == NULL) {
-        	printf("No Ip Allowed\n");
+        	printf("2|No Ip Allowed\n\n");
+        	fflush(stdout);	
+		sleep(2);
         	exit(1);
         	
         }
@@ -183,9 +190,11 @@ int main(int argc, char ** argv) {
         free(allowed_ip_list);
         if(ip_ok < 0) {
         	//sleep(1);
-        	sprintf(svc_back, "2|IP Blocked ");
+        	sprintf(svc_back, "2|IP Blocked \n");
         	bartlby_encode(svc_back, strlen(svc_back));
-		printf("%s\n", svc_back);	
+		printf("%s\n", svc_back);
+		fflush(stdout);	
+		sleep(2);
 		exit(1);
         }
         
@@ -197,7 +206,9 @@ int main(int argc, char ** argv) {
 	#endif
 	if(sigaction(SIGALRM, &act1, &oact1) < 0) {
 		
-		printf("ALARM SETUP ERROR");
+		printf("2|ALARM SETUP ERROR\n\n");
+		fflush(stdout);	
+		sleep(2);
 		exit(1);
 				
 		return -1;
@@ -225,13 +236,17 @@ int main(int argc, char ** argv) {
 		alarm(CONN_TIMEOUT);
 		//ipmlg]ajgai]Amoowlkecvg~"/j"nmacnjmqv~
 		if(read(fileno(stdin), svc_in, 1024) < 0) {
-			printf("BAD!\n");
+			printf("2|read BAD!\n\n");
+			fflush(stdout);	
+			sleep(2);
 			exit(1);
 		}
 		alarm(0);
 		
 		if(connection_timed_out == 1) {
-			printf("Timed out!!!\n");
+			printf("2|conn Timed out!!!\n\n");
+			fflush(stdout);	
+			sleep(2);
 			exit(1);	
 		}
 		
@@ -320,10 +335,12 @@ int main(int argc, char ** argv) {
         	sprintf(svc_back, "1|LoadLimit reached %.02f skipping Check!|\n", loadavg[0]);
         	free(agent_load_limit);
         }
+        fflush(stdout);
 	//printf("SVC_BACK: %s\n", svc_back);
 	syslog(LOG_ERR, "bartlby_agent: %s",svc_back);
 	bartlby_encode(svc_back, strlen(svc_back));
-	printf("%s", svc_back);
+	printf("%s\n", svc_back);
+	fflush(stdout);
 	bartlby_decode(svc_back, strlen(svc_back));
 	//printf("\n %s \n", svc_back);
 	return 1;
