@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.27  2006/02/12 18:37:51  hjanuschka
+trigger fixes trigger logging refined
+datalib: mysql/ returns now the server version
+
 Revision 1.26  2006/02/05 21:49:47  hjanuschka
 *** empty log message ***
 
@@ -122,9 +126,9 @@ CVS Header
       			return -1; \
       		}
 
-#define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://www.januschka.com/BARTLBY"
+#define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://bartlby.org"
 #define NAME "MYSQL Connector"
-#define DLVERSION  "0.3.1"
+#define DLVERSION  "0.6.2"
 
 
 
@@ -1302,8 +1306,10 @@ char * GetAutor() {
 	return strdup(AUTOR);
 }
 char * GetVersion() {
-	
-	return strdup(DLVERSION);
+	char * vers;
+	vers = malloc(sizeof(char) * (strlen(DLVERSION)+strlen(MYSQL_SERVER_VERSION)+30));
+	sprintf(vers, "%s on %s", DLVERSION, MYSQL_SERVER_VERSION);
+	return vers;
 }
 
 int doUpdate(struct service * svc, char * config) {

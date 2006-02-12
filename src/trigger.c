@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.17  2006/02/12 18:37:51  hjanuschka
+trigger fixes trigger logging refined
+datalib: mysql/ returns now the server version
+
 Revision 1.16  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -208,6 +212,9 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 		}
 	}
 	
+	signal(SIGPIPE,SIG_DFL);
+	signal(SIGCHLD,SIG_DFL);
+	
 	act1.sa_handler = trigger_conn_timeout;
 	sigemptyset(&act1.sa_mask);
 	act1.sa_flags=0;
@@ -300,7 +307,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
       							}
       							
       							if(connection_timed_out == 1) {
-      								_log("Trigger timed out");	
+      								_log("Trigger(%s/%s) Trigger timed out", entry->d_name, wrkmap[x].name);	
       							}
       							connection_timed_out=0;
 							alarm(0);
