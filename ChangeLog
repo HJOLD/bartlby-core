@@ -1,3 +1,12 @@
+2006-02-12 01:15  hjanuschka
+
+	* ChangeLog, Makefile, Makefile.conf, bartlby.cfg,
+	  include/bartlby.h, src/Makefile, src/check.c,
+	  src/client/Makefile, src/client/agent.c, src/libs/Makefile,
+	  src/tools/Makefile: Makefile.conf added Local checks implemented
+	  minor active check fixes and clean ups for re-use with local
+	  checks
+
 2006-02-11 00:54  hjanuschka
 
 	* ChangeLog, bartlby.cfg, bartlby.startup, include/bartlby.h,
