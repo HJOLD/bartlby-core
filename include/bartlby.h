@@ -15,8 +15,8 @@
 
 #define PROGNAME "bartlby"
 #define REL_NAME "Throne"
-#define VERSION  "1.1.4a"
-#define EXPECTCORE 1101040 //Module V Check's
+#define VERSION  "1.1.5a"
+#define EXPECTCORE 1101050 //Module V Check's
 
 
 #define STATE_OK 0
