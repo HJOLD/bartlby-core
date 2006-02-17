@@ -4,7 +4,7 @@
 #
 
 
-BTL_DIR=${BARTLBY_HOME:-'/usr/local/bartlby/'}
+BTL_DIR=${BARTLBY_HOME:-'@prefix@'}
 BIN_DIR=""
 ETC_DIR=""
 

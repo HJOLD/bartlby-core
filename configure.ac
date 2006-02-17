@@ -64,5 +64,5 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm gethostbyname gettimeofday inet_ntoa memmove memset setenv socket strdup strstr])
 
 
-AC_CONFIG_FILES([Makefile.conf bartlby.cfg])
+AC_CONFIG_FILES([Makefile.conf bartlby.cfg bartlby.startup])
 AC_OUTPUT
