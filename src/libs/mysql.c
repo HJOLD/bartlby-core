@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.29  2006/02/17 22:13:18  hjanuschka
+configure script added
+
 Revision 1.28  2006/02/17 20:06:19  hjanuschka
 	acknowledgeable services
 
@@ -109,7 +112,7 @@ CVS Header
 
 */
 
-#include <mysql.h>
+#include <mysql/mysql.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>

@@ -1,29 +1,29 @@
-core_performance=/storage/SF.NET/BARTLBY/bartlby-core/bartlby.cperf
-data_library=/storage/SF.NET/BARTLBY/bartlby-core/mysql.so
+core_performance=@prefix@/bartlby.cperf
+data_library=@prefix@/lib/mysql.so
 max_concurent_checks=50
-shm_key=/var/tmp/
+shm_key=@prefix@
 shm_size=10
-trigger_dir=/storage/SF.NET/BARTLBY/bartlby-core/trigger
-basedir=/storage/SF.NET/BARTLBY/bartlby-core/
+trigger_dir=@prefix@/trigger
+basedir=@prefix@/
 user=klewan
-logfile=/var/log/bartlby
+logfile=@prefix@/var/bartlby
 daemon=true
 xlogfile=/dev/stdout
-performance_dir=/storage/SF.NET/BARTLBY/bartlby-core/perf/
-pidfile_dir=/var/run/
+performance_dir=@prefix@/perf/
+pidfile_dir=@prefix@
 sched_round_pause=1
 sirene_interval=10
 
 trigger_msg=State Change ($READABLE_STATE)\\\\n*********** $PROGNAME $VERSION ********************\\\\n[  Server: $SERVER, Service: $SERVICE, State: $READABLE_STATE]\\\\n$MESSAGE
 
-mysql_host=localhost
-mysql_user=bartlby
-mysql_pw=pass
-mysql_db=poseidon
+mysql_host=@MYSQL_HOST@
+mysql_user=@MYSQL_USER@
+mysql_pw=@MYSQL_PASS@
+mysql_db=@MYSQL_DB@
 
 
 
-agent_plugin_dir=/storage/SF.NET/BARTLBY/bartlby-plugins
+agent_plugin_dir=@PLUGIN_DIR@
 allowed_ips=192.168.2.228,192.168.2.11,192.168.2.10,127.0.0.1
 agent_load_limit=50
 

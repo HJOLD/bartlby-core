@@ -1,11 +1,12 @@
-CC = gcc
+CC = @CC@
 CPPVA = cp -pva
 RMVFR = rm -vfr
 MKDIRP = mkdir -p
 EXTRAOPTIONS = -g -Wall
 INCLUDE_L = -I../include/
 INCLUDE_LL = -I../../include/
-INCLUDE_MYSQL = -I/usr/include/mysql/
+INCLUDE_MYSQL = @CPPFLAGS@
 DYNLINK = -fPIC -shared
 LMYSQL = -lmysqlclient
 LDL = -ldl
+BARTLBY_HOME = @prefix@
