@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.35  2006/02/17 20:06:19  hjanuschka
+	acknowledgeable services
+
 Revision 1.34  2006/02/12 00:15:34  hjanuschka
 Makefile.conf added
 Local checks implemented
@@ -615,6 +618,10 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		svc->last_check=time(NULL);
 		svc->last_state=svc->current_state;
 		
+		
+		if(svc->service_ack == ACK_NEEDED && svc->current_state == STATE_CRITICAL) {
+			svc->service_ack=ACK_OUTSTANDING;	
+		}
 		
 					
 	} else {

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.25  2006/02/17 20:06:19  hjanuschka
+	acknowledgeable services
+
 Revision 1.24  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -156,6 +159,14 @@ void sched_reschedule(struct service * svc) {
 	//_log("Set last_check to %d on %s:%d/%s(%s)", svc->last_check, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 }
 
+int sched_needs_ack(struct service * svc) {
+	if(svc->service_ack == ACK_OUTSTANDING) {
+		return 1; //Skip it something unAcked found
+	} else {
+		return 0; // No doIT
+	}	
+}
+
 int sched_check_waiting(void * shm_addr, struct service * svc) {
 	int cur_time;
 	int my_diff;
@@ -168,6 +179,10 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 	tmnow = localtime(&tnow);
 	my_diff=cur_time - svc->last_check;
 	
+	if(sched_needs_ack(svc) == 1) {
+		//_log("Service: %s is in status outstanding", svc->service_name);
+		return -1; //Dont sched this	
+	}
 	
 	if(svc->service_active == 1 && my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to) {
 		//_log("Mydiff %d >= %d, %d>=%d, %d<=%d %d>=%d %d<=%d", my_diff, svc->check_interval,tmnow->tm_hour,svc->hour_from,tmnow->tm_hour , svc->hour_to,tmnow->tm_min , svc->min_from ,tmnow->tm_min , svc->min_to);	

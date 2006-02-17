@@ -48,7 +48,7 @@ function stop_bartlby {
 		exit 4;
 	fi;
 	BART_PID=`cat $1`;
-	kill -SIGUSR1 $BART_PID
+	kill -USR1 $BART_PID
 	
 }
 

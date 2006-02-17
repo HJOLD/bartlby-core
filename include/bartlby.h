@@ -26,6 +26,12 @@
 #define STATE_SIRENE 7
 
 
+//Service ACK
+
+#define ACK_NOT_NEEDED 0
+#define ACK_NEEDED 1
+#define ACK_OUTSTANDING 2
+
 #define DT_SERVICE 1
 #define DT_SERVER 2
 
@@ -99,6 +105,8 @@ struct service {
 	int service_check_timeout;
 	
 	char server_icon[1024];
+	
+	int service_ack;
 	
 	
 	
