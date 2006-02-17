@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP AWK SET_MAKE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP LD_DL LD_MYSQL AWK SET_MAKE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1310,19 +1310,15 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-MYSQL_USER="root";
-MYSQL_PASS="xxx";
-MYSQL_HOST="localhost";
-PLUGIN_DIR="/usr/local/bartlby/bartlby-plugins";
-MYSQL_DB="bartlby";
+
 
 
 # Check whether --with-mysql-user or --without-mysql-user was given.
 if test "${with_mysql_user+set}" = set; then
   withval="$with_mysql_user"
-
-   MYSQL_USER="${with_mysql_user}";
-
+  MYSQL_USER="${withval}"
+else
+  MYSQL_USER="root"
 fi;
 
 
@@ -1330,9 +1326,9 @@ fi;
 # Check whether --with-mysql-password or --without-mysql-password was given.
 if test "${with_mysql_password+set}" = set; then
   withval="$with_mysql_password"
-
-   MYSQL_PASS="${with_mysql_password}";
-
+  MYSQL_PASS="$withval"
+else
+  MYSQL_PASS="xxx"
 fi;
 
 
@@ -1340,9 +1336,9 @@ fi;
 # Check whether --with-mysql-host or --without-mysql-host was given.
 if test "${with_mysql_host+set}" = set; then
   withval="$with_mysql_host"
-
-   MYSQL_HOST="${with_mysql_user}";
-
+  MYSQL_HOST="${withval}"
+else
+  MYSQL_HOST="localhost"
 fi;
 
 
@@ -1350,9 +1346,9 @@ fi;
 # Check whether --with-mysql-db or --without-mysql-db was given.
 if test "${with_mysql_db+set}" = set; then
   withval="$with_mysql_db"
-
-   MYSQL_DB="${with_mysql_db}";
-
+  MYSQL_DB="$withval"
+else
+  MYSQL_DB="bartlby"
 fi;
 
 
@@ -1361,9 +1357,9 @@ fi;
 # Check whether --with-plugin-dir or --without-plugin-dir was given.
 if test "${with_plugin_dir+set}" = set; then
   withval="$with_plugin_dir"
-
-   PLUGIN_DIR="${with_plugin_dir}";
-
+  PLUGIN_DIR="${withval}"
+else
+  PLUGIN_DIR="${prefix}/bartlby-plugins/"
 fi;
 
 
@@ -2294,7 +2290,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-
 echo "$as_me:$LINENO: checking for mysql_init in -lmysqlclient" >&5
 echo $ECHO_N "checking for mysql_init in -lmysqlclient... $ECHO_C" >&6
 if test "${ac_cv_lib_mysqlclient_mysql_init+set}" = set; then
@@ -2359,15 +2354,81 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_mysqlclient_mysql_init" >&5
 echo "${ECHO_T}$ac_cv_lib_mysqlclient_mysql_init" >&6
 if test $ac_cv_lib_mysqlclient_mysql_init = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBMYSQLCLIENT 1
-_ACEOF
-
-  LIBS="-lmysqlclient $LIBS"
-
+  LD_MYSQL="-lmysqlclient"
 else
   { { echo "$as_me:$LINENO: error: libmysqlclient needed to be found" >&5
 echo "$as_me: error: libmysqlclient needed to be found" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
+echo $ECHO_N "checking for dlopen in -ldl... $ECHO_C" >&6
+if test "${ac_cv_lib_dl_dlopen+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char dlopen ();
+int
+main ()
+{
+dlopen ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_dl_dlopen=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_dl_dlopen=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_dl_dlopen" >&5
+echo "${ECHO_T}$ac_cv_lib_dl_dlopen" >&6
+if test $ac_cv_lib_dl_dlopen = yes; then
+  LD_DL="-ldl"
+else
+  { { echo "$as_me:$LINENO: error: libdl needed to be found" >&5
+echo "$as_me: error: libdl needed to be found" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
@@ -3000,6 +3061,7 @@ else
 echo "$as_me: error: Missing mysql.h check the path to mysql.h is in include path refer Makefile.conf/.in" >&2;}
    { (exit 1); exit 1; }; }
 fi
+
 
 
 
@@ -6988,6 +7050,8 @@ s,@EXEEXT@,$EXEEXT,;t t
 s,@OBJEXT@,$OBJEXT,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
+s,@LD_DL@,$LD_DL,;t t
+s,@LD_MYSQL@,$LD_MYSQL,;t t
 s,@AWK@,$AWK,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
