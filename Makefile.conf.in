@@ -9,4 +9,5 @@ INCLUDE_MYSQL = @CPPFLAGS@
 DYNLINK = -fPIC -shared
 LMYSQL = @LD_MYSQL@
 LDL = @LD_DL@
+CHMOD = chmod
 BARTLBY_HOME = @prefix@

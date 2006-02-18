@@ -17,6 +17,7 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/var/
 	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}
 	$(CPPVA) bartlby.startup ${BARTLBY_HOME}
+	$(CHMOD) a+x ${BARTLBY_HOME}/bartlby.startup 
 	$(CPPVA) trigger ${BARTLBY_HOME}
 	$(CPPVA) perf ${BARTLBY_HOME}
 	list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -33,7 +34,7 @@ changelog:
 	
 	
 	
-cvs-clean: changelog
+cvs-clean:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make clean); \
 	done
@@ -41,6 +42,17 @@ cvs-clean: changelog
 	$(RMVFR) bartlby
 	$(RMVFR) shmt
 	$(RMVFR) bartlby_agent
+	$(RMVFR) bartlby_cmd
+	$(RMVFR) bartlby_portier
+	$(RMVFR) *2006*
+	$(RMVFR) config.status
+	$(RMVFR) config.log
+	$(RMVFR) autom4te.cache/
+	$(RMVFR) bartlby.cperf
+	
+	
+	
+	
 	
 cvs: cvs-clean
 	cvs commit;

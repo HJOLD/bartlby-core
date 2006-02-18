@@ -1,3 +1,41 @@
+2006-02-18 00:50  hjanuschka
+
+	* bartlby.startup, bartlby.startup.in, configure, configure.ac,
+	  lib: bartlby.startup.in added
+
+2006-02-18 00:29  hjanuschka
+
+	* Makefile.conf.in, configure, configure.ac: -llibmysqlclient fixes
+	  -ldl dl fixes
+
+2006-02-17 23:13  hjanuschka
+
+	* Makefile.conf, Makefile.conf.in, bartlby.cfg, bartlby.cfg.in,
+	  configure, configure.ac, src/libs/mysql.c: configure script added
+
+2006-02-17 21:12  hjanuschka
+
+	* mysql.shema, include/bartlby.h: updated database shema version
+	  bump
+
+2006-02-17 21:06  hjanuschka
+
+	* bartlby.cfg: [no log message]
+
+2006-02-17 21:06  hjanuschka
+
+	* bartlby.cfg, bartlby.startup, include/bartlby.h, src/check.c,
+	  src/sched.c, src/libs/mysql.c:  acknowledgeable services
+
+2006-02-12 19:37  hjanuschka
+
+	* src/: trigger.c, libs/mysql.c: trigger fixes trigger logging
+	  refined datalib: mysql/ returns now the server version
+
+2006-02-12 02:39  hjanuschka
+
+	* ChangeLog, bartlby.cfg: [no log message]
+
 2006-02-12 01:15  hjanuschka
 
 	* ChangeLog, Makefile, Makefile.conf, bartlby.cfg,
