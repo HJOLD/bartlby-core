@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2006/02/19 15:04:13  hjanuschka
+*** empty log message ***
+
 Revision 1.5  2005/10/13 22:42:29  hjanuschka
 portier/cmd: get_services -> recieve a list of passive services
 
@@ -313,7 +316,15 @@ void cmd_set_passive() {
 }
 
 void help() {
-	printf("usage: \n");
+	printf("Bartlby cmd tool:\n");
+	printf("-h             display help\n");
+	printf("-i             host\n");
+	printf("-p             port \n");
+	printf("-s             service-id or server-id (if action == get_services)\n");
+	printf("-m             new service text\n");
+	printf("-e             new service state (0,1,2)\n");
+	printf("-a             action\n");
+	printf("               maybe: get_passive, set_passive, get_services\n");
 	exit(1);	
 }
 void parse_options(int argc, char ** argv) {

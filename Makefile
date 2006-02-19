@@ -41,6 +41,7 @@ cvs-clean:
 	$(RMVFR) *.so
 	$(RMVFR) bartlby
 	$(RMVFR) shmt
+	$(RMVFR) bartlby_shmt
 	$(RMVFR) bartlby_agent
 	$(RMVFR) bartlby_cmd
 	$(RMVFR) bartlby_portier

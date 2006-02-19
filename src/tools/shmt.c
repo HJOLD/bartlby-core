@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2006/02/19 15:04:13  hjanuschka
+*** empty log message ***
+
 Revision 1.4  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -50,23 +53,27 @@ int main(int argc, char ** argv) {
 	int shm_id;
 	//int * shm_elements;
 	void * bartlby_address;
-	
-	int x;
-	
-	
 	struct shm_header * shm_hdr;
-	struct worker * wrkmap;
-	struct service * svcmap;
 	
+	
+	
+	
+	if(argc < 3) {
+		printf("CFGFILE option");
+		exit(2);	
+	}
 	shmtok = getConfigValue("shm_key", argv[1]);
 	if(shmtok == NULL) {
-		_log("Unset variable `shm_key'");
-		exit(1);
+		printf("Unset variable `shm_key'\n");
+		exit(2);
 	}
 	shm_id = shmget(ftok(shmtok, 32), 0, 0777);
 	if(shm_id != -1) {
-		bartlby_address=shmat(shm_id,NULL,0);
-		shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
+		/*
+		
+		struct worker * wrkmap;
+		struct service * svcmap;
+		
 		wrkmap=bartlby_SHM_WorkerMap(bartlby_address);
 		svcmap=bartlby_SHM_ServiceMap(bartlby_address);
 		printf("Services:\n");
@@ -78,12 +85,26 @@ int main(int argc, char ** argv) {
 		
 		printf("Current running checks: %d\n", shm_hdr->current_running);
 		shm_hdr->do_reload=1;
-		shmdt(bartlby_address);
+		
 		
 		free(shmtok);
+		*/
+		
+		if(strcmp(argv[2], "status") == 0) {
+			bartlby_address=shmat(shm_id,NULL,0);
+			shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
+			
+			printf("%d\t%d\t%d\t%d\t%d\n", shm_id, shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->dtcount, shm_hdr->current_running);
+			
+			shmdt(bartlby_address); 
+			exit(1);
+		}
+		printf("Unknown option: status|remove");
+		
 		
 	} else {
-		_log("SHM doesnt exist is %s running", PROGNAME);
+		printf("SHM doesnt exist is %s running\n", PROGNAME);
+		exit(2);
 	}	
 		
 		
