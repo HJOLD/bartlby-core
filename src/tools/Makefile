@@ -12,7 +12,7 @@ SHMT = ../shm.o ../config.o ../global.o shmt.o
 
 
 install: all
-	$(CPPVA) ../../bartlby_shmt ${BARTLBY_HOME}/bin/
+	$(CPPVA) ../../bartlby_shmt ${BARTLBY_HOME}/
 	
 
 shmt: ${SHMT}
