@@ -1,3 +1,118 @@
+AC_DEFUN(AC_CHECK_LIBMYSQLCLIENT, [
+  AC_MSG_CHECKING(for MySQL Client support)
+
+  AC_ARG_ENABLE(
+    mysql,
+    [  --disable-mysql         disable MySQL support],
+    WITH_MYSQL="$enableval", WITH_MYSQL="yes")
+
+  AC_ARG_WITH(
+    mysql-inc,
+    [  --with-mysql-inc=PATH   include path for MySQL headers],
+    mysql_incdir="$withval", mysql_incdir="no")
+
+  AC_ARG_WITH(
+    mysql-lib,
+    [  --with-mysql-lib=PATH   library path for MySQL libraries],
+    mysql_libdir="$withval", mysql_libdir="no")
+
+  if test "$WITH_MYSQL" = "no"; then
+    AC_MSG_RESULT(no)
+    dnl MySQL is required currently, enforce it.
+    AC_MSG_ERROR([MySQL support is currently required. You tried to disable it.])
+  else
+    AC_MSG_RESULT(yes)
+
+    if test -n "$ac_cv_header_mysqlclient_mysql_incdir"; then
+      INC_MYSQL="$ac_cv_header_mysqlclient_mysql_incdir"
+    fi
+
+    if test -n "$ac_cv_lib_mysqlclient_mysql_libdir"; then
+      LIB_MYSQL="$ac_cv_lib_mysqlclient_mysql_libdir"
+    fi
+
+    dnl MySQL Header Check
+    temp="$CPPFLAGS"
+    if test "$mysql_incdir" != "no"; then
+      INC_MYSQL="-I$mysql_incdir"
+      CPPFLAGS="$temp $INC_MYSQL"
+      dnl Un-Set any cached results, since user is specifying a specific directory.
+      unset ac_cv_header_mysql_mysql_h
+    fi
+    AC_CHECK_HEADER(mysql/mysql.h, WITH_MYSQL="yes", WITH_MYSQL="no")
+    if test "$WITH_MYSQL" = "no"; then
+      dnl If our normal search or user suggested attempt failed, then try the known default for MySQL.
+      INC_MYSQL="-I/usr/local/include"
+      CPPFLAGS="$temp $INC_MYSQL"
+      dnl Un-Set any cached results, to force the second check to go.
+      unset ac_cv_header_mysql_mysql_h
+      AC_CHECK_HEADER(mysql/mysql.h, WITH_MYSQL="yes", WITH_MYSQL="no")
+    fi
+    CPPFLAGS="$temp"
+
+    if test "$WITH_MYSQL" = "no"; then
+      dnl The headers are required currently, enforce it.
+      AC_MSG_ERROR([Unable to locate <mysql/mysql.h>. MySQL support is currently required.])
+      dnl The above error will be removed eventually, and we need to clear this var if it fails.
+      INC_MYSQL=""
+    else
+      dnl Cache trick for header.
+      ac_cv_header_mysqlclient_mysql_incdir="$INC_MYSQL"
+      dnl MySQL Lib Check
+      temp="$LIBS"
+      if test "$mysql_libdir" != "no"; then
+        LIB_MYSQL="-L$mysql_libdir"
+        LIBS="$temp $LIB_MYSQL"
+        dnl Un-Set any cached results, since user is specifying a specific directory.
+        unset ac_cv_lib_mysqlclient_mysql_real_connect
+        unset ac_cv_lib_mysqlclient_mysql_real_query
+      fi
+      AC_CHECK_LIB(mysqlclient, mysql_real_connect, WITH_MYSQL="yes",
+      [
+        dnl If our normal search or user suggested attempt failed, then try the known default for MySQL.
+        LIB_MYSQL="-L/usr/local/lib/mysql"
+        LIBS="$temp $LIB_MYSQL"
+        dnl Un-Set any cached results, to force the second check to go.
+        unset ac_cv_lib_mysqlclient_mysql_real_connect
+        unset ac_cv_lib_mysqlclient_mysql_real_query
+        echo "Attempting to locate in $LIB_MYSQL..."
+        AC_CHECK_LIB(mysqlclient, mysql_real_connect, WITH_MYSQL="yes",
+        [
+          dnl Try a common RPM location for the MySQL libraries.
+          LIB_MYSQL="-L/usr/lib/mysql"
+          LIBS="$temp $LIB_MYSQL"
+          dnl Un-Set any cached results, to force the second check to go.
+          unset ac_cv_lib_mysqlclient_mysql_real_connect
+          unset ac_cv_lib_mysqlclient_mysql_real_query
+          echo "Attempting to locate in $LIB_MYSQL..."
+          AC_CHECK_LIB(mysqlclient, mysql_real_connect, WITH_MYSQL="yes", WITH_MYSQL="no")
+        ])
+      ])
+      if test "$WITH_MYSQL" = "yes"; then
+          AC_CHECK_LIB(mysqlclient, mysql_real_query, WITH_MYSQL="yes", WITH_MYSQL="no")
+      fi
+      LIBS="$temp"
+
+      if test "$WITH_MYSQL" = "no"; then
+        dnl The libs are required currently, enforce it.
+        AC_MSG_ERROR([Unable to locate -lmysqlclient. MySQL support is currently required.])
+        dnl The above error will be removed eventually, and we need to clear this var if it fails.
+        LIB_MYSQL=""
+      else
+        AC_DEFINE(HAVE_MYSQL)
+        dnl Cache trick for lib.
+        ac_cv_lib_mysqlclient_mysql_libdir="$LIB_MYSQL"
+        LIB_MYSQL="$LIB_MYSQL -lmysqlclient"
+      fi
+    fi
+
+    dnl Subst must happen to remove variables.
+    AC_SUBST(INC_MYSQL)
+    AC_SUBST(LIB_MYSQL)
+  fi
+])
+
+
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
@@ -23,15 +138,16 @@ AC_SUBST(MYSQL_DB)
 AC_ARG_WITH(plugin-dir,AC_HELP_STRING([--with-plugin-dir], [Where are the plugins located]), PLUGIN_DIR="${withval}", PLUGIN_DIR="${prefix}/bartlby-plugins/")
 AC_SUBST(PLUGIN_DIR)
 
+AC_CHECK_LIB(socket, socket)
 
+AC_CHECK_LIBMYSQLCLIENT
 
-AC_CHECK_LIB([mysqlclient], [mysql_init],[LD_MYSQL="-lmysqlclient"],[AC_MSG_ERROR([libmysqlclient needed to be found])])
 AC_CHECK_LIB([dl], [dlopen],[LD_DL="-ldl"],[AC_MSG_ERROR([libdl needed to be found])])
 
 AC_SUBST(LD_DL)
 AC_SUBST(LD_MYSQL)
 
-# Checks for programs.
+dnl Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_MAKE_SET
@@ -65,3 +181,15 @@ AC_CHECK_FUNCS([alarm gethostbyname gettimeofday inet_ntoa memmove memset setenv
 
 AC_CONFIG_FILES([Makefile.conf bartlby.cfg bartlby.startup])
 AC_OUTPUT
+echo "######################################"
+echo "#          bartlby Core              #"
+echo "######################################"
+echo "Base path: $prefix";
+echo "Plugin dir: $PLUGIN_DIR";
+echo "MySQL settings"
+echo "Include: $INC_MYSQL";
+echo "lib: $LIB_MYSQL";
+echo "User: $MYSQL_USER";
+echo "Password: $MYSQL_PASS";
+echo "Host: $MYSQL_HOST";
+echo "database: $MYSQL_DB";
