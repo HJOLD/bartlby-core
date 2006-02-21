@@ -27,7 +27,6 @@ AC_SUBST(PLUGIN_DIR)
 
 AC_CHECK_LIB([mysqlclient], [mysql_init],[LD_MYSQL="-lmysqlclient"],[AC_MSG_ERROR([libmysqlclient needed to be found])])
 AC_CHECK_LIB([dl], [dlopen],[LD_DL="-ldl"],[AC_MSG_ERROR([libdl needed to be found])])
-AC_CHECK_HEADER(mysql/mysql.h,,[AC_MSG_ERROR(Missing mysql.h check the path to mysql.h is in include path refer Makefile.conf/.in)])
 
 AC_SUBST(LD_DL)
 AC_SUBST(LD_MYSQL)
