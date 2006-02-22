@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.30  2006/02/22 22:33:25  hjanuschka
+core: lib/mysql "no worker found" wrong logging msg
+
 Revision 1.29  2006/02/17 22:13:18  hjanuschka
 configure script added
 
@@ -387,7 +390,7 @@ int GetDowntimeMap(struct downtime * svcs, char * config) {
 		free(mysql_db);
       		return i;
       	} else { 
-      		_log( "no worker found!");	
+      		_log( "no Downtimes found!");	
       	}
 	
 	
