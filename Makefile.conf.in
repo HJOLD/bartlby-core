@@ -1,13 +1,13 @@
 CC = @CC@
-CPPVA = cp -pva
+CPPVA = @INSTALL_PATH@ @INSTALL_OPTIONS@
 RMVFR = rm -vfr
-MKDIRP = mkdir -p
+MKDIRP = @INSTALL_PATH@ @INSTALL_OPTIONS@ -d
 EXTRAOPTIONS = -g -Wall @LDFLAGS@
 INCLUDE_L = -I../include/
 INCLUDE_LL = -I../../include/
 INCLUDE_MYSQL = @INC_MYSQL@
 DYNLINK = -fPIC -shared
 LMYSQL = @LIB_MYSQL@
-LDL = @LD_DL@ -ldl
+LDL = @LD_DL@
 CHMOD = chmod
 BARTLBY_HOME = @prefix@

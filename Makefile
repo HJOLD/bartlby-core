@@ -15,11 +15,15 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/etc/
 	$(MKDIRP) ${BARTLBY_HOME}/lib/
 	$(MKDIRP) ${BARTLBY_HOME}/var/
+	$(MKDIRP) ${BARTLBY_HOME}/perf/
+	$(MKDIRP) ${BARTLBY_HOME}/trigger/
+	
+	
 	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}
 	$(CPPVA) bartlby.startup ${BARTLBY_HOME}
 	$(CHMOD) a+x ${BARTLBY_HOME}/bartlby.startup 
-	$(CPPVA) trigger ${BARTLBY_HOME}
-	$(CPPVA) perf ${BARTLBY_HOME}
+	$(CPPVA) trigger/* ${BARTLBY_HOME}/trigger/
+	$(CPPVA) perf/* ${BARTLBY_HOME}/perf/
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make install); \
 	done
@@ -50,6 +54,9 @@ cvs-clean:
 	$(RMVFR) config.log
 	$(RMVFR) autom4te.cache/
 	$(RMVFR) bartlby.cperf
+	$(RMVFR) bartlby.cfg
+	$(RMVFR) Makefile.conf
+	
 	
 	
 	

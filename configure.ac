@@ -120,20 +120,27 @@ AC_PREREQ(2.59)
 AC_INIT(bartlby, 1.1.4, helmut@januschka.com)
 AC_PREFIX_DEFAULT(/usr/local/bartlby)
 
-
+dnl check for mysql user
 
 AC_ARG_WITH(mysql-user, AC_HELP_STRING([--with-mysql-user], [Mysql User]), MYSQL_USER="${withval}", MYSQL_USER="root")
 AC_SUBST(MYSQL_USER)
 
+
+dnl check for mysql password 
+
 AC_ARG_WITH(mysql-password,AC_HELP_STRING([--with-mysql-password], [Mysql password]), MYSQL_PASS="$withval", MYSQL_PASS="xxx")
 AC_SUBST(MYSQL_PASS)
 
+dnl check for mysql host
 AC_ARG_WITH(mysql-host, AC_HELP_STRING([--with-mysql-host], [Mysql host]), MYSQL_HOST="${withval}",MYSQL_HOST="localhost")
 AC_SUBST(MYSQL_HOST)
+
+dnl check for mysql db
 
 AC_ARG_WITH(mysql-db,AC_HELP_STRING([--with-mysql-db], [Mysql db]), MYSQL_DB="$withval", MYSQL_DB="bartlby")
 AC_SUBST(MYSQL_DB)
 
+dnl check for plugin dir
 
 AC_ARG_WITH(plugin-dir,AC_HELP_STRING([--with-plugin-dir], [Where are the plugins located]), PLUGIN_DIR="${withval}", PLUGIN_DIR="${prefix}/bartlby-plugins/")
 AC_SUBST(PLUGIN_DIR)
@@ -143,14 +150,29 @@ AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIBMYSQLCLIENT
 
 AC_CHECK_LIB([dl], [dlopen],[LD_DL="-ldl"],[AC_MSG_ERROR([libdl needed to be found])])
-
 AC_SUBST(LD_DL)
-AC_SUBST(LD_MYSQL)
+
+
+dnl User stuff
+
+AC_ARG_WITH(user, AC_HELP_STRING([--with-user], [Bartlby User]), BARTLBY_USER="${withval}",BARTLBY_USER="bartlby")
+AC_SUBST(BARTLBY_USER)
+INSTALL_OPTIONS="-o $BARTLBY_USER";
+AC_SUBST(BARTLBY_USER)
 
 dnl Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_MAKE_SET
+
+AC_PATH_PROG(INSTALL_PATH, install)
+if test "x${INSTALL_PATH}" = "x" ; then
+ AC_MSG_ERROR(["install" is not found please fix it])
+fi
+
+AC_SUBST(INSTALL_PATH)
+AC_SUBST(INSTALL_OPTIONS)
+
 
 # Checks for libraries.
 
@@ -193,3 +215,4 @@ echo "User: $MYSQL_USER";
 echo "Password: $MYSQL_PASS";
 echo "Host: $MYSQL_HOST";
 echo "database: $MYSQL_DB";
+echo "install: $INSTALL_PATH a $install_path";

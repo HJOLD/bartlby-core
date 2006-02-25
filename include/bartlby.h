@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Throne"
+#define REL_NAME "Lentia"
 #define VERSION  "1.1.5a"
-#define EXPECTCORE 1101050 //Module V Check's
+#define EXPECTCORE 1101052 //Module V Check's
 
 
 #define STATE_OK 0
@@ -54,16 +54,17 @@
     	
 
 struct shm_header {
-	        int svccount;
-	        int wrkcount;
-	        
-	        int current_running;
-		char  version[50];
-		int do_reload;
-		int last_replication;
-		int startup_time;
-		int dtcount;
-		int sirene_mode;
+	int size_of_structs;
+	int svccount;
+	int wrkcount;
+	int current_running;
+	char  version[50];
+	int do_reload;
+	int last_replication;
+	int startup_time;
+	int dtcount;
+	int sirene_mode;
+	
 
 };
 

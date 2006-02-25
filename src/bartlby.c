@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.24  2006/02/25 02:02:46  hjanuschka
+core: configure/ --with-user=
+core: configure/ install all files and directories with chown $BARTLBY_USER
+core: lib/mysql [worker|service|server]_by_id returns negative value if not found
+
 Revision 1.23  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -352,6 +357,7 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr->startup_time=global_startup_time;
 			
 			shm_hdr->sirene_mode=0; //Default disable	
+			shm_hdr->size_of_structs=sizeof(struct shm_header)+sizeof(struct worker)+sizeof(struct service)+sizeof(struct downtime);
 			
 			
 			if(shm_hdr->wrkcount <= 0) {

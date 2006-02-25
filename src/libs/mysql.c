@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.31  2006/02/25 02:02:46  hjanuschka
+core: configure/ --with-user=
+core: configure/ install all files and directories with chown $BARTLBY_USER
+core: lib/mysql [worker|service|server]_by_id returns negative value if not found
+
 Revision 1.30  2006/02/22 22:33:25  hjanuschka
 core: lib/mysql "no worker found" wrong logging msg
 
@@ -454,8 +459,8 @@ int PrepareReplication(char * config) {
 
 
 int GetWorkerById(int worker_id, struct worker * svc, char * config) {
-	struct service * rsvc;
 	
+	int tmprc;
 	MYSQL *mysql;
 	MYSQL_ROW  row;
 	MYSQL_RES  *res;
@@ -538,9 +543,9 @@ int GetWorkerById(int worker_id, struct worker * svc, char * config) {
       		} else {
       			sprintf(svc->enabled_triggers, "(null)");	
       		}
-      		
+      		tmprc=0;
       	} else {
-		rsvc=NULL;
+			tmprc=-1;
 	}
 	
 	
@@ -551,7 +556,7 @@ int GetWorkerById(int worker_id, struct worker * svc, char * config) {
 	free(mysql_pw);
 	free(mysql_db);
 	free(sqlupd);
-	return -1;
+	return tmprc;
 		
 }
 
@@ -700,12 +705,14 @@ int AddWorker(struct worker * svc, char *config) {
 
 
 int GetServiceById(int service_id, struct service * svc, char * config) {
-	struct service * rsvc;
+	
 	
 	MYSQL *mysql;
 	MYSQL_ROW  row;
 	MYSQL_RES  *res;
 	char * sqlupd;
+	
+	int tmprc;
 	
 	char * mysql_host = getConfigValue("mysql_host", config);
 	char * mysql_user = getConfigValue("mysql_user", config);
@@ -837,9 +844,9 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       			svc->service_ack = ACK_NOT_NEEDED;
       		}
       		svc->flap_count=0;
-      		
+      		tmprc=0;
       	} else {
-		rsvc=NULL;
+		tmprc=-1;
 	}
 	
 	
@@ -852,7 +859,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
 	free(sqlupd);
 	
 	
-	return 1;	
+	return tmprc;	
 }
 
 int UpdateService(struct service * svc, char *config) {
@@ -1084,8 +1091,8 @@ int AddService(struct service * svc, char *config) {
 }
 
 int GetServerById(int server_id, struct service * svc, char * config) {
-	struct service * rsvc;
 	
+	int tmprc;
 	MYSQL *mysql;
 	MYSQL_ROW  row;
 	MYSQL_RES  *res;
@@ -1141,8 +1148,9 @@ int GetServerById(int server_id, struct service * svc, char * config) {
       		} else {
       			sprintf(svc->server_icon, "(null)");
       		}
+      		tmprc=0;
       	} else {
-		rsvc=NULL;
+			tmprc=-1;
 	}
 	
 	
@@ -1153,7 +1161,7 @@ int GetServerById(int server_id, struct service * svc, char * config) {
 	free(mysql_pw);
 	free(mysql_db);
 	free(sqlupd);
-	return -1;
+	return tmprc;
 		
 }
 		
