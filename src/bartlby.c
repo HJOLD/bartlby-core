@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.25  2006/02/25 18:53:22  hjanuschka
+setuid too late, pid file was created by root
+makefile: copy mysql.shema to $BASEDIR
+
 Revision 1.24  2006/02/25 02:02:46  hjanuschka
 core: configure/ --with-user=
 core: configure/ install all files and directories with chown $BARTLBY_USER
@@ -196,26 +200,38 @@ int main(int argc, char ** argv, char ** envp) {
 	
 	int exi_code;
 	
+	if(argc >= 2) {
+		set_cfg(argv[1]);
+	} else {
+		printf("config file missing\n");	
+		exit(1);
+	}
 	
 	cfg_user = getConfigValue("user", argv[1]);
 	if(cfg_user == NULL) {
 		_log("user not set in config file");
 		exit(2);			
 	}
-	
+	ui=getpwnam(cfg_user);
+	if(ui == NULL) {
+		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
+	} else {
+		setuid(ui->pw_uid);
+		setgid(ui->pw_gid);
+		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
+	}
 	
 	
 	global_startup_time=time(NULL);
 	
 	// Parse Config
-	if(argc >= 2) {
-		set_cfg(argv[1]);
-		SOName = getConfigValue("data_library", argv[1]);
-		if(SOName == NULL) {
-			_log("No data_library specified in `%s' config file", argv[1]);
-			exit(1);
-		}
-	}		
+	
+	SOName = getConfigValue("data_library", argv[1]);
+	if(SOName == NULL) {
+		_log("No data_library specified in `%s' config file", argv[1]);
+		exit(1);
+	}
+		
 	
 	_log("%s Version %s (%s) started. compiled %s/%s", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
 	daemon_mode=getConfigValue("daemon", argv[1]);
@@ -273,17 +289,6 @@ int main(int argc, char ** argv, char ** envp) {
 	free(SOName);
 	
 	exi_code=0;
-	
-	ui=getpwnam(cfg_user);
-	if(ui == NULL) {
-		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
-	} else {
-		setuid(ui->pw_uid);
-		setgid(ui->pw_gid);
-		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
-	}
-	
-	
 		
 	while(exi_code != 1) {
 		
