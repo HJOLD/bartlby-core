@@ -1,0 +1,57 @@
+#!/bin/sh
+#2559 PERF: DOWN UP last
+# Load Plugin Functions
+
+function getConfigValue {
+	if [ ! -f $BARTLBY_CONFIG ];
+	then
+		echo "Config $BARTLBY_CONFIG doesnt look like a file"  3
+		exit;
+	fi;
+	
+	r=`cat $BARTLBY_CONFIG |grep $1|awk -F"=" '{print \$2}'`
+	echo $r;
+
+}
+
+
+RRD_HTDOCS=$(getConfigValue performance_rrd_htdocs|tr -d [:blank:]);
+
+RRD_TOOLCFG=$(getConfigValue rrd_tool|tr -d [:blank:]);
+RRDTOOL=${RRD_TOOLCFG:-'/usr/bin/rrdtool'}
+
+RRDFILE="${RRD_HTDOCS}/${1}_bartlby_if.rrd";
+
+PNGFILE="${RRD_HTDOCS}/${1}_bartlby_if.png";
+PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_if7.png";
+
+
+#Check if RRD file is existing
+
+if [ ! -f $RRDFILE ];
+then
+	if [ "x${BARTLBY_HOME}" != "x" ];
+	then
+		ORIGFILE="${BARTLBY_HOME}/perf/defaults/bartlby_if.rrd";
+		if [ -f $ORIGFILE ];
+		then
+			cp $ORIGFILE $RRDFILE;
+			chmod a+rw $RRDFILE;
+		fi;
+	else
+		echo "BARTLBY_HOME not set maybe you are running from command line";
+		exit;
+	fi;
+fi;
+
+
+$RRDTOOL update $RRDFILE N:$3:$4
+
+
+
+
+$RRDTOOL graph $PNGFILE --start -86400 -a PNG -t "last 24 hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes/s" -w 600 -h 300 -M DEF:eth0r=${RRDFILE}:eth0r:AVERAGE DEF:eth0t=${RRDFILE}:eth0t:AVERAGE CDEF:eth0tn=eth0t,-1,* VDEF:eth0ra=eth0r,AVERAGE VDEF:eth0rm=eth0r,MAXIMUM VDEF:eth0rc=eth0r,LAST VDEF:eth0ta=eth0t,AVERAGE VDEF:eth0tm=eth0t,MAXIMUM VDEF:eth0tc=eth0t,LAST COMMENT:"               Average           Max          current   per second\n" AREA:eth0r#00dd00:"Receive " GPRINT:eth0ra:"%12.3lf %sb" GPRINT:eth0rm:"%12.3lf %sb" GPRINT:eth0rc:"%12.3lf %sb\n" AREA:eth0tn#0000ff:"Transmit" GPRINT:eth0ta:"%12.3lf %sb" GPRINT:eth0tm:"%12.3lf %sb" GPRINT:eth0tc:"%12.3lf %sb" > /dev/null
+$RRDTOOL graph $PNGFILE_SEVEN --start -604800 -a PNG -t "last 7 days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes/s" -w 600 -h 300 -M DEF:eth0r=${RRDFILE}:eth0r:AVERAGE DEF:eth0t=${RRDFILE}:eth0t:AVERAGE CDEF:eth0tn=eth0t,-1,* VDEF:eth0ra=eth0r,AVERAGE VDEF:eth0rm=eth0r,MAXIMUM VDEF:eth0rc=eth0r,LAST VDEF:eth0ta=eth0t,AVERAGE VDEF:eth0tm=eth0t,MAXIMUM VDEF:eth0tc=eth0t,LAST COMMENT:"               Average           Max          current   per second\n" AREA:eth0r#00dd00:"Receive " GPRINT:eth0ra:"%12.3lf %sb" GPRINT:eth0rm:"%12.3lf %sb" GPRINT:eth0rc:"%12.3lf %sb\n" AREA:eth0tn#0000ff:"Transmit" GPRINT:eth0ta:"%12.3lf %sb" GPRINT:eth0tm:"%12.3lf %sb" GPRINT:eth0tc:"%12.3lf %sb" > /dev/null
+
+
+echo -n "$RRDFILE done";
