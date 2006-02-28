@@ -26,6 +26,22 @@ PNGFILE="${RRD_HTDOCS}/${1}_bartlby_load.png";
 PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_load7.png";
 
 
+if [ ! -f $RRDFILE ];
+then
+	if [ "x${BARTLBY_HOME}" != "x" ];
+	then
+		ORIGFILE="${BARTLBY_HOME}/perf/defaults/bartlby_load.rrd";
+		if [ -f $ORIGFILE ];
+		then
+			cp $ORIGFILE $RRDFILE;
+			chmod a+rw $RRDFILE;
+		fi;
+	else
+		echo "BARTLBY_HOME not set maybe you are running from command line";
+		exit;
+	fi;
+fi;
+
 $RRDTOOL update $RRDFILE N:$3:$4:$5
 
 
