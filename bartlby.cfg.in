@@ -50,33 +50,3 @@ xi_am_a_slave=/usr/local/bartlby/bartlby.shm.repl
 
 performance_rrd_htdocs=/var/www/htdocs/rrd/
 rrd_tool=/usr/local/rrdtool/bin/rrdtool
-
-services_per_page=25
-
-
-special_addon_ui_2559_cnt=2
-special_addon_ui_2559_[1]_name=Load Graph Last 24 Hours
-special_addon_ui_2559_[1]=<img src^http://dev.klewan.at/rrd/2559_bartlby_load.png >
-special_addon_ui_2559_[2]=<img src^http://dev.klewan.at/rrd/2559_bartlby_load7.png >
-special_addon_ui_2559_[2]_name=Load Graph Last 7 Days
-
-special_addon_ui_2554_cnt=2
-special_addon_ui_2554_[1]_name=Memory Graph last 24 Hours
-special_addon_ui_2554_[1]=<img src^http://dev.klewan.at/rrd/2554_bartlby_swap.sh.png >
-special_addon_ui_2554_[2]_name=Memory Graph last 7 Days
-special_addon_ui_2554_[2]=<img src^http://dev.klewan.at/rrd/2554_bartlby_swap.sh7.png >
-
-
-
-special_addon_ui_3187_cnt=2
-special_addon_ui_3187_[1]_name=Bandwidth Graph last 24 Hours
-special_addon_ui_3187_[1]=<img src^http://dev.klewan.at/rrd/3187_bartlby_if.png >
-special_addon_ui_3187_[2]=<img src^http://dev.klewan.at/rrd/3187_bartlby_if7.png >
-special_addon_ui_3187_[2]_name=Bandwidth Graph last 7 Days
-
-
-special_addon_ui_3457_cnt=2
-special_addon_ui_3457_[1]_name=SNMP Graph last 24 Hours
-special_addon_ui_3457_[1]=<img src^http://dev.klewan.at/rrd/3457_bartlby_snmp.sh_192.168.2.228_hrProcessorLoad.1.rrd.png >
-special_addon_ui_3457_[2]=<img src^http://dev.klewan.at/rrd/3457_bartlby_snmp.sh_192.168.2.228_hrProcessorLoad.1.rrd7.png >
-special_addon_ui_3457_[2]_name=SNMP Graph last 7 Days
