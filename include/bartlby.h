@@ -109,6 +109,9 @@ struct service {
 	
 	int service_ack;
 	
+	int service_retain;
+	int service_retain_current;
+	
 	
 	
 };

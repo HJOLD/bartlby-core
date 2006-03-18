@@ -16,6 +16,19 @@ $Source$
 
 
 $Log$
+Revision 1.26  2006/03/18 01:54:46  hjanuschka
+perf: distribute RRDs correspodening to the perf handler
+core: sched_timeout refined
+core: service_retain
+core: lib/mysql service_retain
+php: service_retain
+ui: service_retain
+ui: add perf defaults to package
+ui: catch un-existing objects, server|service|worker
+ui: exit if either built in nor shared bartlby extension was found (discovered during php upgrade )
+ui: addons got own config file (ui-extra.conf)
+php: E_WARNING on unexisting config file
+
 Revision 1.25  2006/02/17 20:06:19  hjanuschka
 	acknowledgeable services
 
@@ -198,7 +211,8 @@ void sched_wait_open() {
 	x=0;
 	int olim;
 	if(current_running == 0) {
-		olim=200;	
+		olim=gshm_hdr->svccount * 20;
+		//olim=200;	
 	} else {
 		olim=current_running*20;
 	}
@@ -209,7 +223,7 @@ void sched_wait_open() {
 			x++;
 						
 	}	
-	if(x >= olim) {
+	if(x > olim) {
 		current_running=0;
 		gshm_hdr->current_running=0;
 		_log("Sched_wait_open: timedout");	
@@ -325,13 +339,16 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			continue;	
 		}
 		
-		//_log("Exsisting shm with %d elements",  *shm_wrk_cnt);
+		
 		round_start=time(NULL);
 		gettimeofday(&stat_round_start,NULL);
 		round_visitors=0;	
 		
 		for(x=0; x<gshm_hdr->svccount; x++) {
 			
+			if(do_shutdown == 1 || gshm_hdr->do_reload == 1) {
+				break;	
+			}
 			
 			if(current_running < cfg_max_parallel) { 
 				if(sched_check_waiting(shm_addr, &services[x]) == 1) {
@@ -377,7 +394,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 		}
 		sched_wait_open();
-		if(time(NULL)-round_start > sched_pause) {
+		if(time(NULL)-round_start > sched_pause*3) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		}
 		round_start=time(NULL);

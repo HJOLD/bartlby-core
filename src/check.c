@@ -16,6 +16,19 @@ $Source$
 
 
 $Log$
+Revision 1.36  2006/03/18 01:54:46  hjanuschka
+perf: distribute RRDs correspodening to the perf handler
+core: sched_timeout refined
+core: service_retain
+core: lib/mysql service_retain
+php: service_retain
+ui: service_retain
+ui: add perf defaults to package
+ui: catch un-existing objects, server|service|worker
+ui: exit if either built in nor shared bartlby extension was found (discovered during php upgrade )
+ui: addons got own config file (ui-extra.conf)
+php: E_WARNING on unexisting config file
+
 Revision 1.35  2006/02/17 20:06:19  hjanuschka
 	acknowledgeable services
 
@@ -609,35 +622,33 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	
 		
 	if(svc->current_state != svc->last_state) {
-		//udate tstamp text and call trigger *g*
-		//_log("<%d/%d--DOLOG>%d;%d;);		
-		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
-		//pos2_pull_trigger(svc);	
-		bartlby_trigger(svc, cfgfile, shm_addr, 1);
-		
-		svc->last_check=time(NULL);
+		svc->service_retain_current=0;
 		svc->last_state=svc->current_state;
+							
+	}	
+	if(svc->service_retain_current == svc->service_retain) {
+		//udate tstamp text and call trigger *g*
+		//_log("<%d/%d--DOLOG>%d;%d;);	
+		//_log("Retain reached: 	%d/%d", svc->service_retain_current, svc->service_retain);
+		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		
-		
+		bartlby_trigger(svc, cfgfile, shm_addr, 1);
+				
 		if(svc->service_ack == ACK_NEEDED && svc->current_state == STATE_CRITICAL) {
 			svc->service_ack=ACK_OUTSTANDING;	
 		}
-		
-					
-	} else {
-		
-		
-		if(svc->service_type != SVC_TYPE_PASSIVE) {
-			
-			svc->last_check=time(NULL);
-		}
-		
+	
 	}
 	
+	
+	if(svc->service_type != SVC_TYPE_PASSIVE) {
+			svc->last_check=time(NULL);
+	}
 	for(x=0; x<=strlen(svc->new_server_text); x++) {
 		if(svc->new_server_text[x] == '\'')
 			svc->new_server_text[x]='"';
 	}
+	svc->service_retain_current++;
 	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
 	doUpdate(svc,cfgfile);
 	

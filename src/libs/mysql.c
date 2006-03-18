@@ -16,6 +16,19 @@ $Source$
 
 
 $Log$
+Revision 1.32  2006/03/18 01:54:46  hjanuschka
+perf: distribute RRDs correspodening to the perf handler
+core: sched_timeout refined
+core: service_retain
+core: lib/mysql service_retain
+php: service_retain
+ui: service_retain
+ui: add perf defaults to package
+ui: catch un-existing objects, server|service|worker
+ui: exit if either built in nor shared bartlby extension was found (discovered during php upgrade )
+ui: addons got own config file (ui-extra.conf)
+php: E_WARNING on unexisting config file
+
 Revision 1.31  2006/02/25 02:02:46  hjanuschka
 core: configure/ --with-user=
 core: configure/ install all files and directories with chown $BARTLBY_USER
@@ -146,7 +159,7 @@ CVS Header
 
 
 
-#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY svc.service_type asc, svc.server_id"
+#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d, service_check_timeout=%d, service_ack=%d where service_id=%d"
 
@@ -159,10 +172,10 @@ CVS Header
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
-#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d, %d)"
+#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d, %d, %d)"
 #define DELETE_SERVICE "delete from services where service_id=%d"
-#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d' where service_id=%d"
-#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d' where service_id=%d"
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 
@@ -843,6 +856,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		} else {
       			svc->service_ack = ACK_NOT_NEEDED;
       		}
+      		svc->service_retain=atoi(row[23]);
       		svc->flap_count=0;
       		tmprc=0;
       	} else {
@@ -927,6 +941,7 @@ int UpdateService(struct service * svc, char *config) {
 	svc->service_var,
 	svc->service_check_timeout,
 	svc->service_ack,
+	svc->service_retain,
 	svc->service_id
 	
 	);
@@ -1067,7 +1082,8 @@ int AddService(struct service * svc, char *config) {
 	svc->service_var,
 	svc->service_passive_timeout,
 	svc->service_check_timeout,
-	svc->service_ack
+	svc->service_ack,
+	svc->service_retain
 	);
 	
 	//Log("dbg", sqlupd);
@@ -1645,6 +1661,8 @@ int GetServiceMap(struct service * svcs, char * config) {
       				svcs[i].service_ack = ACK_NOT_NEEDED;
       			}
       			
+      			svcs[i].service_retain=atoi(row[24]);
+      			svcs[i].service_retain_current=atoi(row[24])+1;
       			
       			svcs[i].flap_count=0;
       			
