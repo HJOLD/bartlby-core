@@ -1,12 +1,23 @@
--- MySQL dump 9.11
---
--- Host: localhost    Database: poseidon
--- ------------------------------------------------------
--- Server version	4.0.24_Debian-10sarge1-log
+-- phpMyAdmin SQL Dump
+-- version 2.6.3-pl1
+-- http://www.phpmyadmin.net
+-- 
+-- Host: localhost
+-- Generation Time: Mar 29, 2006 at 07:00 PM
+-- Server version: 4.0.24
+-- PHP Version: 5.1.2
+-- 
+-- Database: `poseidon`
+-- 
 
---
+-- --------------------------------------------------------
+
+-- 
 -- Table structure for table `downtime`
---
+-- 
+-- Creation: Jan 19, 2006 at 07:48 PM
+-- Last update: Feb 08, 2006 at 12:51 PM
+-- 
 
 CREATE TABLE downtime (
   downtime_id int(12) NOT NULL auto_increment,
@@ -18,9 +29,15 @@ CREATE TABLE downtime (
   PRIMARY KEY  (downtime_id)
 ) TYPE=MyISAM;
 
---
+-- --------------------------------------------------------
+
+-- 
 -- Table structure for table `servers`
---
+-- 
+-- Creation: Sep 20, 2005 at 12:36 AM
+-- Last update: Mar 17, 2006 at 01:25 AM
+-- Last check: Nov 07, 2005 at 12:28 AM
+-- 
 
 CREATE TABLE servers (
   server_id int(12) NOT NULL auto_increment,
@@ -33,9 +50,14 @@ CREATE TABLE servers (
   UNIQUE KEY server_id (server_id)
 ) TYPE=MyISAM;
 
---
+-- --------------------------------------------------------
+
+-- 
 -- Table structure for table `services`
---
+-- 
+-- Creation: Mar 18, 2006 at 02:02 AM
+-- Last update: Mar 29, 2006 at 06:59 PM
+-- 
 
 CREATE TABLE services (
   service_id int(12) NOT NULL auto_increment,
@@ -58,14 +80,21 @@ CREATE TABLE services (
   service_passive_timeout int(11) NOT NULL default '100',
   service_check_timeout int(11) NOT NULL default '20',
   service_ack varchar(255) default NULL,
+  service_retain int(11) NOT NULL default '0',
   PRIMARY KEY  (service_id),
   KEY service_id (service_id),
   KEY service_id_2 (service_id,server_id)
 ) TYPE=MyISAM;
 
---
+-- --------------------------------------------------------
+
+-- 
 -- Table structure for table `workers`
---
+-- 
+-- Creation: Sep 25, 2005 at 05:33 PM
+-- Last update: Feb 11, 2006 at 12:45 AM
+-- Last check: Nov 07, 2005 at 12:28 AM
+-- 
 
 CREATE TABLE workers (
   worker_id int(12) NOT NULL auto_increment,

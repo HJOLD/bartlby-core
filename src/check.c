@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.37  2006/03/29 16:55:46  hjanuschka
+mysql sheme fix -> forgott to add service_retain
+check: notify + retain FIXed
+
 Revision 1.36  2006/03/18 01:54:46  hjanuschka
 perf: distribute RRDs correspodening to the perf handler
 core: sched_timeout refined
@@ -626,11 +630,13 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		svc->last_state=svc->current_state;
 							
 	}	
-	if(svc->service_retain_current == svc->service_retain) {
+	if(svc->service_retain_current == svc->service_retain && svc->current_state != svc->notify_last_state) {
 		//udate tstamp text and call trigger *g*
 		//_log("<%d/%d--DOLOG>%d;%d;);	
 		//_log("Retain reached: 	%d/%d", svc->service_retain_current, svc->service_retain);
 		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		
+		svc->notify_last_state=svc->current_state;
 		
 		bartlby_trigger(svc, cfgfile, shm_addr, 1);
 				
