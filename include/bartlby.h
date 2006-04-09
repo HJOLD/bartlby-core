@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Lentia"
-#define VERSION  "1.1.5a"
-#define EXPECTCORE 1101052 //Module V Check's
+#define REL_NAME "Naproxen"
+#define VERSION  "1.1.8a"
+#define EXPECTCORE 1101080 //Module V Check's
 
 
 #define STATE_OK 0
@@ -112,7 +112,7 @@ struct service {
 	int service_retain;
 	int service_retain_current;
 	
-	
+	int check_is_running;
 	
 };
 

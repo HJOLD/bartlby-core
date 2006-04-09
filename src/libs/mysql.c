@@ -16,6 +16,24 @@ $Source$
 
 
 $Log$
+Revision 1.33  2006/04/09 22:12:03  hjanuschka
+R E L E A S E (1.1.8a -> Naproxen):
+
+perf: distribute RRDs correspodening to the perf handler
+core: sched_timeout refined
+core: service_retain
+core: lib/mysql service_retain
+php: service_retain
+ui: overview supports remote bartlby's
+ui: server/service detail supports remote bartlby's
+ui: services list supports remote bartlby
+ui: service_retain
+ui: add perf defaults to package
+ui: catch un-existing objects, server|service|worker
+ui: exit if either built in nor shared bartlby extension was found (discovered during php upgrade )
+ui: addons got own config file (ui-extra.conf)
+php: E_WARNING on unexisting config file
+
 Revision 1.32  2006/03/18 01:54:46  hjanuschka
 perf: distribute RRDs correspodening to the perf handler
 core: sched_timeout refined
@@ -1665,10 +1683,12 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].service_retain_current=atoi(row[24])+1;
       			
       			svcs[i].flap_count=0;
-      			
+      			svcs[i].check_is_running = 0;
       			
       			svcs[i].notify_last_state=svcs[i].current_state;
       			svcs[i].notify_last_time=time(NULL);
+      			
+      			
       			
       			//Log("load", "%s -> %s", svcs[i].plugin, svcs[i].plugin_arguments);
       			//int notify_enabled;

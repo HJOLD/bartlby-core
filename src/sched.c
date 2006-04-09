@@ -16,6 +16,24 @@ $Source$
 
 
 $Log$
+Revision 1.27  2006/04/09 22:12:03  hjanuschka
+R E L E A S E (1.1.8a -> Naproxen):
+
+perf: distribute RRDs correspodening to the perf handler
+core: sched_timeout refined
+core: service_retain
+core: lib/mysql service_retain
+php: service_retain
+ui: overview supports remote bartlby's
+ui: server/service detail supports remote bartlby's
+ui: services list supports remote bartlby
+ui: service_retain
+ui: add perf defaults to package
+ui: catch un-existing objects, server|service|worker
+ui: exit if either built in nor shared bartlby extension was found (discovered during php upgrade )
+ui: addons got own config file (ui-extra.conf)
+php: E_WARNING on unexisting config file
+
 Revision 1.26  2006/03/18 01:54:46  hjanuschka
 perf: distribute RRDs correspodening to the perf handler
 core: sched_timeout refined
@@ -206,15 +224,15 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 	return -1;
 }
 
-void sched_wait_open() {
+void sched_wait_open(int timeout) {
 	int x;
 	x=0;
 	int olim;
-	if(current_running == 0) {
-		olim=gshm_hdr->svccount * 20;
-		//olim=200;	
-	} else {
-		olim=current_running*20;
+	
+	olim=3;
+	
+	if(timeout != 0) {
+		olim=timeout;	
 	}
 	
 	while(current_running != 0 && do_shutdown == 0 && x < olim) {
@@ -259,6 +277,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	int shutdown_waits=0;
 	int round_start, round_visitors;
 	char * cfg_sched_pause;
+	int sum_timeout;
 	int sched_pause;
 	
 	struct timeval check_start, check_end, stat_round_start, stat_round_end;
@@ -344,7 +363,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		gettimeofday(&stat_round_start,NULL);
 		round_visitors=0;	
 		
+		sum_timeout=0;
 		for(x=0; x<gshm_hdr->svccount; x++) {
+			
 			
 			if(do_shutdown == 1 || gshm_hdr->do_reload == 1) {
 				break;	
@@ -352,6 +373,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 			if(current_running < cfg_max_parallel) { 
 				if(sched_check_waiting(shm_addr, &services[x]) == 1) {
+						sum_timeout += 20; //FIXME!!
 						//_log("SVC timeout: %d", services[x].service_check_timeout);
 						round_visitors++;
 				 		//services[x].last_check=time(NULL);
@@ -366,16 +388,19 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								signal(SIGCHLD, sched_reaper);
 								
 								gettimeofday(&check_start, NULL);
-																
+										
+								services[x].check_is_running=getpid();						
 								bartlby_check_service(&services[x], shm_addr, SOHandle, cfgfile);	
+								
 								
 								gettimeofday(&check_end, NULL);
 								
 								
 								bartlby_core_perf_track(&services[x], bartlby_milli_timediff(check_end,check_start), PERF_TYPE_SVC_TIME, cfgfile);
 								
-								
+								services[x].check_is_running=0;
 								shmdt(shm_addr);
+								
 								exit(0);
 								
 							break;	
@@ -389,11 +414,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 				
 				}				
 			} else {
-				sched_wait_open();	
+				sched_wait_open(sum_timeout);	
 			}
 			
 		}
-		sched_wait_open();
+		sched_wait_open(sum_timeout); //Nothing should run
+		
 		if(time(NULL)-round_start > sched_pause*3) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		}
