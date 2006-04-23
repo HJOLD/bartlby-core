@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.4  2006/04/23 18:07:43  hjanuschka
+core/ui/php: checks can now be forced
+ui: remote xml special_addon support
+core: svc perf MS
+core: round perf MS
+php: svcmap, get_service perf MS
+ui: perf MS
+
 Revision 1.3  2006/02/09 00:14:50  hjanuschka
 datalib: mysql/ catch failed logins
 core: fixed some setuid problems with datalib
@@ -56,24 +64,23 @@ int bartlby_milli_timediff(struct timeval end, struct timeval start) {
 	return ((end.tv_sec - start.tv_sec) * 1000) +  (((1000000 + end.tv_usec - start.tv_usec) / 1000) - 1000);	
 }
 
-int bartlby_core_perf_track(struct service * svc, int value, int type, char * cfg) {
-	// be nice to CFG access use env variable :-)
-	char * perf_file;
-	FILE * fp;
-	int ctim;
+int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int type, int time) {
 	
-	perf_file=getConfigValue("core_performance", cfg);	
-	if(perf_file != NULL) {
-		fp=fopen(perf_file, "a");
-		if(fp != NULL) {	
-			ctim=time(NULL);
-			fprintf(fp, "%d		%d		%s		%s		%s		%d		%d\n", ctim , svc->service_id,svc->server_name,svc->service_name, svc->plugin, value, type);	
-			fclose(fp);
-			free(perf_file);
-			return 0;	
-		} else {
-			return -2;	
-		}
+	// be nice to CFG access use env variable :-)
+	switch(type) {
+		case PERF_TYPE_ROUND_TIME:
+			
+			hdr->pstat.counter++;
+			hdr->pstat.sum += time;
+		break;
+		case PERF_TYPE_SVC_TIME:
+			svc->pstat.counter++;
+			svc->pstat.sum += time;
+			
+		break;
+		
+		
+		default: _log("unknown perf type: %d", type);	
 	}
 	return -1;	
 }

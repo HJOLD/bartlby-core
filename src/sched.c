@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.28  2006/04/23 18:07:43  hjanuschka
+core/ui/php: checks can now be forced
+ui: remote xml special_addon support
+core: svc perf MS
+core: round perf MS
+php: svcmap, get_service perf MS
+ui: perf MS
+
 Revision 1.27  2006/04/09 22:12:03  hjanuschka
 R E L E A S E (1.1.8a -> Naproxen):
 
@@ -210,6 +218,12 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 	tmnow = localtime(&tnow);
 	my_diff=cur_time - svc->last_check;
 	
+	if(svc->do_force == 1) {
+		svc->do_force=0; //dont force again
+		_log("Force: %s:%d/%s", svc->server_name, svc->client_port, svc->service_name);
+		return 1;	
+	}
+	
 	if(sched_needs_ack(svc) == 1) {
 		//_log("Service: %s is in status outstanding", svc->service_name);
 		return -1; //Dont sched this	
@@ -274,7 +288,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	int x;
 	int child_pid;
 	int cfg_max_parallel=0;
-	int shutdown_waits=0;
+	
+	
+	
 	int round_start, round_visitors;
 	char * cfg_sched_pause;
 	int sum_timeout;
@@ -325,30 +341,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		if(gshm_hdr->do_reload == 1) {
 			_log("queuing Reload");	
-			while(current_running != 0) {
-				_log("Shutdown wait");
-				sleep(1); //Wait for finish
-				shutdown_waits++;
-				if(shutdown_waits > 20) {
-					//Well this is the case where someone wants to keep us waiting
-					// women ? :-)	
-					return -2;
-				}	
-			}	
+			sched_wait_open(10);
 			return -2;
 		}
 		if(do_shutdown == 1) {
 			_log("Exit recieved");	
-			while(current_running != 0) {
-				_log("Shutdown wait");
-				sleep(1); //Wait for finish
-				shutdown_waits++;
-				if(shutdown_waits > 20) {
-					//Well this is the case where someone wants to keep us waiting
-					// women ? :-)	
-					break;
-				}	
-			}	
+			sched_wait_open(10);
 			break;
 		}
 		
@@ -396,7 +394,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								gettimeofday(&check_end, NULL);
 								
 								
-								bartlby_core_perf_track(&services[x], bartlby_milli_timediff(check_end,check_start), PERF_TYPE_SVC_TIME, cfgfile);
+								bartlby_core_perf_track(gshm_hdr, &services[x], PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
 								
 								services[x].check_is_running=0;
 								shmdt(shm_addr);
@@ -428,7 +426,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		//Log Round End
 		gettimeofday(&stat_round_end,NULL);
-		bartlby_core_perf_track(&services[0], bartlby_milli_timediff(stat_round_end,stat_round_start), PERF_TYPE_ROUND_TIME, cfgfile);
+		bartlby_core_perf_track(gshm_hdr, &services[x], PERF_TYPE_ROUND_TIME, bartlby_milli_timediff(stat_round_end,stat_round_start));
 		
 		
 		sleep(sched_pause);

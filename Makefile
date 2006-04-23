@@ -18,12 +18,13 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/perf/
 	$(MKDIRP) ${BARTLBY_HOME}/perf/defaults/
 	$(MKDIRP) ${BARTLBY_HOME}/trigger/
-	
+	$(MKDIRP) ${BARTLBY_HOME}/contrib/
 	
 	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}
 	$(CPPVA) bartlby.startup ${BARTLBY_HOME}
 	$(CHMOD) a+x ${BARTLBY_HOME}/bartlby.startup 
 	$(CPPVA) trigger/* ${BARTLBY_HOME}/trigger/
+	$(CPPVA) contrib/* ${BARTLBY_HOME}/contrib/
 	cp -a perf/* ${BARTLBY_HOME}/perf/
 	
 	list='$(SUBDIRS)'; for subdir in $$list; do \

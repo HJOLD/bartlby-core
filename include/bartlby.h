@@ -51,7 +51,18 @@
         	exit(1); \
     	}
     	
-    	
+
+struct shm_counter {
+	int worker;
+	int services;
+	int downtimes;	
+};
+
+struct perf_statistic {
+	long sum;
+	long counter;	
+};
+
 
 struct shm_header {
 	int size_of_structs;
@@ -64,8 +75,8 @@ struct shm_header {
 	int startup_time;
 	int dtcount;
 	int sirene_mode;
+	struct perf_statistic pstat;
 	
-
 };
 
 struct service {
@@ -113,6 +124,10 @@ struct service {
 	int service_retain_current;
 	
 	int check_is_running;
+	
+	struct perf_statistic pstat;
+	
+	int do_force;
 	
 };
 
@@ -171,7 +186,7 @@ struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
 
 void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile);
-int bartlby_core_perf_track(struct  service * svc, int value, int type, char * cfg);
+int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int type, int time);
 int bartlby_milli_timediff(struct timeval end, struct timeval start);
 
 void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check);

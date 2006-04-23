@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.34  2006/04/23 18:07:43  hjanuschka
+core/ui/php: checks can now be forced
+ui: remote xml special_addon support
+core: svc perf MS
+core: round perf MS
+php: svcmap, get_service perf MS
+ui: perf MS
+
 Revision 1.33  2006/04/09 22:12:03  hjanuschka
 R E L E A S E (1.1.8a -> Naproxen):
 
@@ -171,6 +179,17 @@ CVS Header
       			return -1; \
       		}
 
+#define CHK_ERR_NULL(x) \
+		if (x != NULL) {\
+			if(mysql_errno(x) != 0) {\
+		 		_log("mysql error: %s", mysql_error(x)); \
+      		 		return NULL; \
+      			}\
+      		} else {\
+      			_log("Mysql Error %s:%d", __FILE__, __LINE__); \
+      			return NULL; \
+      		}      		
+
 #define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://bartlby.org"
 #define NAME "MYSQL Connector"
 #define DLVERSION  "0.6.3"
@@ -207,6 +226,122 @@ CVS Header
 #define DEL_DOWNTIME "delete from downtime where downtime_id=%d"
 #define ADD_DOWNTIME "INSERT INTO downtime(downtime_type, downtime_from,downtime_to,service_id, downtime_notice) VALUES(%d,%d,%d,%d, '%s')"
 #define DOWNTIME_SEL "select downtime_id, downtime_type, downtime_from, downtime_to, downtime_notice, service_id from downtime"
+
+//Counters
+#define COUNT_SERVICES "select count(1) from services"
+#define COUNT_WORKERS "select count(1) from workers"
+#define COUNT_DOWNTIMES "select count(1) from downtime"
+
+
+/*
+
+struct shm_counter {
+	int worker;
+	int services;
+	int downtimes;	
+}
+
+*/
+
+struct shm_counter * GetCounter(char * config) {
+	MYSQL *mysql;
+	MYSQL_ROW  row;
+	MYSQL_RES  *res;
+	struct shm_counter * shmc;
+	
+	
+	shmc = malloc(sizeof(struct shm_counter) + 10);
+	
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+	
+	
+	
+
+
+	mysql=mysql_init(NULL);
+	CHK_ERR_NULL(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+	CHK_ERR_NULL(mysql);
+     mysql_select_db(mysql, mysql_db);
+     CHK_ERR_NULL(mysql);
+	
+	
+	mysql_query(mysql, COUNT_SERVICES);
+	CHK_ERR_NULL(mysql);
+     res = mysql_store_result(mysql);
+     CHK_ERR_NULL(mysql);
+     
+     
+     if(mysql_num_rows(res) > 0) {
+     	row=mysql_fetch_row(res);
+
+  		if(row[0] != NULL) {
+     	 	shmc->services = atoi(row[0]);
+     	}
+     	
+     	
+     } else {
+     	shmc->services = 0;	
+     }
+      		
+     mysql_free_result(res);
+     
+     mysql_query(mysql, COUNT_WORKERS);
+	CHK_ERR_NULL(mysql);
+     res = mysql_store_result(mysql);
+     CHK_ERR_NULL(mysql);
+     
+     
+     if(mysql_num_rows(res) > 0) {
+     	row=mysql_fetch_row(res);
+
+  		if(row[0] != NULL) {
+     	 	shmc->worker = atoi(row[0]);
+     	}
+     	
+     	
+     } else {
+     	shmc->worker = 0;	
+     }
+      		
+     mysql_free_result(res);
+     
+     mysql_query(mysql, COUNT_DOWNTIMES);
+	CHK_ERR_NULL(mysql);
+     res = mysql_store_result(mysql);
+     CHK_ERR_NULL(mysql);
+     
+     
+     if(mysql_num_rows(res) > 0) {
+     	row=mysql_fetch_row(res);
+
+  		if(row[0] != NULL) {
+     	 	shmc->downtimes = atoi(row[0]);
+     	}
+     	
+     	
+     } else {
+     	shmc->downtimes = 0;	
+     }
+      		
+     mysql_free_result(res);
+     
+     
+	mysql_close(mysql);
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	
+	return shmc;
+	
+	
+}
+
 
 int UpdateDowntime(struct downtime * svc, char *config) {
 	/*
@@ -1687,7 +1822,9 @@ int GetServiceMap(struct service * svcs, char * config) {
       			
       			svcs[i].notify_last_state=svcs[i].current_state;
       			svcs[i].notify_last_time=time(NULL);
-      			
+      			svcs[i].pstat.sum=0;
+      			svcs[i].pstat.counter=0;
+      			svcs[i].do_force=0;
       			
       			
       			//Log("load", "%s -> %s", svcs[i].plugin, svcs[i].plugin_arguments);

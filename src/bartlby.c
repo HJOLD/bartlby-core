@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.26  2006/04/23 18:07:43  hjanuschka
+core/ui/php: checks can now be forced
+ui: remote xml special_addon support
+core: svc perf MS
+core: round perf MS
+php: svcmap, get_service perf MS
+ui: perf MS
+
 Revision 1.25  2006/02/25 18:53:22  hjanuschka
 setuid too late, pid file was created by root
 makefile: copy mysql.shema to $BASEDIR
@@ -158,6 +166,12 @@ int main(int argc, char ** argv, char ** envp) {
 	int (*GetServiceMap)(struct service *, char *);
 	int (*GetWorkerMap)(struct worker *,char *);
 	int (*GetDowntimeMap)(struct downtime *, char *);
+	
+	
+	struct  shm_counter  * (*GetCounter)(char *);
+	struct shm_counter * shmc;
+	int suggested_minimum;
+	
 	long cfg_shm_size_bytes;
 	char *  cfg_shm_size;
 	/*
@@ -182,14 +196,6 @@ int main(int argc, char ** argv, char ** envp) {
 	/*
 		END SHM stuff
 	*/
-
-	/*
-	REPL
-	*/
-		char * i_am_a_slave; //Run from file instead of DATALIB
-		FILE * repl_fp;
-		
-		struct stat repl_st;
 	
 	struct service * svcmap;
 	struct worker * wrkmap;
@@ -258,6 +264,8 @@ int main(int argc, char ** argv, char ** envp) {
     	LOAD_SYMBOL(GetDowntimeMap,SOHandle, "GetDowntimeMap");
     	LOAD_SYMBOL(GetName,SOHandle, "GetName");
     	LOAD_SYMBOL(ExpectVersion,SOHandle, "ExpectVersion");
+    	LOAD_SYMBOL(GetCounter,SOHandle, "GetCounter");
+    	
     	
     	 	
     	
@@ -294,10 +302,7 @@ int main(int argc, char ** argv, char ** envp) {
 		
 		
 		cfg_shm_size = getConfigValue("shm_size", argv[1]);
-		i_am_a_slave = getConfigValue("i_am_a_slave", argv[1]);
-		if(i_am_a_slave == NULL) {
-			i_am_a_slave=strdup("false");	
-		}
+		
 		if(cfg_shm_size==NULL) {
 			cfg_shm_size_bytes=10;		
 		} else {
@@ -306,7 +311,24 @@ int main(int argc, char ** argv, char ** envp) {
 		
 		free(cfg_shm_size);
 		
+		shmc = GetCounter(argv[1]);
+		if(shmc == NULL) {
+			exit(0);	
+		}
 		SHMSize=cfg_shm_size_bytes*1024*1024;	
+		
+		suggested_minimum = (sizeof(struct shm_header) + (sizeof(struct worker) * shmc->worker) + (sizeof(struct service) * shmc->services) + (sizeof(struct downtime) * shmc->downtimes) + 2000) * 2;
+		if(SHMSize <= suggested_minimum) {
+			_log("SHM is to small minimum: %d KB ", suggested_minimum/1024);
+			exit(1);	
+		}
+		_log("SHM requires: %d KB ", suggested_minimum/1024);
+		free(shmc);
+		
+		
+		
+		
+		
 		shm_id = shmget(ftok(shmtok, 32), SHMSize,IPC_CREAT | IPC_EXCL | 0777);
 		
 		if(shm_id != -1) {
@@ -315,41 +337,24 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr=(struct shm_header *)(void *)bartlby_address;
 			svcmap=(struct service *)(void *)bartlby_address+sizeof(struct shm_header);
 			
-			if(strcmp(i_am_a_slave, "false") != 0) {
-				_log("Slave Mode");
+							
 				
-				if(stat(i_am_a_slave, &repl_st) < 0) {
-					_log("stat failed on: %s", i_am_a_slave);
-					break; //End scheduler	
-				}
-				repl_fp=fopen(i_am_a_slave, "r");
-				read(fileno(repl_fp), bartlby_address, repl_st.st_size);				
-				fclose(repl_fp);
-				
-				
-			} else {
-				_log("Master Mode");	
-				
-				
-				
-				shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
-				
-				shm_hdr->svccount=shm_svc_cnt;
-				
-				svcmap=bartlby_SHM_ServiceMap(bartlby_address);
-				
-				wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
-				shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
-				shm_hdr->wrkcount=shm_wrk_cnt;
-				
-				dtmap=(struct downtime *)(void *)&wrkmap[shm_wrk_cnt]+20;
-				shm_dt_cnt=GetDowntimeMap(dtmap, argv[1]);
-				shm_hdr->dtcount=shm_dt_cnt;
+			shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
+			
+			shm_hdr->svccount=shm_svc_cnt;
+			
+			svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+			
+			wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
+			shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
+			shm_hdr->wrkcount=shm_wrk_cnt;
+			
+			dtmap=(struct downtime *)(void *)&wrkmap[shm_wrk_cnt]+20;
+			shm_dt_cnt=GetDowntimeMap(dtmap, argv[1]);
+			shm_hdr->dtcount=shm_dt_cnt;
 				
 				
 				
-			}
-			free(i_am_a_slave);
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
 			_log("Downtimes: %d", shm_hdr->dtcount);
@@ -363,6 +368,11 @@ int main(int argc, char ** argv, char ** envp) {
 			
 			shm_hdr->sirene_mode=0; //Default disable	
 			shm_hdr->size_of_structs=sizeof(struct shm_header)+sizeof(struct worker)+sizeof(struct service)+sizeof(struct downtime);
+			shm_hdr->pstat.sum=0;
+			shm_hdr->pstat.counter=0;
+			
+			
+			///INIT EVENT QUEUE
 			
 			
 			if(shm_hdr->wrkcount <= 0) {

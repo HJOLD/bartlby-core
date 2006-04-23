@@ -16,6 +16,14 @@ $Source$
 
 
 $Log$
+Revision 1.10  2006/04/23 18:07:43  hjanuschka
+core/ui/php: checks can now be forced
+ui: remote xml special_addon support
+core: svc perf MS
+core: round perf MS
+php: svcmap, get_service perf MS
+ui: perf MS
+
 Revision 1.9  2005/10/13 22:42:29  hjanuschka
 portier/cmd: get_services -> recieve a list of passive services
 
@@ -150,12 +158,6 @@ int main(int argc, char ** argv) {
 	
 	
 	
-	/////////// Replication ////////////////
-	long repl_SHMSize;
-	void * repl_shm_addr;
-	char * repl_bdir;
-	
-	int read_rtc;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	int passive_svcid;
@@ -275,6 +277,7 @@ int main(int argc, char ** argv) {
 	if(token != NULL) {
 		command=atoi(token);
 		switch(command) {
+			/*
 			case CMD_REPL:
 				token=strtok(NULL, "|");
 				if(token != NULL) {
@@ -325,6 +328,7 @@ int main(int argc, char ** argv) {
 					sprintf(svc_out, "-7 Bytes not supplied\n");	
 				}
 			break;
+			*/
 			case CMD_GET_PLG:
 				token=strtok(NULL, "|");
 				if(token != NULL) {
