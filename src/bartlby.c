@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.27  2006/04/24 22:20:00  hjanuschka
+core: event queue
+
 Revision 1.26  2006/04/23 18:07:43  hjanuschka
 core/ui/php: checks can now be forced
 ui: remote xml special_addon support
@@ -317,7 +320,7 @@ int main(int argc, char ** argv, char ** envp) {
 		}
 		SHMSize=cfg_shm_size_bytes*1024*1024;	
 		
-		suggested_minimum = (sizeof(struct shm_header) + (sizeof(struct worker) * shmc->worker) + (sizeof(struct service) * shmc->services) + (sizeof(struct downtime) * shmc->downtimes) + 2000) * 2;
+		suggested_minimum = (sizeof(struct shm_header) + (sizeof(struct worker) * shmc->worker) + (sizeof(struct service) * shmc->services) + (sizeof(struct downtime) * shmc->downtimes) + 2000 + (sizeof(struct btl_event)*EVENT_QUEUE_MAX)) * 2;
 		if(SHMSize <= suggested_minimum) {
 			_log("SHM is to small minimum: %d KB ", suggested_minimum/1024);
 			exit(1);	
@@ -354,6 +357,9 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr->dtcount=shm_dt_cnt;
 				
 				
+			//06.04.24 Init EVENT QUEUE
+			bartlby_event_init(bartlby_address);
+			
 				
 			
 			_log("Workers: %d", shm_hdr->wrkcount);

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.29  2006/04/24 22:20:00  hjanuschka
+core: event queue
+
 Revision 1.28  2006/04/23 18:07:43  hjanuschka
 core/ui/php: checks can now be forced
 ui: remote xml special_addon support
@@ -342,11 +345,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		if(gshm_hdr->do_reload == 1) {
 			_log("queuing Reload");	
 			sched_wait_open(10);
+			signal(SIGCHLD, SIG_IGN);
 			return -2;
 		}
 		if(do_shutdown == 1) {
 			_log("Exit recieved");	
 			sched_wait_open(10);
+			signal(SIGCHLD, SIG_IGN);
 			break;
 		}
 		

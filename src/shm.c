@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2006/04/24 22:20:00  hjanuschka
+core: event queue
+
 Revision 1.4  2006/01/19 23:30:22  hjanuschka
 introducing downtime's
 
@@ -43,6 +46,20 @@ struct shm_header * bartlby_SHM_GetHDR(void * shm_addr) {
 	return (struct shm_header *)(void *)shm_addr;
 }
 
+
+struct btl_event * bartlby_SHM_EventMap(void * shm_addr) {
+	//Is beyond the 3 integers :-)
+	struct shm_header * hdr;
+	struct downtime * dtmap;
+	
+	hdr=bartlby_SHM_GetHDR(shm_addr);
+	dtmap=bartlby_SHM_DowntimeMap(shm_addr);
+	
+	
+	return (struct btl_event *)(void *)&dtmap[hdr->dtcount]+20;
+}
+
+
 struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr) {
 	//Is beyond the 3 integers :-)
 	struct shm_header * hdr;
@@ -52,8 +69,8 @@ struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr) {
 	hdr=bartlby_SHM_GetHDR(shm_addr);
 	
 	svcmap=bartlby_SHM_ServiceMap(shm_addr);
-	wrkmap=(struct worker *)(void*)&svcmap[hdr->svccount]+20;
-	
+	//wrkmap=(struct worker *)(void*)&svcmap[hdr->svccount]+20;
+	wrkmap=bartlby_SHM_WorkerMap(shm_addr);
 	
 	return (struct downtime *)(void *)&wrkmap[hdr->wrkcount]+20;
 }

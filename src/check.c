@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.38  2006/04/24 22:20:00  hjanuschka
+core: event queue
+
 Revision 1.37  2006/03/29 16:55:46  hjanuschka
 mysql sheme fix -> forgott to add service_retain
 check: notify + retain FIXed
@@ -643,6 +646,8 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		if(svc->service_ack == ACK_NEEDED && svc->current_state == STATE_CRITICAL) {
 			svc->service_ack=ACK_OUTSTANDING;	
 		}
+		
+		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
 	
 	}
 	

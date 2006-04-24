@@ -18,6 +18,11 @@
 #define VERSION  "1.1.8a"
 #define EXPECTCORE 1101080 //Module V Check's
 
+#define EVENT_QUEUE_MAX 128
+#define EVENT_STATUS_CHANGED 2
+#define EVENT_TRIGGER_PUSHED 3
+
+
 
 #define STATE_OK 0
 #define STATE_WARNING 1
@@ -76,6 +81,7 @@ struct shm_header {
 	int dtcount;
 	int sirene_mode;
 	struct perf_statistic pstat;
+	int cur_event_index;
 	
 };
 
@@ -161,6 +167,11 @@ struct downtime {
 	
 }sb;
 
+struct btl_event {
+	int evnt_id;
+	char evnt_message[1024];
+		
+}eb;
 
 
 
@@ -208,4 +219,11 @@ int bartlby_action_handle_reply_line(struct service * svc, char * line, char *cf
 void bartlby_check_sirene(char * configfile, void * bartlby_address);
 int bartlby_is_in_downtime(void * bartlby_address, struct service * svc);
 ssize_t recvall(int _socket, char* buffer, int max_len,int flags);
+
+
+//EVNT's
+void bartlby_event_init(void * bartlby_address);
+struct btl_event * bartlby_SHM_EventMap(void * shm_addr);
+int bartlby_push_event(int event_id, char * str,  ...);
+
 extern char config_file[255];
