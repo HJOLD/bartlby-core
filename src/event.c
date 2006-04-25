@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/04/25 07:18:22  hjanuschka
+events now have a timestamp
+
 Revision 1.1  2006/04/24 22:20:00  hjanuschka
 core: event queue
 
@@ -54,6 +57,7 @@ void bartlby_event_init(void * bartlby_address) {
 	
 	for(x=0; x<EVENT_QUEUE_MAX; x++) {
 		evs[x].evnt_id=0;
+		evs[x].evnt_time=time(NULL);
 		sprintf(evs[x].evnt_message, "(null)");
 	}
 	_log("Init event queue done %d messages available", x);
@@ -77,7 +81,7 @@ int bartlby_push_event(int event_id, char * str,  ...) {
  	va_start(argzeiger,str);
  	
  	evs[hdr->cur_event_index].evnt_id=event_id;
- 	
+ 	evs[hdr->cur_event_index].evnt_time=time(NULL);
  	
    	
    	vsnprintf(evs[hdr->cur_event_index].evnt_message, 900, str, argzeiger);
