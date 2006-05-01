@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.30  2006/05/01 22:11:31  hjanuschka
+some sched fixes
+and event push immediatly when status change
+
 Revision 1.29  2006/04/24 22:20:00  hjanuschka
 core: event queue
 
@@ -174,7 +178,7 @@ CVS Header
 
 void catch_signal(int signum);
 int do_shutdown=0;
-int current_running=0;
+
 pid_t sched_pid;
 
 struct shm_header * gshm_hdr;
@@ -251,34 +255,31 @@ void sched_wait_open(int timeout) {
 	if(timeout != 0) {
 		olim=timeout;	
 	}
-	
-	while(current_running != 0 && do_shutdown == 0 && x < olim) {
+	if(gshm_hdr->current_running < 0) {
+		gshm_hdr->current_running=0;
+	}
+	while(gshm_hdr->current_running != 0 && do_shutdown == 0 && x < olim) {
 			
 			sleep(1);
 			x++;
 						
 	}	
 	if(x > olim) {
-		current_running=0;
+		
 		gshm_hdr->current_running=0;
 		_log("Sched_wait_open: timedout");	
 	}
 }
 
 void sched_reaper(int signum) {
-
-	 while (waitpid (-1, NULL, WNOHANG) > 0) {
-	 	
-	 	if(gshm_hdr->current_running > 0) {
-	 		
-	 		gshm_hdr->current_running--;
-	 	}
-	 	if( current_running > 0 ) {
-	 		current_running--;	
-	 	}
+	 int status;
+	 
+	 while (waitpid (-1, &status, WNOHANG) > 0) {
+	 		 	
 	 }
-	
-	//_log("Child exited cnt @: %d",current_running); 
+	if(status != 0) {
+		_log("Child exited unexpected status: %d",status); 
+	}
 	
 		
 }
@@ -374,7 +375,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 				break;	
 			}
 			
-			if(current_running < cfg_max_parallel) { 
+			if(gshm_hdr->current_running < cfg_max_parallel) { 
 				if(sched_check_waiting(shm_addr, &services[x]) == 1) {
 						sum_timeout += 20; //FIXME!!
 						//_log("SVC timeout: %d", services[x].service_check_timeout);
@@ -402,6 +403,11 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								bartlby_core_perf_track(gshm_hdr, &services[x], PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
 								
 								services[x].check_is_running=0;
+								
+								
+								gshm_hdr->current_running--;
+								
+								
 								shmdt(shm_addr);
 								
 								exit(0);
@@ -409,7 +415,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 							break;	
 							default:
 								gshm_hdr->current_running++;
-								current_running++;
+								
 								
 							break;
 						}

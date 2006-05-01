@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.39  2006/05/01 22:11:30  hjanuschka
+some sched fixes
+and event push immediatly when status change
+
 Revision 1.38  2006/04/24 22:20:00  hjanuschka
 core: event queue
 
@@ -631,23 +635,30 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	if(svc->current_state != svc->last_state) {
 		svc->service_retain_current=0;
 		svc->last_state=svc->current_state;
-							
+		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);					
 	}	
 	if(svc->service_retain_current == svc->service_retain && svc->current_state != svc->notify_last_state) {
 		//udate tstamp text and call trigger *g*
 		//_log("<%d/%d--DOLOG>%d;%d;);	
 		//_log("Retain reached: 	%d/%d", svc->service_retain_current, svc->service_retain);
-		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		_log("DD: %d --> %d",svc->current_state, svc->notify_last_state);
+		//_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		
+		bartlby_push_event(EVENT_TRIGGER_PUSHED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
+		
 		
 		svc->notify_last_state=svc->current_state;
 		
 		bartlby_trigger(svc, cfgfile, shm_addr, 1);
 				
+		_log("%s:%d/%s|%s trigger end",svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		
 		if(svc->service_ack == ACK_NEEDED && svc->current_state == STATE_CRITICAL) {
 			svc->service_ack=ACK_OUTSTANDING;	
 		}
 		
-		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
+		
 	
 	}
 	
