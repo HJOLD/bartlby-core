@@ -19,6 +19,7 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/perf/defaults/
 	$(MKDIRP) ${BARTLBY_HOME}/trigger/
 	$(MKDIRP) ${BARTLBY_HOME}/contrib/
+	$(MKDIRP) ${BARTLBY_HOME}/var/log/
 	
 	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}
 	$(CPPVA) bartlby.startup ${BARTLBY_HOME}
