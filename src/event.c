@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2006/05/06 23:32:02  hjanuschka
+*** empty log message ***
+
 Revision 1.2  2006/04/25 07:18:22  hjanuschka
 events now have a timestamp
 
@@ -68,11 +71,11 @@ int bartlby_push_event(int event_id, char * str,  ...) {
 	
 	
 	if((hdr->cur_event_index+1) >= EVENT_QUEUE_MAX) {
-		_log("Event: %d will reach maximum", (hdr->cur_event_index+1));
+		//_log("Event: %d will reach maximum", (hdr->cur_event_index+1));
 		hdr->cur_event_index=0;	
 	} else {
 		hdr->cur_event_index++;	
-		_log("NEW CID: %d", hdr->cur_event_index);
+		//_log("NEW CID: %d", hdr->cur_event_index);
 	}
 
 	va_list argzeiger;
@@ -86,7 +89,7 @@ int bartlby_push_event(int event_id, char * str,  ...) {
    	
    	vsnprintf(evs[hdr->cur_event_index].evnt_message, 900, str, argzeiger);
    	
-   	_log("Event pushed: index=>%d id=>%d, Message=>'%s'", hdr->cur_event_index, evs[hdr->cur_event_index].evnt_id, evs[hdr->cur_event_index].evnt_message);
+   	//_log("Event pushed: index=>%d id=>%d, Message=>'%s'", hdr->cur_event_index, evs[hdr->cur_event_index].evnt_id, evs[hdr->cur_event_index].evnt_message);
    	
    	va_end(argzeiger);
    	

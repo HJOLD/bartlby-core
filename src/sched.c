@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.31  2006/05/06 23:32:02  hjanuschka
+*** empty log message ***
+
 Revision 1.30  2006/05/01 22:11:31  hjanuschka
 some sched fixes
 and event push immediatly when status change
@@ -155,6 +158,7 @@ CVS Header
 
 
 */
+#define _GNU_SOURCE
 
 #include <dlfcn.h>
 #include <stdio.h>
@@ -255,19 +259,24 @@ void sched_wait_open(int timeout) {
 	if(timeout != 0) {
 		olim=timeout;	
 	}
-	if(gshm_hdr->current_running < 0) {
-		gshm_hdr->current_running=0;
-	}
+	
 	while(gshm_hdr->current_running != 0 && do_shutdown == 0 && x < olim) {
-			
+		
 			sleep(1);
 			x++;
-						
+			olim=gshm_hdr->current_running*timeout;
+			
+			if(gshm_hdr->current_running < 0 || gshm_hdr->current_running  == 1) {
+				gshm_hdr->current_running=0;
+				break;
+				
+			}		
+			
 	}	
 	if(x > olim) {
 		
 		gshm_hdr->current_running=0;
-		_log("Sched_wait_open: timedout");	
+		
 	}
 }
 
@@ -277,9 +286,14 @@ void sched_reaper(int signum) {
 	 while (waitpid (-1, &status, WNOHANG) > 0) {
 	 		 	
 	 }
-	if(status != 0) {
-		_log("Child exited unexpected status: %d",status); 
-	}
+	
+	if(WIFSIGNALED(status)) {
+		if(WTERMSIG(status) != SIGCHLD) {
+			_log("Child exited unexpected status: %d / %s", WTERMSIG(status), strsignal(WTERMSIG(status))); 
+		}
+	} 
+	
+	
 	
 		
 }
@@ -297,7 +311,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	int round_start, round_visitors;
 	char * cfg_sched_pause;
-	int sum_timeout;
+	
 	int sched_pause;
 	
 	struct timeval check_start, check_end, stat_round_start, stat_round_end;
@@ -345,13 +359,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		if(gshm_hdr->do_reload == 1) {
 			_log("queuing Reload");	
-			sched_wait_open(10);
+			sched_wait_open(1);
 			signal(SIGCHLD, SIG_IGN);
 			return -2;
 		}
 		if(do_shutdown == 1) {
 			_log("Exit recieved");	
-			sched_wait_open(10);
+			sched_wait_open(1);
 			signal(SIGCHLD, SIG_IGN);
 			break;
 		}
@@ -367,7 +381,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		gettimeofday(&stat_round_start,NULL);
 		round_visitors=0;	
 		
-		sum_timeout=0;
+		
 		for(x=0; x<gshm_hdr->svccount; x++) {
 			
 			
@@ -377,7 +391,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 			if(gshm_hdr->current_running < cfg_max_parallel) { 
 				if(sched_check_waiting(shm_addr, &services[x]) == 1) {
-						sum_timeout += 20; //FIXME!!
+						
 						//_log("SVC timeout: %d", services[x].service_check_timeout);
 						round_visitors++;
 				 		//services[x].last_check=time(NULL);
@@ -388,6 +402,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								return -1;
 							break;
 							case 0:
+								gshm_hdr->current_running++;
 								
 								signal(SIGCHLD, sched_reaper);
 								
@@ -405,7 +420,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								services[x].check_is_running=0;
 								
 								
-								gshm_hdr->current_running--;
+								
+								if(gshm_hdr->current_running > 0) {
+									gshm_hdr->current_running--;
+								} else {
+									gshm_hdr->current_running=0;	
+								}
+								
 								
 								
 								shmdt(shm_addr);
@@ -414,7 +435,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								
 							break;	
 							default:
-								gshm_hdr->current_running++;
+								//gshm_hdr->current_running++;
 								
 								
 							break;
@@ -423,11 +444,11 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 				
 				}				
 			} else {
-				sched_wait_open(sum_timeout);	
+				sched_wait_open(60);	
 			}
 			
 		}
-		sched_wait_open(sum_timeout); //Nothing should run
+		sched_wait_open(60); //Nothing should run
 		
 		if(time(NULL)-round_start > sched_pause*3) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				

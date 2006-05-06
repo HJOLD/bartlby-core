@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.40  2006/05/06 23:32:02  hjanuschka
+*** empty log message ***
+
 Revision 1.39  2006/05/01 22:11:30  hjanuschka
 some sched fixes
 and event push immediatly when status change
@@ -642,7 +645,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		//udate tstamp text and call trigger *g*
 		//_log("<%d/%d--DOLOG>%d;%d;);	
 		//_log("Retain reached: 	%d/%d", svc->service_retain_current, svc->service_retain);
-		_log("DD: %d --> %d",svc->current_state, svc->notify_last_state);
+		//_log("DD: %d --> %d",svc->current_state, svc->notify_last_state);
 		//_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		
 		bartlby_push_event(EVENT_TRIGGER_PUSHED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
@@ -652,7 +655,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 		bartlby_trigger(svc, cfgfile, shm_addr, 1);
 				
-		_log("%s:%d/%s|%s trigger end",svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		//_log("%s:%d/%s|%s trigger end",svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		
 		if(svc->service_ack == ACK_NEEDED && svc->current_state == STATE_CRITICAL) {
 			svc->service_ack=ACK_OUTSTANDING;	
@@ -697,7 +700,7 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		ctime=time(NULL);
 		pdiff=ctime-svc->last_check;
 		
-		if(pdiff >= svc->service_passive_timeout) {
+		if(svc->service_passive_timeout > 0 && pdiff >= svc->service_passive_timeout) {
 			
 			sprintf(svc->new_server_text, "%s", PASSIVE_TIMEOUT);
 			svc->current_state=STATE_WARNING;

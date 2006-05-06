@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2006/05/06 23:32:02  hjanuschka
+*** empty log message ***
+
 Revision 1.4  2006/04/23 18:07:43  hjanuschka
 core/ui/php: checks can now be forced
 ui: remote xml special_addon support
@@ -55,7 +58,7 @@ core statistic (should be used in debug mode only produces a biiiig file)
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-
+#include <signal.h>
 
 
 #include <bartlby.h>
@@ -90,8 +93,25 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 	char perf_out[2048];
 	char * cfg_perf_dir;
 	char * perf_trigger;
+	char * perf_enabled;
 	int perf_child;
 	struct timeval stat_end, stat_start;
+	
+	//signal(SIGCHLD, SIG_IGN);
+	
+	perf_enabled=getConfigValue("perfhandler_enabled", cfgfile);
+	if(perf_enabled == NULL) {
+		perf_enabled=strdup("true");
+		//sprintf(perf_enabled, "true");
+	}
+	if(strcmp(perf_enabled, "false") == 0)  {
+		free(perf_enabled);
+		
+		return;
+			
+	}
+	
+	free(perf_enabled);
 	
 	cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
 	if(cfg_perf_dir != NULL) {

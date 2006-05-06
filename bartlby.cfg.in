@@ -21,7 +21,7 @@ mysql_user=@MYSQL_USER@
 mysql_pw=@MYSQL_PASS@
 mysql_db=@MYSQL_DB@
 
-
+perfhandler_enabled=true
 
 agent_plugin_dir=@PLUGIN_DIR@
 allowed_ips=192.168.2.228,192.168.2.11,192.168.2.10,127.0.0.1
