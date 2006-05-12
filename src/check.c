@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.41  2006/05/12 23:38:02  hjanuschka
+*** empty log message ***
+
 Revision 1.40  2006/05/06 23:32:02  hjanuschka
 *** empty log message ***
 
@@ -665,7 +668,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	
 	}
 	
-	
+	//WTF?
 	if(svc->service_type != SVC_TYPE_PASSIVE) {
 			svc->last_check=time(NULL);
 	}

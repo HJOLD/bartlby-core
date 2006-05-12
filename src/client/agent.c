@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.22  2006/05/12 23:38:02  hjanuschka
+*** empty log message ***
+
 Revision 1.21  2006/02/12 00:15:34  hjanuschka
 Makefile.conf added
 Local checks implemented
@@ -118,7 +121,7 @@ CVS Header
 #include <bartlby.h>
 static int connection_timed_out=0;
 
-#define CONN_TIMEOUT 40
+#define CONN_TIMEOUT 60
 #define MYOS "Linux"
 #define MYVERSION "0.9"
 
@@ -257,7 +260,7 @@ int main(int argc, char ** argv) {
 			sprintf(svc_back,"1|Protocol Error (No plugin specified");	
 		} else {
 			sprintf(plg, "%s", token);
-			syslog(LOG_ERR, "bartlby_agent: %s",plg);
+			//syslog(LOG_ERR, "bartlby_agent: %s",plg);
 			plugin_path=malloc(sizeof(char) * (strlen(plugin_dir)+strlen(plg)+255));
 			sprintf(plugin_path, "%s/%s", plugin_dir, plg);
 			if(stat(plugin_path,&plg_stat) < 0) {
@@ -337,7 +340,7 @@ int main(int argc, char ** argv) {
         }
         fflush(stdout);
 	//printf("SVC_BACK: %s\n", svc_back);
-	syslog(LOG_ERR, "bartlby_agent: %s",svc_back);
+	//syslog(LOG_ERR, "bartlby_agent: %s",svc_back);
 	bartlby_encode(svc_back, strlen(svc_back));
 	printf("%s\n", svc_back);
 	fflush(stdout);

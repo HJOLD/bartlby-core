@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.35  2006/05/12 23:38:02  hjanuschka
+*** empty log message ***
+
 Revision 1.34  2006/04/23 18:07:43  hjanuschka
 core/ui/php: checks can now be forced
 ui: remote xml special_addon support
@@ -1100,7 +1103,7 @@ int UpdateService(struct service * svc, char *config) {
 	);
 	
 	//Log("dbg", sqlupd);
-	
+
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
