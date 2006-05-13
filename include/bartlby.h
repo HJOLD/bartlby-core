@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Naproxen"
-#define VERSION  "1.1.8a"
-#define EXPECTCORE 1101080 //Module V Check's
+#define REL_NAME "Cetirizin"
+#define VERSION  "1.1.9a"
+#define EXPECTCORE 1101090 //Module V Check's
 
 #define EVENT_QUEUE_MAX 128
 #define EVENT_STATUS_CHANGED 2
