@@ -55,10 +55,7 @@ void bartlby_check_snmp(struct service * svc, char * cfgfile) {
 	if(!snmp_parse_oid(svc->snmp_info.objid, anOID, &anOID_len)) {
 			sprintf(svc->new_server_text, "invalid object identifier(%s)", svc->snmp_info.objid);
 			svc->current_state=STATE_CRITICAL;
-			
-			if (response) {
-      			snmp_free_pdu(response);
-      		}
+					
     			snmp_close(ss);
 			SOCK_CLEANUP;
 			return;

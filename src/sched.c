@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.32  2006/05/20 20:52:18  hjanuschka
+set core dump limit in deamon mode
+snmp minimal fixes
+announce if SNMP is compiled in on startup
+
 Revision 1.31  2006/05/06 23:32:02  hjanuschka
 *** empty log message ***
 
@@ -290,6 +295,11 @@ void sched_reaper(int signum) {
 	if(WIFSIGNALED(status)) {
 		if(WTERMSIG(status) != SIGCHLD) {
 			_log("Child exited unexpected status: %d / %s", WTERMSIG(status), strsignal(WTERMSIG(status))); 
+			if(gshm_hdr->current_running > 0) {
+				gshm_hdr->current_running--;
+			} else {
+				gshm_hdr->current_running=0;	
+			}
 		}
 	} 
 	

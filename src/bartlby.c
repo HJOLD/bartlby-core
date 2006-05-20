@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.28  2006/05/20 20:52:18  hjanuschka
+set core dump limit in deamon mode
+snmp minimal fixes
+announce if SNMP is compiled in on startup
+
 Revision 1.27  2006/04/24 22:20:00  hjanuschka
 core: event queue
 
@@ -243,6 +248,9 @@ int main(int argc, char ** argv, char ** envp) {
 		
 	
 	_log("%s Version %s (%s) started. compiled %s/%s", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
+	#ifdef SNMP_ADDON
+	_log("SNMP support compiled in");
+	#endif
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
 		daemon_mode=strdup("false");	

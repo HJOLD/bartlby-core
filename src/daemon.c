@@ -16,6 +16,11 @@ $Source$
 
 
 $Log$
+Revision 1.8  2006/05/20 20:52:18  hjanuschka
+set core dump limit in deamon mode
+snmp minimal fixes
+announce if SNMP is compiled in on startup
+
 Revision 1.7  2005/12/13 23:17:53  hjanuschka
 setuid before creating shm segment
 
@@ -58,6 +63,9 @@ CVS Header
 
 
 */
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <dlfcn.h>
 #include <stdlib.h>
@@ -111,9 +119,15 @@ void bartlby_get_daemon(char * cfgfile) {
 	char * pid_def_name;
 	
 	
+	struct rlimit rlp;
 	
 	
+	rlp.rlim_cur=RLIM_INFINITY;
+	rlp.rlim_max=RLIM_INFINITY;
 	
+	setrlimit(RLIMIT_CORE, &rlp);
+	
+		
 	base_dir = getConfigValue("basedir", cfgfile);
 	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
 	
