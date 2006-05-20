@@ -198,6 +198,9 @@ void sched_reschedule(struct service * svc);
 void bartlby_check_service(struct service * svc, void *, void *, char *);
 
 
+void bartlby_check_snmp(struct service * svc, char * cfgfile);
+
+
 //Replication
 int replication_go(char *, void *, void *);
 

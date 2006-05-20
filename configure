@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL SNMP_LIBDIR SNMP_INCDIR SNMP_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL SNMP_LIBDIR SNMP_INCDIR SNMP_ADDON SNMP_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -3696,9 +3696,11 @@ echo "$as_me: error: Cannot find UCD-SNMP libraries" >&2;}
 fi
 
 
-	SNMP_FLAG="-DSNMP_ENABLED -lsnmp"
+	SNMP_ADDON="-DSNMP_ADDON"
+	SNMP_FLAG="-lsnmp"
 	SNMP_LIBDIR="-L$SNMP_LIBDIR"
 	SNMP_INCDIR="-I$SNMP_INCDIR"
+
 
 
 
@@ -7825,6 +7827,7 @@ s,@INC_MYSQL@,$INC_MYSQL,;t t
 s,@LIB_MYSQL@,$LIB_MYSQL,;t t
 s,@SNMP_LIBDIR@,$SNMP_LIBDIR,;t t
 s,@SNMP_INCDIR@,$SNMP_INCDIR,;t t
+s,@SNMP_ADDON@,$SNMP_ADDON,;t t
 s,@SNMP_FLAG@,$SNMP_FLAG,;t t
 s,@LD_DL@,$LD_DL,;t t
 s,@BARTLBY_USER@,$BARTLBY_USER,;t t

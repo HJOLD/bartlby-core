@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.43  2006/05/20 20:26:09  hjanuschka
+ui: add/modify server page rebrush (should be user-friendlier)
+core: snmp INTEGER greater, lower (warning,critical) (--enable-snmp=yes)
+core/lib mysql: SNMP functionality
+ui: add/modify_service SNMP
+php: SNMP functions
+
 Revision 1.42  2006/05/20 18:29:16  hjanuschka
 snmp implented
 
@@ -728,8 +735,8 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		return;		
 	}
 	if(svc->service_type == SVC_TYPE_SNMP) {
-		_log("SNMP CHECK!!");
-		sprintf(svc->new_server_text, "%s", "SNMPDUMMY");
+		
+		bartlby_check_snmp(svc,cfgfile);
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;
 	}
