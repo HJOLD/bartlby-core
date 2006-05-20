@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.42  2006/05/20 18:29:16  hjanuschka
+snmp implented
+
 Revision 1.41  2006/05/12 23:38:02  hjanuschka
 *** empty log message ***
 
@@ -723,6 +726,12 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		bartlby_check_local(svc,cfgfile);
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;		
+	}
+	if(svc->service_type == SVC_TYPE_SNMP) {
+		_log("SNMP CHECK!!");
+		sprintf(svc->new_server_text, "%s", "SNMPDUMMY");
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;
 	}
 	
 	_log("Undefined service check type: %d", svc->service_type);

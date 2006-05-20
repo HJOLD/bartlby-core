@@ -1,3 +1,80 @@
+AC_DEFUN(AC_CHECK_LIBSNMP, [
+  AC_MSG_CHECKING(for SNMP support)
+
+  AC_ARG_ENABLE(
+    snmp,
+    [  --disable-snmp         disable SNMP  support],
+    WITH_SNMP="$enableval", WITH_SNMP="yes")
+
+  AC_ARG_WITH(
+    snmp-inc,
+    [  --with-snmp-inc=PATH   include path for libsnmp headers],
+    snmp_incdir="$withval", snmp_incdir="no")
+
+  AC_ARG_WITH(
+    snmp-lib,
+    [  --with-snmp-lib=PATH   library path for SNMP libraries],
+    snmp_libdir="$withval", snmp_libdir="no")
+
+  if test "$WITH_SNMP" = "no"; then
+    AC_MSG_RESULT(no)
+    WITH_SNMP="-DWITHOUT_SNMP"
+    LIB_SNMP=""
+    INC_SNMP=""
+    
+    AC_SUBST(WITH_SNMP)
+    AC_SUBST(LIB_SNMP)
+    AC_SUBST(INC_SNMP)
+    
+  else
+    AC_MSG_RESULT(yes)
+
+    
+    dnl SNMP Header Check
+    temp="$CPPFLAGS"
+    if test "$snmp_incdir" != "no"; then
+      INC_SNMP="-I$snmp_incdir"
+      CPPFLAGS="$temp $INC_SNMP"
+      
+    fi
+    AC_CHECK_HEADER(net-snmp/net-snmp-config.h, WITH_SNMP="yes", WITH_SNMP="no")
+    
+    CPPFLAGS="$temp"
+    if test "$WITH_SNMP" = "no"; then
+      AC_MSG_RESULT(no)
+      WITH_SNMP="-DWITHOUT_SNMP"
+    	 LIB_SNMP=""
+    	 INC_SNMP=""
+    
+	 AC_SUBST(WITH_SNMP)
+      AC_SUBST(LIB_SNMP)
+      AC_SUBST(INC_SNMP)
+    else
+      dnl Cache trick for header.
+      ac_cv_header_snmp_net_snmp_incdir="$INC_SNMP"
+      
+      temp="$LIBS"
+      if test "$snmp_libdir" != "no"; then
+        LIB_SNMP="-L$snmp_libdir"
+        LIBS="$temp $LIB_SNMP"
+        
+        unset ac_cv_lib_snmp_snmp_pdu_create
+        unset ac_cv_lib_snmp_snmp_pdu_create
+      fi
+      AC_CHECK_LIB(snmp, snmp_pdu_create, WITH_SNMP="yes",WITH_SNMP="no")
+      
+      
+      LIBS="$temp"
+      WITH_SNMP="-DSNMP_FOUND"
+      
+      AC_SUBST(WITH_SNMP)
+    	 AC_SUBST(LIB_SNMP)
+    	 AC_SUBST(LIB_SNMP)
+    	 
+  fi
+])
+
+
 AC_DEFUN(AC_CHECK_LIBMYSQLCLIENT, [
   AC_MSG_CHECKING(for MySQL Client support)
 

@@ -44,6 +44,7 @@
 #define SVC_TYPE_PASSIVE 2
 #define SVC_TYPE_GROUP 3
 #define SVC_TYPE_LOCAL 4
+#define SVC_TYPE_SNMP 5
 
 #define SVC_THRESHOLD 10
 
@@ -68,6 +69,15 @@ struct perf_statistic {
 	long counter;	
 };
 
+
+struct snmpi {
+	char community[512];
+	int version;
+	char objid[1024];
+	int warn;
+	int crit;
+	int type;
+};
 
 struct shm_header {
 	int size_of_structs;
@@ -134,6 +144,8 @@ struct service {
 	struct perf_statistic pstat;
 	
 	int do_force;
+	
+	struct snmpi snmp_info;
 	
 };
 

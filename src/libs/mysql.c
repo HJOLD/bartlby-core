@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.36  2006/05/20 18:29:16  hjanuschka
+snmp implented
+
 Revision 1.35  2006/05/12 23:38:02  hjanuschka
 *** empty log message ***
 
@@ -195,11 +198,11 @@ CVS Header
 
 #define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://bartlby.org"
 #define NAME "MYSQL Connector"
-#define DLVERSION  "0.6.3"
+#define DLVERSION  "0.9.1"
 
 
 
-#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY svc.service_type asc, svc.server_id"
+#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d, service_check_timeout=%d, service_ack=%d where service_id=%d"
 
@@ -212,10 +215,12 @@ CVS Header
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
-#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d, %d, %d)"
+#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain, service_snmp_community, service_snmp_objid, service_snmp_version, service_snmp_warning, service_snmp_critical, service_snmp_type) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d)"
 #define DELETE_SERVICE "delete from services where service_id=%d"
-#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d' where service_id=%d"
-#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+
+
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d'  where service_id=%d"
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 
@@ -1014,6 +1019,25 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		}
       		svc->service_retain=atoi(row[23]);
       		svc->flap_count=0;
+      		
+      		if(row[24] != NULL) {
+      			snprintf(svc->snmp_info.community, 500, "%s", row[24]);
+      		} else {
+      			sprintf(svc->snmp_info.community, "(null)");
+      		}
+      		
+      		if(row[25] != NULL) {
+      			snprintf(svc->snmp_info.objid, 1000, "%s", row[25]);
+      		} else {
+      			sprintf(svc->snmp_info.objid, "(null)");	
+      		}
+      		
+      		svc->snmp_info.version = atoi(row[26]);
+      		svc->snmp_info.warn = atoi(row[27]);
+      		svc->snmp_info.crit = atoi(row[28]);
+      		svc->snmp_info.type = atoi(row[29]);
+      		
+      		
       		tmprc=0;
       	} else {
 		tmprc=-1;
@@ -1098,6 +1122,12 @@ int UpdateService(struct service * svc, char *config) {
 	svc->service_check_timeout,
 	svc->service_ack,
 	svc->service_retain,
+	svc->snmp_info.community,
+	svc->snmp_info.objid,
+	svc->snmp_info.version,
+	svc->snmp_info.warn,
+	svc->snmp_info.crit,
+	svc->snmp_info.type,	
 	svc->service_id
 	
 	);
@@ -1220,7 +1250,14 @@ int AddService(struct service * svc, char *config) {
 	service_type %d
 	service_var %s
 	service_passive_timeout %d
-	
+	snmp_info 
+		char community[512];
+		int version;
+		char objid[1024];
+		int warn;
+		int crit;
+		int type;
+		
 	 */
 	 
 	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVICE)+sizeof(struct service)+20));
@@ -1239,7 +1276,13 @@ int AddService(struct service * svc, char *config) {
 	svc->service_passive_timeout,
 	svc->service_check_timeout,
 	svc->service_ack,
-	svc->service_retain
+	svc->service_retain,
+	svc->snmp_info.community,
+	svc->snmp_info.objid,
+	svc->snmp_info.version,
+	svc->snmp_info.warn,
+	svc->snmp_info.crit,
+	svc->snmp_info.type
 	);
 	
 	//Log("dbg", sqlupd);
@@ -1836,6 +1879,26 @@ int GetServiceMap(struct service * svcs, char * config) {
 			//int flap_count;
       			//, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to)
       				
+      				
+      			if(row[25] != NULL) {
+      				snprintf(svcs[i].snmp_info.community, 500, "%s", row[25]);
+      			} else {
+      				sprintf(svcs[i].snmp_info.community, "(null)");
+      			}
+      			
+      			if(row[26] != NULL) {
+      				snprintf(svcs[i].snmp_info.objid, 1000, "%s", row[26]);
+      			} else {
+      				sprintf(svcs[i].snmp_info.objid, "(null)");	
+      			}
+      			
+      			svcs[i].snmp_info.version = atoi(row[27]);
+      			svcs[i].snmp_info.warn = atoi(row[28]);
+      			svcs[i].snmp_info.crit = atoi(row[29]);
+      			svcs[i].snmp_info.type = atoi(row[30]);
+      			
+      			
+      			
       			i++;
       		}
       		

@@ -10,4 +10,5 @@ DYNLINK = -fPIC -shared
 LMYSQL = @LIB_MYSQL@
 LDL = @LD_DL@
 CHMOD = chmod
+SNMP_ADDON = @WITH_SNMP@ @LIB_SNMP@ @INC_SNMP@ 
 BARTLBY_HOME = @prefix@

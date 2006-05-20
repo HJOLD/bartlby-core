@@ -17,7 +17,7 @@ install: all
 	
 
 bartlby: ${OBJS}
-	$(CC)  $(EXTRAOPTIONS) $(INCLUDE_L) $(LDL)  -o ../bartlby ${OBJS}
+	$(CC)  $(EXTRAOPTIONS) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o ../bartlby ${OBJS}
 
 
 
