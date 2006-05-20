@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL SNMP_LIBDIR SNMP_INCDIR SNMP_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -845,6 +845,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-mysql         disable MySQL support
+  --enable-snmp	enable SNMP support
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -856,6 +857,8 @@ Optional Packages:
   --with-plugin-dir       Where are the plugins located
   --with-mysql-inc=PATH   include path for MySQL headers
   --with-mysql-lib=PATH   library path for MySQL libraries
+  --with-snmp-include-dir SNMP include base directory [/usr/(local/)include]
+  --with-snmp-lib-dir     SNMP library directory [/usr/(local/)lib]
   --with-user             Bartlby User
 
 Some influential environment variables:
@@ -3530,6 +3533,180 @@ _ACEOF
 
   fi
 
+
+echo "$as_me:$LINENO: checking for libsnmp support" >&5
+echo $ECHO_N "checking for libsnmp support... $ECHO_C" >&6
+
+# Check whether --enable-snmp or --disable-snmp was given.
+if test "${enable_snmp+set}" = set; then
+  enableval="$enable_snmp"
+  WITH_SNMP="$enableval"
+else
+  WITH_SNMP="no"
+fi;
+
+if test "$WITH_SNMP" = "yes"; then
+	echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+
+# Check whether --with-snmp-include-dir or --without-snmp-include-dir was given.
+if test "${with_snmp_include_dir+set}" = set; then
+  withval="$with_snmp_include_dir"
+  snmp_include_dir=$withval
+fi;
+
+# Check whether --with-snmp-lib-dir or --without-snmp-lib-dir was given.
+if test "${with_snmp_lib_dir+set}" = set; then
+  withval="$with_snmp_lib_dir"
+  snmp_lib_dir=$withval
+fi;
+
+
+	# Determine UCD or Net-SNMP include path
+	if test "x$snmp_include_dir" != "x"; then
+	  for i in / /ucd-snmp /include/ucd-snmp; do
+	    test -f $snmp_include_dir/$i/snmp.h && SNMP_INCDIR=$snmp_include_dir/$i
+	  done
+	  for i in / /net-snmp /include/net-snmp; do
+	    test -f $snmp_include_dir/$i/net-snmp-config.h && SNMP_INCDIR=$snmp_include_dir/$i
+	  done
+	else
+	  for i in /usr/local/include /usr/include; do
+	    test -f $i/snmp.h && SNMP_INCDIR=$i
+	    test -f $i/ucd-snmp/snmp.h && SNMP_INCDIR=$i/ucd-snmp
+	    test -f $i/net-snmp/net-snmp-config.h && SNMP_INCDIR=$i/net-snmp
+	    test -f $i/snmp/snmp.h && SNMP_INCDIR=$i/snmp
+	    test -f $i/snmp/include/ucd-snmp/snmp.h && SNMP_INCDIR=$i/snmp/include/ucd-snmp
+	    test -f $i/snmp/include/net-snmp/net-snmp-config.h && SNMP_INCDIR=$i/snmp/include/net-snmp
+	  done
+	fi
+
+	# Determine UCD or Net-SNMP library path
+	if test "x$snmp_lib_dir" != "x"; then
+	  test -f $snmp_lib_dir/libsnmp.a -o -f $snmp_lib_dir/libsnmp.so && SNMP_LIBDIR=$snmp_lib_dir
+	  test -f $snmp_lib_dir/libnetsnmp.a -o -f $snmp_lib_dir/libnetsnmp.so && SNMP_LIBDIR=$snmp_lib_dir
+	else
+	  for i in /usr/local/lib /usr/lib /usr/sfw/lib; do
+	    test -f $i/libsnmp.a -o -f $i/libsnmp.so && SNMP_LIBDIR=$i
+	    test -f $i/libnetsnmp.a -o -f $i/libnetsnmp.so && SNMP_LIBDIR=$i
+	  done
+	fi
+
+	if test -z "$SNMP_INCDIR"; then
+	  if test "x$snmp_include_dir" != "x";then
+	    { { echo "$as_me:$LINENO: error: Cannot find SNMP headers under $snmp_include_dir" >&5
+echo "$as_me: error: Cannot find SNMP headers under $snmp_include_dir" >&2;}
+   { (exit 1); exit 1; }; }
+	  else
+	    { { echo "$as_me:$LINENO: error: Cannot find SNMP headers.  Use --with-snmp-include-dir= to specify non-default path." >&5
+echo "$as_me: error: Cannot find SNMP headers.  Use --with-snmp-include-dir= to specify non-default path." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+	fi
+
+	if test -z "$SNMP_LIBDIR"; then
+	  if test "x$snmp_lib_dir" != "x";then
+	    { { echo "$as_me:$LINENO: error: Cannot find SNMP libraries under $snmp_lib_dir" >&5
+echo "$as_me: error: Cannot find SNMP libraries under $snmp_lib_dir" >&2;}
+   { (exit 1); exit 1; }; }
+	  else
+	    { { echo "$as_me:$LINENO: error: Cannot find SNMP libraries.  Use --with-snmp-lib-dir= to specify non-default path." >&5
+echo "$as_me: error: Cannot find SNMP libraries.  Use --with-snmp-lib-dir= to specify non-default path." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+	fi
+	LDFLAGS="$LDFLAGS -L$SNMP_LIBDIR"
+	CPPFLAGS="$CPPFLAGS -I$SNMP_INCDIR"
+
+
+echo "$as_me:$LINENO: checking for snmp_timeout in -lsnmp" >&5
+echo $ECHO_N "checking for snmp_timeout in -lsnmp... $ECHO_C" >&6
+if test "${ac_cv_lib_snmp_snmp_timeout+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsnmp  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char snmp_timeout ();
+int
+main ()
+{
+snmp_timeout ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_snmp_snmp_timeout=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_snmp_snmp_timeout=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_snmp_snmp_timeout" >&5
+echo "${ECHO_T}$ac_cv_lib_snmp_snmp_timeout" >&6
+if test $ac_cv_lib_snmp_snmp_timeout = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSNMP 1
+_ACEOF
+
+  LIBS="-lsnmp $LIBS"
+
+else
+  { { echo "$as_me:$LINENO: error: Cannot find UCD-SNMP libraries" >&5
+echo "$as_me: error: Cannot find UCD-SNMP libraries" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+
+	SNMP_FLAG="-DSNMP_ENABLED -lsnmp"
+	SNMP_LIBDIR="-L$SNMP_LIBDIR"
+	SNMP_INCDIR="-I$SNMP_INCDIR"
+
+
+
+
+else
+	echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi;
 
 echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
 echo $ECHO_N "checking for dlopen in -ldl... $ECHO_C" >&6
@@ -7646,6 +7823,9 @@ s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
 s,@INC_MYSQL@,$INC_MYSQL,;t t
 s,@LIB_MYSQL@,$LIB_MYSQL,;t t
+s,@SNMP_LIBDIR@,$SNMP_LIBDIR,;t t
+s,@SNMP_INCDIR@,$SNMP_INCDIR,;t t
+s,@SNMP_FLAG@,$SNMP_FLAG,;t t
 s,@LD_DL@,$LD_DL,;t t
 s,@BARTLBY_USER@,$BARTLBY_USER,;t t
 s,@AWK@,$AWK,;t t

@@ -1,80 +1,3 @@
-AC_DEFUN(AC_CHECK_LIBSNMP, [
-  AC_MSG_CHECKING(for SNMP support)
-
-  AC_ARG_ENABLE(
-    snmp,
-    [  --disable-snmp         disable SNMP  support],
-    WITH_SNMP="$enableval", WITH_SNMP="yes")
-
-  AC_ARG_WITH(
-    snmp-inc,
-    [  --with-snmp-inc=PATH   include path for libsnmp headers],
-    snmp_incdir="$withval", snmp_incdir="no")
-
-  AC_ARG_WITH(
-    snmp-lib,
-    [  --with-snmp-lib=PATH   library path for SNMP libraries],
-    snmp_libdir="$withval", snmp_libdir="no")
-
-  if test "$WITH_SNMP" = "no"; then
-    AC_MSG_RESULT(no)
-    WITH_SNMP="-DWITHOUT_SNMP"
-    LIB_SNMP=""
-    INC_SNMP=""
-    
-    AC_SUBST(WITH_SNMP)
-    AC_SUBST(LIB_SNMP)
-    AC_SUBST(INC_SNMP)
-    
-  else
-    AC_MSG_RESULT(yes)
-
-    
-    dnl SNMP Header Check
-    temp="$CPPFLAGS"
-    if test "$snmp_incdir" != "no"; then
-      INC_SNMP="-I$snmp_incdir"
-      CPPFLAGS="$temp $INC_SNMP"
-      
-    fi
-    AC_CHECK_HEADER(net-snmp/net-snmp-config.h, WITH_SNMP="yes", WITH_SNMP="no")
-    
-    CPPFLAGS="$temp"
-    if test "$WITH_SNMP" = "no"; then
-      AC_MSG_RESULT(no)
-      WITH_SNMP="-DWITHOUT_SNMP"
-    	 LIB_SNMP=""
-    	 INC_SNMP=""
-    
-	 AC_SUBST(WITH_SNMP)
-      AC_SUBST(LIB_SNMP)
-      AC_SUBST(INC_SNMP)
-    else
-      dnl Cache trick for header.
-      ac_cv_header_snmp_net_snmp_incdir="$INC_SNMP"
-      
-      temp="$LIBS"
-      if test "$snmp_libdir" != "no"; then
-        LIB_SNMP="-L$snmp_libdir"
-        LIBS="$temp $LIB_SNMP"
-        
-        unset ac_cv_lib_snmp_snmp_pdu_create
-        unset ac_cv_lib_snmp_snmp_pdu_create
-      fi
-      AC_CHECK_LIB(snmp, snmp_pdu_create, WITH_SNMP="yes",WITH_SNMP="no")
-      
-      
-      LIBS="$temp"
-      WITH_SNMP="-DSNMP_FOUND"
-      
-      AC_SUBST(WITH_SNMP)
-    	 AC_SUBST(LIB_SNMP)
-    	 AC_SUBST(LIB_SNMP)
-    	 
-  fi
-])
-
-
 AC_DEFUN(AC_CHECK_LIBMYSQLCLIENT, [
   AC_MSG_CHECKING(for MySQL Client support)
 
@@ -225,6 +148,89 @@ AC_SUBST(PLUGIN_DIR)
 AC_CHECK_LIB(socket, socket)
 
 AC_CHECK_LIBMYSQLCLIENT
+
+AC_MSG_CHECKING(for libsnmp support)
+
+AC_ARG_ENABLE(
+    snmp,
+    [  --enable-snmp	enable SNMP support],
+    WITH_SNMP="$enableval", WITH_SNMP="no")
+
+if test "$WITH_SNMP" = "yes"; then
+	AC_MSG_RESULT(yes)
+	AC_ARG_WITH(snmp-include-dir,
+		AC_HELP_STRING(
+			[--with-snmp-include-dir],
+			[SNMP include base directory [[/usr/(local/)include]]]),
+		[snmp_include_dir=$withval])
+	AC_ARG_WITH(snmp-lib-dir,
+		AC_HELP_STRING(
+			[--with-snmp-lib-dir],
+			[SNMP library directory [[/usr/(local/)lib]]]),
+		[snmp_lib_dir=$withval])
+		
+		
+	# Determine UCD or Net-SNMP include path
+	if test "x$snmp_include_dir" != "x"; then
+	  for i in / /ucd-snmp /include/ucd-snmp; do
+	    test -f $snmp_include_dir/$i/snmp.h && SNMP_INCDIR=$snmp_include_dir/$i
+	  done
+	  for i in / /net-snmp /include/net-snmp; do
+	    test -f $snmp_include_dir/$i/net-snmp-config.h && SNMP_INCDIR=$snmp_include_dir/$i
+	  done
+	else
+	  for i in /usr/local/include /usr/include; do
+	    test -f $i/snmp.h && SNMP_INCDIR=$i
+	    test -f $i/ucd-snmp/snmp.h && SNMP_INCDIR=$i/ucd-snmp
+	    test -f $i/net-snmp/net-snmp-config.h && SNMP_INCDIR=$i/net-snmp
+	    test -f $i/snmp/snmp.h && SNMP_INCDIR=$i/snmp
+	    test -f $i/snmp/include/ucd-snmp/snmp.h && SNMP_INCDIR=$i/snmp/include/ucd-snmp
+	    test -f $i/snmp/include/net-snmp/net-snmp-config.h && SNMP_INCDIR=$i/snmp/include/net-snmp
+	  done
+	fi
+	
+	# Determine UCD or Net-SNMP library path
+	if test "x$snmp_lib_dir" != "x"; then
+	  test -f $snmp_lib_dir/libsnmp.a -o -f $snmp_lib_dir/libsnmp.so && SNMP_LIBDIR=$snmp_lib_dir
+	  test -f $snmp_lib_dir/libnetsnmp.a -o -f $snmp_lib_dir/libnetsnmp.so && SNMP_LIBDIR=$snmp_lib_dir
+	else
+	  for i in /usr/local/lib /usr/lib /usr/sfw/lib; do
+	    test -f $i/libsnmp.a -o -f $i/libsnmp.so && SNMP_LIBDIR=$i
+	    test -f $i/libnetsnmp.a -o -f $i/libnetsnmp.so && SNMP_LIBDIR=$i
+	  done
+	fi
+	
+	if test -z "$SNMP_INCDIR"; then
+	  if test "x$snmp_include_dir" != "x";then
+	    AC_MSG_ERROR(Cannot find SNMP headers under $snmp_include_dir)
+	  else
+	    AC_MSG_ERROR(Cannot find SNMP headers.  Use --with-snmp-include-dir= to specify non-default path.)
+	  fi
+	fi
+	
+	if test -z "$SNMP_LIBDIR"; then
+	  if test "x$snmp_lib_dir" != "x";then
+	    AC_MSG_ERROR(Cannot find SNMP libraries under $snmp_lib_dir)
+	  else
+	    AC_MSG_ERROR(Cannot find SNMP libraries.  Use --with-snmp-lib-dir= to specify non-default path.)
+	  fi
+	fi
+	LDFLAGS="$LDFLAGS -L$SNMP_LIBDIR"
+	CPPFLAGS="$CPPFLAGS -I$SNMP_INCDIR"
+	
+	AC_CHECK_LIB(snmp, snmp_timeout,,
+		AC_MSG_ERROR(Cannot find UCD-SNMP libraries))
+	
+	SNMP_FLAG="-DSNMP_ENABLED -lsnmp"
+	SNMP_LIBDIR="-L$SNMP_LIBDIR"
+	SNMP_INCDIR="-I$SNMP_INCDIR"
+	AC_SUBST(SNMP_LIBDIR)
+	AC_SUBST(SNMP_INCDIR)
+	AC_SUBST(SNMP_FLAG)
+	
+else
+	AC_MSG_RESULT(no)
+fi;	
 
 AC_CHECK_LIB([dl], [dlopen],[LD_DL="-ldl"],[AC_MSG_ERROR([libdl needed to be found])])
 AC_SUBST(LD_DL)
