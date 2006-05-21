@@ -234,6 +234,48 @@ else
 	AC_MSG_RESULT(no)
 fi;	
 
+dnl Check for ssl library.
+  
+  AC_ARG_ENABLE(ssl,
+  [  --enable-ssl=PREFIX       Enable SSL in varios parts of CORE)],
+  [
+  	case "$withval" in
+  		n|no)
+  			;;
+  		y|ye|yes)
+  			enable_ssl=yes
+  			;;
+  		*)
+  			SSL_DIR="$withval"
+  			LIBS="$LIBS -L$SSL_DIR/lib"
+  			enable_ssl=yes
+  			;;
+  	esac
+  ])
+  AC_MSG_CHECKING(for OpenSSL support)
+  if test "$enable_ssl" == "yes" ; then
+  	AC_MSG_RESULT(yes)
+  	AC_CHECK_LIB(ssl, SSL_library_init,ssl_lib_found=yes,ssl_lib_found=no)
+  	AC_CHECK_HEADER(openssl/ssl.h,ssl_lib_found=yes,ssl_lib_found=no)
+  	
+  	if test "$ssl_lib_found" == "yes"; then
+  	
+  		OPENSSL_ADDON="-DHAVE_SSL"
+		OPENSSL_FLAG="-lssl -lcrypto"
+		OPENSSL_LIBDIR="-L$SSL_DIR/include"
+		OPENSSL_INCDIR=""
+		AC_SUBST(OPENSSL_LIBDIR)
+		AC_SUBST(OPENSSL_INCDIR)
+		AC_SUBST(OPENSSL_ADDON)
+		AC_SUBST(OPENSSL_FLAG)
+	fi;
+  		
+  else
+  	AC_MSG_RESULT(no)	
+  fi
+
+
+
 AC_CHECK_LIB([dl], [dlopen],[LD_DL="-ldl"],[AC_MSG_ERROR([libdl needed to be found])])
 AC_SUBST(LD_DL)
 

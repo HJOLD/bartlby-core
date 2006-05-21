@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2006/05/21 21:18:10  hjanuschka
+commit before workweek
+
 Revision 1.8  2006/05/20 20:52:18  hjanuschka
 set core dump limit in deamon mode
 snmp minimal fixes
@@ -119,15 +122,10 @@ void bartlby_get_daemon(char * cfgfile) {
 	char * pid_def_name;
 	
 	
-	struct rlimit rlp;
+	struct rlimit rlim; /* resource limits -kre */
 	
 	
-	rlp.rlim_cur=RLIM_INFINITY;
-	rlp.rlim_max=RLIM_INFINITY;
 	
-	setrlimit(RLIMIT_CORE, &rlp);
-	
-		
 	base_dir = getConfigValue("basedir", cfgfile);
 	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
 	
@@ -150,6 +148,11 @@ void bartlby_get_daemon(char * cfgfile) {
 	if(setsid() < 0 ) {
 		_log("Cannot setsid()");	
 	}
+	
+	getrlimit(RLIMIT_CORE, &rlim);
+  	rlim.rlim_cur = rlim.rlim_max;
+  	setrlimit(RLIMIT_CORE, &rlim);
+	
 	signal(SIGHUP, SIG_IGN);
 	chdir(base_dir);
 	_log("basedir set to:%s", base_dir);
@@ -173,6 +176,8 @@ void bartlby_get_daemon(char * cfgfile) {
 	} else {
 		_log("setenv $BARTLBY_HOME='%s' failed", base_dir);	
 	}
+	freopen("/dev/null", "a", stderr);
+	freopen("/dev/null", "a", stdout);
 	
 	
 	free(base_dir);

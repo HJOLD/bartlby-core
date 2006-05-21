@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.33  2006/05/21 21:18:10  hjanuschka
+commit before workweek
+
 Revision 1.32  2006/05/20 20:52:18  hjanuschka
 set core dump limit in deamon mode
 snmp minimal fixes
@@ -165,6 +168,7 @@ CVS Header
 */
 #define _GNU_SOURCE
 
+#include <errno.h>
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -408,7 +412,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 						child_pid=fork();
 						switch(child_pid) {
 							case -1:
-								_log("FORK Error");
+								_log("FORK Error %s", strerror(errno));
 								return -1;
 							break;
 							case 0:

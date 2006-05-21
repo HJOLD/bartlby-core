@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.29  2006/05/21 21:18:10  hjanuschka
+commit before workweek
+
 Revision 1.28  2006/05/20 20:52:18  hjanuschka
 set core dump limit in deamon mode
 snmp minimal fixes
@@ -250,6 +253,9 @@ int main(int argc, char ** argv, char ** envp) {
 	_log("%s Version %s (%s) started. compiled %s/%s", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
 	#ifdef SNMP_ADDON
 	_log("SNMP support compiled in");
+	#endif
+	#ifdef HAVE_SSL
+	_log("SSL support compiled in");
 	#endif
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
