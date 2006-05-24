@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.44  2006/05/24 13:07:39  hjanuschka
+NRPE support (--enable-nrpe)
+
 Revision 1.43  2006/05/20 20:26:09  hjanuschka
 ui: add/modify server page rebrush (should be user-friendlier)
 core: snmp INTEGER greater, lower (warning,critical) (--enable-snmp=yes)
@@ -679,9 +682,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	}
 	
 	//WTF?
-	if(svc->service_type != SVC_TYPE_PASSIVE) {
-			svc->last_check=time(NULL);
-	}
+	
 	for(x=0; x<=strlen(svc->new_server_text); x++) {
 		if(svc->new_server_text[x] == '\'')
 			svc->new_server_text[x]='"';
@@ -703,6 +704,12 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 	setenv("BARTLBY_CURR_PLUGIN", svc->plugin,1);
 	setenv("BARTLBY_CURR_HOST", svc->server_name,1);
 	setenv("BARTLBY_CURR_SERVICE", svc->service_name,1);
+	
+	
+	if(svc->service_type != SVC_TYPE_PASSIVE) {
+			svc->last_check=time(NULL);
+	}
+	
 	
 	if(svc->service_type == SVC_TYPE_GROUP) {
 		bartlby_check_group(svc, shm_addr);
@@ -739,6 +746,17 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		bartlby_check_snmp(svc,cfgfile);
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;
+	}
+	if(svc->service_type == SVC_TYPE_NRPE) {
+		bartlby_check_nrpe(svc, cfgfile, 0);	
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;
+	}                                                       
+	if(svc->service_type == SVC_TYPE_NRPE_SSL) {
+		bartlby_check_nrpe(svc, cfgfile, 1);	           
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;
+	
 	}
 	
 	_log("Undefined service check type: %d", svc->service_type);

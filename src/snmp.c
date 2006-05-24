@@ -1,3 +1,26 @@
+/* $Id$ */
+/* ----------------------------------------------------------------------- *
+ *
+ *   Copyright 2005 Helmut Januschka - All Rights Reserved
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
+ *   USA; either version 2 of the License, or (at your option) any later
+ *   version; incorporated herein by reference.
+ *
+ * ----------------------------------------------------------------------- */
+/*
+$Revision$
+$Source$
+
+
+$Log$
+Revision 1.4  2006/05/24 13:07:39  hjanuschka
+NRPE support (--enable-nrpe)
+
+*/
+
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <string.h>
@@ -8,7 +31,8 @@
 
 #ifndef SNMP_ADDON
 void bartlby_check_snmp(struct service * svc, char * cfgfile) {
-	_log("SNMP Support ist not compiled in (--enable-snmp=yes) bartlby-core");
+	sprintf(svc->new_server_text, "%s", "SNMP Support ist not compiled in (--enable-snmp=yes) bartlby-core");
+	svc->current_state = STATE_CRITICAL;
 }
 
 #else
@@ -144,4 +168,16 @@ void bartlby_check_snmp(struct service * svc, char * cfgfile) {
 }
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
 

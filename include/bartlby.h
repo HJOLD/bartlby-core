@@ -45,6 +45,9 @@
 #define SVC_TYPE_GROUP 3
 #define SVC_TYPE_LOCAL 4
 #define SVC_TYPE_SNMP 5
+#define SVC_TYPE_NRPE 6
+#define SVC_TYPE_NRPE_SSL 7
+
 
 #define SVC_THRESHOLD 10
 
@@ -199,7 +202,7 @@ void bartlby_check_service(struct service * svc, void *, void *, char *);
 
 
 void bartlby_check_snmp(struct service * svc, char * cfgfile);
-
+void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl);
 
 //Replication
 int replication_go(char *, void *, void *);

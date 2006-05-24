@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL SNMP_LIBDIR SNMP_INCDIR SNMP_ADDON SNMP_FLAG OPENSSL_LIBDIR OPENSSL_INCDIR OPENSSL_ADDON OPENSSL_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL NRPE_ADDON SNMP_LIBDIR SNMP_INCDIR SNMP_ADDON SNMP_FLAG OPENSSL_LIBDIR OPENSSL_INCDIR OPENSSL_ADDON OPENSSL_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -845,6 +845,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-mysql         disable MySQL support
+  --enable-nrpe	enable NRPE support
   --enable-snmp	enable SNMP support
   --enable-ssl=PREFIX       Enable SSL in varios parts of CORE)
 
@@ -3534,6 +3535,27 @@ _ACEOF
 
   fi
 
+
+
+echo "$as_me:$LINENO: checking for nrep enabled" >&5
+echo $ECHO_N "checking for nrep enabled... $ECHO_C" >&6
+# Check whether --enable-nrpe or --disable-nrpe was given.
+if test "${enable_nrpe+set}" = set; then
+  enableval="$enable_nrpe"
+  WITH_NRPE="$enableval"
+else
+  WITH_NRPE="no"
+fi;
+
+if test "$WITH_NRPE" = "yes"; then
+	NRPE_ADDON="-DWITH_NRPE"
+
+	echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+else
+	echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi;
 
 echo "$as_me:$LINENO: checking for libsnmp support" >&5
 echo $ECHO_N "checking for libsnmp support... $ECHO_C" >&6
@@ -8082,6 +8104,7 @@ s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
 s,@INC_MYSQL@,$INC_MYSQL,;t t
 s,@LIB_MYSQL@,$LIB_MYSQL,;t t
+s,@NRPE_ADDON@,$NRPE_ADDON,;t t
 s,@SNMP_LIBDIR@,$SNMP_LIBDIR,;t t
 s,@SNMP_INCDIR@,$SNMP_INCDIR,;t t
 s,@SNMP_ADDON@,$SNMP_ADDON,;t t

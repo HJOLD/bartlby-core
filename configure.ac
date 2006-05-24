@@ -149,6 +149,21 @@ AC_CHECK_LIB(socket, socket)
 
 AC_CHECK_LIBMYSQLCLIENT
 
+
+AC_MSG_CHECKING(for nrep enabled)
+AC_ARG_ENABLE(
+    nrpe,
+    [  --enable-nrpe	enable NRPE support],
+    WITH_NRPE="$enableval", WITH_NRPE="no")
+
+if test "$WITH_NRPE" = "yes"; then
+	NRPE_ADDON="-DWITH_NRPE"
+	AC_SUBST(NRPE_ADDON)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)	
+fi;
+
 AC_MSG_CHECKING(for libsnmp support)
 
 AC_ARG_ENABLE(
