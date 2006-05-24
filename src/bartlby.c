@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.30  2006/05/24 19:18:35  hjanuschka
+version bump
+
 Revision 1.29  2006/05/21 21:18:10  hjanuschka
 commit before workweek
 
@@ -256,6 +259,12 @@ int main(int argc, char ** argv, char ** envp) {
 	#endif
 	#ifdef HAVE_SSL
 	_log("SSL support compiled in");
+	#endif
+	#ifdef WITH_NRPE
+	_log("NRPE Support compiled in (dumping nrpe license)");
+	_log("----------------------------------------------");
+	nrpe_display_license();
+	_log("----------------------------------------------");
 	#endif
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {

@@ -14,9 +14,9 @@
 */
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Cetirizin"
-#define VERSION  "1.1.9a"
-#define EXPECTCORE 1101090 //Module V Check's
+#define REL_NAME "Ictineo II"
+#define VERSION  "1.2.1b"
+#define EXPECTCORE 1102010 //Module V Check's
 
 #define EVENT_QUEUE_MAX 128
 #define EVENT_STATUS_CHANGED 2
@@ -246,3 +246,7 @@ struct btl_event * bartlby_SHM_EventMap(void * shm_addr);
 int bartlby_push_event(int event_id, char * str,  ...);
 
 extern char config_file[255];
+
+
+
+void nrpe_display_license(void);

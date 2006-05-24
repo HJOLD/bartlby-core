@@ -1,5 +1,27 @@
 /* $Id$ */
 /* ----------------------------------------------------------------------- *
+ * BASED upon the original source of CHECK_NRPE package from nagios:
+ *****************************************************************************************
+ *
+ * CHECK_NRPE.C - NRPE Plugin For Nagios
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * License: GPL
+ *
+ * Last Modified: 04-09-2006
+ *
+ * Command line: CHECK_NRPE -H <host_address> [-p port] [-c command] [-to to_sec]
+ *
+ * Description:
+ *
+ * This plugin will attempt to connect to the NRPE daemon on the specified server and port.
+ * The daemon will attempt to run the command defined as [command].  Program output and
+ * return code are sent back from the daemon and displayed as this plugin's own output and
+ * return code.
+ *
+ ******************************************************************************************* 
+ *   Modified and merged for bartlby on 24.05.2006 (REMEMBER This portion of code
+ *   is one level below alpha!! :) you explicit have to enable NRP feature(s) 
+ *   in the ./configure of bartlby-core (--enable-nrpe=yes)
  *
  *   Copyright 2005 Helmut Januschka - All Rights Reserved
  *
@@ -16,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2006/05/24 19:18:35  hjanuschka
+version bump
+
 Revision 1.3  2006/05/24 13:22:45  hjanuschka
 *** empty log message ***
 
@@ -48,6 +73,9 @@ NRPE support (--enable-nrpe)
 
 
 #ifndef WITH_NRPE
+void nrpe_display_license(void) {
+	return;	
+}
 void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 	sprintf(svc->new_server_text, "%s", "NRPE  is expiremental Support ist not compiled in (--enable-nrpe=yes) bartlby-core");
 	svc->current_state = STATE_CRITICAL;
@@ -270,6 +298,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 		        SSL_CTX_free(ctx);
 		}
 #endif    
+	close(sd);
 	if(rc<0){
 		sprintf(svc->new_server_text, "%s", "CHECK_NRPE: Error receiving data from daemon.\n");
 		svc->current_state=STATE_CRITICAL;
@@ -669,6 +698,26 @@ int nrperecvall(int s, char *buf, int *len, int timeout){
 	/* return <=0 on failure, bytes received on success */
 	return (n<=0)?n:total;
         }
+        
+/* show license */
+void nrpe_display_license(void){
+
+	_log("This program is released under the GPL (see below) with the additional");
+	_log("exemption that compiling, linking, and/or using OpenSSL is allowed.");
+	_log("This program is free software; you can redistribute it and/or modify");
+	_log("it under the terms of the GNU General Public License as published by");
+	_log("the Free Software Foundation; either version 2 of the License, or");
+	_log("(at your option) any later version.");
+	_log("This program is distributed in the hope that it will be useful,");
+	_log("but WITHOUT ANY WARRANTY; without even the implied warranty of");
+	_log("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the");
+	_log("GNU General Public License for more details.");
+	_log("You should have received a copy of the GNU General Public License");
+	_log("along with this program; if not, write to the Free Software");
+	_log("Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.");
+
+	return;
+        }        
 #endif
 
 
