@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/05/24 13:12:51  hjanuschka
+nrpe: ARG1 fix
+
 Revision 1.1  2006/05/24 13:07:39  hjanuschka
 NRPE support (--enable-nrpe)
 
@@ -211,7 +214,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
      	
      	snprintf(query,sizeof(query),"%s",svc->plugin);
         	query[sizeof(query)-1]='\x0';
-        	strcat(query,"!");
+        	strcat(query,"!!");
         	strncat(query,svc->plugin_arguments,strlen(svc->plugin_arguments));
           query[sizeof(query)-1]='\x0';
      	
