@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2006/05/24 13:22:45  hjanuschka
+*** empty log message ***
+
 Revision 1.2  2006/05/24 13:12:51  hjanuschka
 nrpe: ARG1 fix
 
@@ -183,6 +186,10 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 		svc->current_state=STATE_CRITICAL;	
 		return;
 	}
+	if(result != STATE_OK) {
+		svc->current_state=STATE_CRITICAL;
+		return;
+	}
 	if(result == STATE_OK) {
 #ifdef HAVE_SSL
         /* do SSL handshake */
@@ -312,7 +319,10 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 	        sprintf(svc->new_server_text,"%s","CHECK_NRPE: No output returned from daemon.\n");
 	else
 	        sprintf(svc->new_server_text,"%s",receive_packet.buffer);
-	}           
+
+
+	
+	}
 	switch ((int16_t)ntohs(receive_packet.result_code)) {
 		case STATE_OK:
 		case STATE_WARNING:
@@ -327,7 +337,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 	}
 	
                     
-     	
+     
 	return;
 	
 	
