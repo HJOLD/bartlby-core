@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2006/05/28 20:38:27  hjanuschka
+cbr
+
 Revision 1.5  2006/05/28 16:18:27  hjanuschka
 commit before release
 
@@ -68,6 +71,7 @@ NRPE support (--enable-nrpe)
 #include <string.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 #include <bartlby.h>
 
