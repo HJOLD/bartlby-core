@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2006/05/28 16:18:27  hjanuschka
+commit before release
+
 Revision 1.4  2006/05/24 19:18:35  hjanuschka
 version bump
 
@@ -83,7 +86,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 
 #else
 
-static int conn_timedout = 0;
+int conn_timedout = 0;
 static unsigned long crc32_table[256];
 
 
@@ -181,7 +184,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
      int bytes_to_send;
      int bytes_to_recv;
      
-     
+     signal(SIGALRM,alarm_handler);
       /* generate the CRC 32 table */
       nrpe_generate_crc32_table();
         
@@ -203,7 +206,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
        }
 #endif	
 	
-	signal(SIGALRM,alarm_handler);
+	
 
 	conn_timedout=0;
 	alarm(svc->service_check_timeout);
@@ -225,7 +228,21 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
      		if((ssl=SSL_new(ctx))!=NULL){
      	     	SSL_CTX_set_cipher_list(ctx,"ADH");
 				SSL_set_fd(ssl,sd);
-     	          if((rc=SSL_connect(ssl))!=1){
+				
+				conn_timedout=0;
+				alarm(svc->service_check_timeout);
+				rc=SSL_connect(ssl);
+				if(conn_timedout == 1) {
+					_log("timeout ok");
+					sprintf(svc->new_server_text, "%s", "timed out");
+					svc->current_state=STATE_CRITICAL;	
+					return;
+				}
+				
+				conn_timedout=0;
+				alarm(svc->service_check_timeout);
+				
+     	          if(rc !=1){
      	          	sprintf(svc->new_server_text, "%s", "CHECK_NRPE: Error - Could not complete SSL handshake.\n");
      	          	svc->current_state=STATE_CRITICAL;
      	          	SSL_CTX_free(ctx);
@@ -265,11 +282,29 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
           send_packet.crc32_value=(u_int32_t)htonl(calculated_crc32);
      	
      	 bytes_to_send=sizeof(send_packet);
-           if(use_ssl==FALSE)
+           if(use_ssl==FALSE)  {
+           	conn_timedout=0;
+			alarm(svc->service_check_timeout);
            	rc=nrpesendall(sd,(char *)&send_packet,&bytes_to_send);
+           	if(conn_timedout == 1) {
+					_log("timeout ok");
+					sprintf(svc->new_server_text, "%s", "timed out1");
+					svc->current_state=STATE_CRITICAL;	
+					return;
+			}
+          }
 #ifdef HAVE_SSL
 		else{
+			conn_timedout=0;
+			alarm(svc->service_check_timeout);
+			
           	rc=SSL_write(ssl,&send_packet,bytes_to_send);
+          	if(conn_timedout == 1) {
+					_log("timeout ok");
+					sprintf(svc->new_server_text, "%s", "timed out2");
+					svc->current_state=STATE_CRITICAL;	
+					return;
+			}
                if(rc<0)
                	rc=-1;
 			}
@@ -282,11 +317,31 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 			return;
 		}
      	bytes_to_recv=sizeof(receive_packet);
-     	if(use_ssl==FALSE)
+     	if(use_ssl==FALSE) {
+     		conn_timedout=0;
+			alarm(svc->service_check_timeout);
+				
 			rc=nrperecvall(sd,(char *)&receive_packet,&bytes_to_recv,svc->service_check_timeout);
+			
+			if(conn_timedout == 1) {
+					_log("timeout ok");
+					sprintf(svc->new_server_text, "%s", "timed out3");
+					svc->current_state=STATE_CRITICAL;	
+					return;
+			}
+		}
 #ifdef HAVE_SSL
-		else
+		else {
+			conn_timedout=0;
+			alarm(svc->service_check_timeout);
           	rc=SSL_read(ssl,&receive_packet,bytes_to_recv);
+          	if(conn_timedout == 1) {
+					_log("timeout ok");
+					sprintf(svc->new_server_text, "%s", "timed out4");
+					svc->current_state=STATE_CRITICAL;	
+					return;
+			}
+          }
 #endif
 
 		/* reset timeout */
@@ -464,6 +519,9 @@ int my_connect(char *host_name,int port,int *sd,char *proto, struct service * sv
 void alarm_handler(int sig){
 
         conn_timedout = 1;
+        _log("FIXME: nrpe timeout SSL_connect");
+        abort();
+       
        
 }
 int my_tcp_connect(char *host_name,int port,int *sd, struct service * svc){

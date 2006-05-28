@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.31  2006/05/28 16:18:27  hjanuschka
+commit before release
+
 Revision 1.30  2006/05/24 19:18:35  hjanuschka
 version bump
 
@@ -349,6 +352,7 @@ int main(int argc, char ** argv, char ** envp) {
 			exit(1);	
 		}
 		_log("SHM requires: %d KB ", suggested_minimum/1024);
+		_log("Size: S=%d, W=%d, D=%d, H=%d, E=%d", sizeof(struct service), sizeof(struct worker), sizeof(struct downtime), sizeof(struct shm_header), sizeof(struct btl_event));
 		free(shmc);
 		
 		
