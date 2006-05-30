@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2006/05/30 21:41:18  hjanuschka
+nrpe ssl timeout
+
 Revision 1.6  2006/05/28 20:38:27  hjanuschka
 cbr
 
@@ -72,6 +75,7 @@ NRPE support (--enable-nrpe)
 #include <errno.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <fcntl.h>
 
 #include <bartlby.h>
 
@@ -165,7 +169,9 @@ unsigned long calculate_crc32(char *buffer, int buffer_size);
 void randomize_buffer(char *buffer,int buffer_size);
 int nrperecvall(int s, char *buf, int *len, int timeout);        
 int nrpesendall(int s, char *buf, int *len);
-
+static int ssl_connect_timeout(SSL *ssl, int tmo);
+static int unblock_socket(int soc);
+static int block_socket(int soc);
 
 void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 	
@@ -232,17 +238,18 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
      		if((ssl=SSL_new(ctx))!=NULL){
      	     	SSL_CTX_set_cipher_list(ctx,"ADH");
 				SSL_set_fd(ssl,sd);
+				unblock_socket(sd);
 				
-				conn_timedout=0;
-				alarm(svc->service_check_timeout);
-				rc=SSL_connect(ssl);
-				if(conn_timedout == 1) {
-					_log("timeout ok");
-					sprintf(svc->new_server_text, "%s", "timed out");
+				rc=ssl_connect_timeout(ssl, svc->service_check_timeout);
+				
+				
+				if(rc <= 0) {
+					
+					sprintf(svc->new_server_text, "%s", "timed out!!");
 					svc->current_state=STATE_CRITICAL;	
 					return;
 				}
-				
+				block_socket(sd);
 				conn_timedout=0;
 				alarm(svc->service_check_timeout);
 				
@@ -524,7 +531,7 @@ void alarm_handler(int sig){
 
         conn_timedout = 1;
         _log("FIXME: nrpe timeout SSL_connect");
-        abort();
+        
        
        
 }
@@ -779,7 +786,118 @@ void nrpe_display_license(void){
 	_log("Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.");
 
 	return;
-        }        
+        }     
+        
+/*-------------------------------------------------------------------------
+ *
+ * Taken from ssltunnel, (C) Alain Thivillon and Hervé Schauer Consultants
+ *
+ *------------------------------------------------------------------------*/
+static int ssl_connect_timeout(SSL *ssl, int tmo)
+{
+
+  int r=0;
+  int rfd, wfd;
+  int n,maxfd;
+  fd_set rfds, wfds;
+  fd_set *prfds;
+  struct timeval tv;
+  long end;
+  int t;
+  int errcode;
+
+  rfd = SSL_get_fd(ssl);
+  wfd = SSL_get_fd(ssl);
+  n = rfd + 1;
+  maxfd = (rfd > wfd ? rfd : wfd) + 1;
+
+  prfds = (fd_set *) NULL;
+  end = tmo + time( NULL );
+
+  tv.tv_sec = tmo;
+  tv.tv_usec = 0;
+
+  FD_ZERO(&wfds);
+  FD_SET(wfd,&wfds);
+
+  /* number of descriptors that changes status */
+  while (0 < (n = select(n,prfds,&wfds,(fd_set *) 0,&tv)))
+  {
+    r = SSL_connect(ssl);
+    SSL_set_mode(ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
+    if (r > 0) {
+      return r;
+    }
+
+    switch (errcode=SSL_get_error(ssl, r))
+    {
+    case SSL_ERROR_WANT_READ:
+      prfds = &rfds;
+      FD_ZERO(&rfds);
+      FD_SET(rfd,&rfds);
+      n = maxfd;
+      break;
+    case SSL_ERROR_WANT_WRITE:
+      prfds = (fd_set *) 0;
+      n = wfd + 1;
+      break;
+    default:
+      /* some other error */
+      switch (errcode) {
+        case SSL_ERROR_SSL:
+        case SSL_ERROR_SYSCALL:
+          // fprintf(stderr,"ssl_connect : %d", SSL_get_error(ssl, r));
+           break;
+        default:
+          // fprintf(stderr,"ssl_connect : %d", SSL_get_error(ssl, r));
+           break;
+      }
+      return -2;
+    }
+
+    if ((t = end - time( NULL )) < 0) break;
+
+    tv.tv_sec = t;
+    tv.tv_usec = 0;
+
+    FD_ZERO(&rfds);
+    FD_SET(rfd,&rfds);
+  }
+
+  return -1;
+
+}     
+static int unblock_socket(int soc)
+{
+  int   flags =  fcntl(soc, F_GETFL, 0);
+  if (flags < 0)
+{
+      perror("fcntl(F_GETFL)");
+      return -1;
+    }
+  if (fcntl(soc, F_SETFL, O_NONBLOCK | flags) < 0)
+    {
+      perror("fcntl(F_SETFL,O_NONBLOCK)");
+      return -1;
+    }
+  return 0;
+}
+
+static int block_socket(int soc)
+{
+  int   flags =  fcntl(soc, F_GETFL, 0);
+  if (flags < 0)
+    {
+      perror("fcntl(F_GETFL)");
+      return -1;
+    }
+  if (fcntl(soc, F_SETFL, (~O_NONBLOCK) & flags) < 0)
+    {
+      perror("fcntl(F_SETFL,~O_NONBLOCK)");
+      return -1;
+    }
+  return 0;
+}      
 #endif
 
 
