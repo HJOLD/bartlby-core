@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.10  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.9  2006/05/21 21:18:10  hjanuschka
 commit before workweek
 
@@ -88,7 +95,66 @@ CVS Header
 
 #include <bartlby.h>
 
-void bartlby_end_daemon(char *cfgfile) {
+void bartlby_pre_init(char * cfgfile) {
+	FILE * pidfile;
+	char * base_dir;
+	char pidfname[1024];
+	char pidstr[1024];
+	char * pid_def_name;
+	
+	struct rlimit rlim; /* resource limits -kre */
+	
+	
+	
+	base_dir = getConfigValue("basedir", cfgfile);
+	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
+	
+	
+	
+	if(base_dir == NULL) {
+		
+		base_dir=strdup("/");
+	}
+	if(pid_def_name == NULL) {
+		pid_def_name=strdup(base_dir);
+	}
+	getrlimit(RLIMIT_CORE, &rlim);
+  	rlim.rlim_cur = rlim.rlim_max;
+  	setrlimit(RLIMIT_CORE, &rlim);
+  	
+	chdir(base_dir);
+	_log("basedir set to:%s", base_dir);
+	umask(0);
+	
+	
+	sprintf(pidfname, "%s/bartlby.pid", pid_def_name);
+	pidfile=fopen(pidfname, "w");
+	if(pidfile == NULL) {
+		_log("Pid file  failed '%s'", pidfname);
+		
+	} else {
+		sprintf(pidstr, "%d", getpid());
+		fwrite(pidstr, sizeof(char), strlen(pidstr), pidfile);
+		fclose(pidfile);
+		_log("pidfile is at: '%s'", pidfname);
+	}
+	
+	if(setenv("BARTLBY_HOME", base_dir,1) == 0) {
+		_log("$BARTLBY_HOME='%s'", base_dir);
+	} else {
+		_log("setenv $BARTLBY_HOME='%s' failed", base_dir);	
+	}
+	//freopen("/dev/null", "a", stderr);
+	//freopen("/dev/null", "a", stdout);
+	
+	
+	free(base_dir);
+	free(pid_def_name);
+	
+	
+}
+
+void bartlby_end_clean(char *cfgfile) {
 	char * base_dir;
 	char pidfname[1024];
 	
@@ -115,31 +181,7 @@ void bartlby_end_daemon(char *cfgfile) {
 
 void bartlby_get_daemon(char * cfgfile) {
 	pid_t pid;
-	FILE * pidfile;
-	char * base_dir;
-	char pidfname[1024];
-	char pidstr[1024];
-	char * pid_def_name;
-	
-	
-	struct rlimit rlim; /* resource limits -kre */
-	
-	
-	
-	base_dir = getConfigValue("basedir", cfgfile);
-	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
-	
-	
-	
-	if(base_dir == NULL) {
 		
-		base_dir=strdup("/");
-	}
-	if(pid_def_name == NULL) {
-		pid_def_name=strdup(base_dir);
-	}
-
-	
 	if ((pid = fork ()) != 0) {
 		//_log("Fork failed");
       		exit(1);
@@ -149,39 +191,10 @@ void bartlby_get_daemon(char * cfgfile) {
 		_log("Cannot setsid()");	
 	}
 	
-	getrlimit(RLIMIT_CORE, &rlim);
-  	rlim.rlim_cur = rlim.rlim_max;
-  	setrlimit(RLIMIT_CORE, &rlim);
+	
 	
 	signal(SIGHUP, SIG_IGN);
-	chdir(base_dir);
-	_log("basedir set to:%s", base_dir);
-	umask(0);
 	
-	
-	sprintf(pidfname, "%s/bartlby.pid", pid_def_name);
-	pidfile=fopen(pidfname, "w");
-	if(pidfile == NULL) {
-		_log("Pid file  failed '%s'", pidfname);
-		
-	} else {
-		sprintf(pidstr, "%d", getpid());
-		fwrite(pidstr, sizeof(char), strlen(pidstr), pidfile);
-		fclose(pidfile);
-		_log("pidfile is at: '%s'", pidfname);
-	}
-	
-	if(setenv("BARTLBY_HOME", base_dir,1) == 0) {
-		_log("$BARTLBY_HOME='%s'", base_dir);
-	} else {
-		_log("setenv $BARTLBY_HOME='%s' failed", base_dir);	
-	}
-	freopen("/dev/null", "a", stderr);
-	freopen("/dev/null", "a", stdout);
-	
-	
-	free(base_dir);
-	free(pid_def_name);
 	
 	
 }

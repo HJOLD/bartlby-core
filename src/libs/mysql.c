@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.37  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.36  2006/05/20 18:29:16  hjanuschka
 snmp implented
 
@@ -587,49 +594,7 @@ int GetDowntimeMap(struct downtime * svcs, char * config) {
 
 
 
-int PrepareReplication(char * config) {
-	/*
-		modify worker
-	*/
-	MYSQL *mysql;
-	int rtc;
-	
-	
-	
 
-
-	char * mysql_host = getConfigValue("mysql_host", config);
-	char * mysql_user = getConfigValue("mysql_user", config);
-	char * mysql_pw = getConfigValue("mysql_pw", config);
-	char * mysql_db = getConfigValue("mysql_db", config);
-
-	mysql=mysql_init(NULL);
-		CHK_ERR(mysql);
-	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
-		CHK_ERR(mysql);
-	mysql_select_db(mysql, mysql_db);
-      		CHK_ERR(mysql);
-	
-	//Delete Servers
-	mysql_query(mysql, "DELETE FROM SERVERS");
-		CHK_ERR(mysql);
-	mysql_query(mysql, "DELETE FROM SERVICES");
-		CHK_ERR(mysql);
-	mysql_query(mysql, "DELETE FROM WORKERS");
-		CHK_ERR(mysql);
-	
-	
-	
-	rtc=1;
-	mysql_close(mysql);
-		
-	free(mysql_host);
-	free(mysql_user);
-	free(mysql_pw);
-	free(mysql_db);
-	
-	return rtc;		
-}
 
 
 int GetWorkerById(int worker_id, struct worker * svc, char * config) {
@@ -1898,7 +1863,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].snmp_info.type = atoi(row[30]);
       			
       			
-      			
+      			bartlby_replace_svc_in_str(svcs[i].plugin_arguments, &svcs[i], 2048);
       			i++;
       		}
       		
@@ -1921,58 +1886,4 @@ int GetServiceMap(struct service * svcs, char * config) {
 	return 0;	
 }
 
-void clone_me() {
-	printf("Go and create a	database:\n");
-	
-	printf("	CREATE TABLE `workers` ( \n");
-	printf("`worker_id` int(12) NOT NULL auto_increment,\n");
-  	printf("`worker_name` varchar(255) NOT NULL default '',\n");
-  	printf("`worker_mail` varchar(255) NOT NULL default '',\n");
-  	printf("`worker_icq` int(20) NOT NULL default '0',\n");
-  	printf("`worker_active` int(2) NOT NULL default '0',\n");
-  	printf("`password` varchar(255) NOT NULL default '',\n");
-  	printf("`status` varchar(255) NOT NULL default '',\n");
-  	printf("`enabled_services` varchar(255) NOT NULL default '',\n");
-  	printf("`notify_levels` varchar(50) NOT NULL default '',\n");
-  	printf("PRIMARY KEY  (`worker_id`)\n");
-	printf(");");
 
-	printf("CREATE TABLE `services` (\n");
-  	printf("`service_id` int(12) NOT NULL auto_increment,\n");
-  	printf("`server_id` int(12) NOT NULL default '0',\n");
-  	printf("`service_plugin` varchar(255) NOT NULL default '',\n");
-  	printf("`service_name` varchar(255) NOT NULL default '',\n");
-  	printf("`service_state` int(12) NOT NULL default '0',\n");
-  	printf("`service_text` varchar(255) NOT NULL default '',\n");
-  	printf("`service_args` varchar(255) NOT NULL default '',\n");
-  	printf("`service_last_check` datetime NOT NULL default '0000-00-00 00:00:00',\n");
-  	printf("`service_notify` int(2) NOT NULL default '0',\n");
-  	printf("`service_active` int(2) NOT NULL default '1',\n");
-  	printf("`service_current` int(2) NOT NULL default '0',\n");
-  	printf("`service_flapping` datetime NOT NULL default '0000-00-00 00:00:00',\n");
-  	printf("`service_time_from` time NOT NULL default '00:00:00',\n");
-  	printf("`service_time_to` time NOT NULL default '00:00:00',\n");
-  	printf("`service_interval` int(255) NOT NULL default '1',\n");
-  	printf("`service_type` int(11) NOT NULL default '1',\n");
-  	printf("`service_var` varchar(255) default NULL,\n");
-  	printf("`service_passive_timeout` int(11) NOT NULL default '100',\n");
-  	printf("PRIMARY KEY  (`service_id`),\n");
-  	printf("KEY `service_id` (`service_id`),\n");
-  	printf("KEY `service_id_2` (`service_id`,`server_id`)\n");
-	printf(") ;\n");
-	
-  	printf("CREATE TABLE `servers` (\n");
-  	printf("`server_id` int(12) NOT NULL auto_increment,\n");
-  	printf("`server_ip` varchar(255) NOT NULL default '',\n");
-  	printf("`server_name` varchar(255) NOT NULL default '',\n");
-  	printf("`server_ico` varchar(255) NOT NULL default '',\n");
-  	printf("`server_enabled` int(2) NOT NULL default '1',\n");
-  	printf("`server_port` int(255) NOT NULL default '9030',\n");
-	printf("PRIMARY KEY  (`server_id`),\n");
-  	printf("UNIQUE KEY `server_id` (`server_id`))\n");
-
-
-	
-	
-	
-}

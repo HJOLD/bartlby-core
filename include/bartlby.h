@@ -1,22 +1,29 @@
-/*
-	Release table
-	
-	angeloi
-	Archangeloi 
-	Archai 
-	Exusiai 
-	Dynameis 
-	Kyriotetes 
-	Throne
-	Cherubim
-	Seraphim
-	
-*/
 
 #define PROGNAME "bartlby"
 #define REL_NAME "Ictineo II"
 #define VERSION  "1.2.1b"
 #define EXPECTCORE 1102010 //Module V Check's
+
+#define MAX_CCACHE 1024
+
+
+#define EXTENSION_OK 0
+#define EXTENSION_NOK 1
+
+
+#define EXTENSION_CALLBACK_ALL -1
+#define EXTENSION_CALLBACK_PRE_CHECK 1
+#define EXTENSION_CALLBACK_POST_CHECK 2
+#define EXTENSION_CALLBACK_STATE_CHANGED 3
+#define EXTENSION_CALLBACK_TRIGGER_PRE 4
+#define EXTENSION_CALLBACK_SCHED_WAIT 5
+#define EXTENSION_CALLBACK_UNKOWN_CHECK_TYPE 6
+#define EXTENSION_CALLBACK_ROUND_TIME 7
+#define EXTENSION_CALLBACK_CHECK_TIME 8
+
+
+
+
 
 #define EVENT_QUEUE_MAX 128
 #define EVENT_STATUS_CHANGED 2
@@ -226,7 +233,7 @@ void bartlby_decode(char * msg, int length);
 void bartlby_encode(char * msg, int length);
 char * bartlby_beauty_state(int status);
 
-void bartlby_end_daemon(char *cfgfile);
+void bartlby_end_clean(char *cfgfile);
 void bartlby_get_daemon(char * cfgfile);
 void set_cfg(char * cfg);
 
@@ -244,6 +251,15 @@ ssize_t recvall(int _socket, char* buffer, int max_len,int flags);
 void bartlby_event_init(void * bartlby_address);
 struct btl_event * bartlby_SHM_EventMap(void * shm_addr);
 int bartlby_push_event(int event_id, char * str,  ...);
+
+void bartlby_pre_init(char * cfgfile);
+
+void cfg_init_cache(void);
+
+void bartlby_ext_init(void * shm_addr, void * data_loader, char * cfg);
+void bartlby_ext_shutdown(int sched_exit_code);
+int bartlby_ext_register_callback(int type, void * fcn);
+int bartlby_callback(int type, void *data);
 
 extern char config_file[255];
 

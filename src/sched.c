@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.34  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.33  2006/05/21 21:18:10  hjanuschka
 commit before workweek
 
@@ -249,13 +256,17 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 		return -1; //Dont sched this	
 	}
 	
-	if(svc->service_active == 1 && my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to) {
+	if(svc->service_active == 1 && my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to && svc->check_is_running == 0) {
 		//_log("Mydiff %d >= %d, %d>=%d, %d<=%d %d>=%d %d<=%d", my_diff, svc->check_interval,tmnow->tm_hour,svc->hour_from,tmnow->tm_hour , svc->hour_to,tmnow->tm_min , svc->min_from ,tmnow->tm_min , svc->min_to);	
 		if(bartlby_is_in_downtime(shm_addr, svc) > 0) {
 			return 1;
 		}
 	}	
-	return -1;
+	if(bartlby_callback(EXTENSION_CALLBACK_SCHED_WAIT, svc) == EXTENSION_OK) {
+		return 1;
+	} else {
+		return -1;
+	}
 }
 
 void sched_wait_open(int timeout) {

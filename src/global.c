@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.13  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.12  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -202,21 +209,26 @@ void str_replace(char *str, const char *from, const char *to, int maxlen)
 }
 
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
-	char * human_state, * human_state_last;
+	char * human_state, * human_state_last, * clport;
 	
+	clport=malloc(sizeof(char) * 30);
 	human_state=bartlby_beauty_state(svc->current_state);
 	human_state_last=bartlby_beauty_state(svc->last_state);
+	sprintf(clport, "%d", svc->client_port);
 	
 	str_replace(str,"$READABLE_STATE", human_state, max); 
+	str_replace(str,"$READABLE_LAST", human_state_last, max); 
 	str_replace(str,"$PROGNAME", PROGNAME, max); 
 	str_replace(str,"$VERSION", VERSION, max); 
 	str_replace(str,"$SERVER", svc->server_name, max); 
 	str_replace(str,"$SERVICE", svc->service_name, max); 
 	str_replace(str,"$MESSAGE", svc->new_server_text, max); 
+	str_replace(str,"$CLIENT_IP", svc->client_ip, max); 
+	str_replace(str,"$CLIENT_PORT", clport, max); 
 	
 	
 	
-	
+	free(clport);
 	free(human_state_last);
 	free(human_state);
 }

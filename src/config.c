@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.8  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.7  2005/09/28 21:46:30  hjanuschka
 converted files to unix
 jabber.sh -> disabled core dumps -> jabblibs segfaults
@@ -53,11 +60,63 @@ CVS Header
 #include <bartlby.h>
 
 
+struct cfg_cache {
+	char key[1024];
+	char value[2048];
+		
+} ccf;
+
+static struct cfg_cache ccache[MAX_CCACHE];
+static int cur_el=0;
+
+void cfg_init_cache(void) {
+	int x;
+	for(x=0; x<MAX_CCACHE; x++) {
+		snprintf(ccache[cur_el].key,1020,  "%s", "");
+		snprintf(ccache[cur_el].value,2000, "%s", "");
+	}
+	_log("Cache init ready for %d variables to hold", MAX_CCACHE);
+			
+			
+}
+
+char * cfg_add_to_cache(char * k, char * v) {
+	snprintf(ccache[cur_el].key,1020,  "%s", k);
+	snprintf(ccache[cur_el].value,2000, "%s", v);
+	if(cur_el + 1 >= MAX_CCACHE) {
+		cur_el=0;
+	} else {
+		cur_el++;
+	}
+		
+	return NULL;
+}
+
+char * cfg_cache_find(char *k) {
+	int x;
+	for(x=0; x<MAX_CCACHE; x++) {
+		if(strcmp(ccache[x].key, k) == 0) {
+			//printf("Found cached key/value: %s/%s\n", ccache[x].key, ccache[x].value);
+			return strdup(ccache[x].value);	
+		}	
+	}	
+	return NULL;
+}
+
+
 char * getConfigValue(char * key, char * fname) {
 	FILE * fp;
 	char  str[1024];
+	char * val;
 
 	char * tok;
+	
+	char * cache_value;
+	
+	cache_value=cfg_cache_find(key);
+	if(cache_value != NULL) {
+		return cache_value;	
+	}
 	
 	fp=fopen(fname, "r");
 	if(!fp)  {
@@ -83,7 +142,9 @@ char * getConfigValue(char * key, char * fname) {
 						}
 						
 						fclose(fp);
-						return strdup(tok);
+						val=strdup(tok);
+						cfg_add_to_cache(key, val);
+						return val;
 						
 				} else {
 					continue;

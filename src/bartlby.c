@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.32  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.31  2006/05/28 16:18:27  hjanuschka
 commit before release
 
@@ -195,28 +202,31 @@ int main(int argc, char ** argv, char ** envp) {
 		End DL STUFF
 	
 	*/
+	
 	/* 
 		SHM Stuff
 	*/
-		char * shmtok;
-		int shm_id;
-		//int * shm_elements;
-		void * bartlby_address;
-		int shm_svc_cnt;
-		int shm_wrk_cnt;
-		int shm_dt_cnt;
-		
-		struct shmid_ds shm_desc;
-		long SHMSize;
-		struct shm_header * shm_hdr;
+	char * shmtok;
+	int shm_id;
+	//int * shm_elements;
+	void * bartlby_address;
+	int shm_svc_cnt;
+	int shm_wrk_cnt;
+	int shm_dt_cnt;
+	
+	struct shmid_ds shm_desc;
+	long SHMSize;
+	struct shm_header * shm_hdr;
+	
+	struct service * svcmap;
+	struct worker * wrkmap;
+	struct downtime * dtmap;
 		
 	/*
 		END SHM stuff
 	*/
 	
-	struct service * svcmap;
-	struct worker * wrkmap;
-	struct downtime * dtmap;
+	
 
 	char * cfg_user;
 	struct passwd * ui;
@@ -264,10 +274,7 @@ int main(int argc, char ** argv, char ** envp) {
 	_log("SSL support compiled in");
 	#endif
 	#ifdef WITH_NRPE
-	_log("NRPE Support compiled in (dumping nrpe license)");
-	_log("----------------------------------------------");
-	nrpe_display_license();
-	_log("----------------------------------------------");
+	_log("NRPE Support compiled in");
 	#endif
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
@@ -278,7 +285,7 @@ int main(int argc, char ** argv, char ** envp) {
 		bartlby_get_daemon(argv[1]);
 	} 	
 	
-		
+	bartlby_pre_init(argv[1]);
 	_log("using data lib: `%s'", SOName);
 	SOHandle=dlopen(SOName, RTLD_LAZY);
 		
@@ -386,7 +393,8 @@ int main(int argc, char ** argv, char ** envp) {
 				
 			//06.04.24 Init EVENT QUEUE
 			bartlby_event_init(bartlby_address);
-			
+			cfg_init_cache();
+			bartlby_ext_init(bartlby_address, SOHandle, argv[1]);
 				
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
@@ -405,7 +413,7 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr->pstat.counter=0;
 			
 			
-			///INIT EVENT QUEUE
+			
 			
 			
 			if(shm_hdr->wrkcount <= 0) {
@@ -425,16 +433,18 @@ int main(int argc, char ** argv, char ** envp) {
 			exit(1);
 		}
 		
-		
 		exi_code=schedule_loop(argv[1], bartlby_address, SOHandle);
 		_log("Scheduler ended with: %d", exi_code);
 		
 		
 		
 		//Destroy SHM
+		bartlby_ext_shutdown(exi_code);
 		shmdt(bartlby_address);
 		shm_id = shmget(ftok(shmtok, 32), 0, 0600);
 		shmctl(shm_id, IPC_RMID, &shm_desc);
+		
+		
 	}
 	
 	free(shmtok);
@@ -444,10 +454,7 @@ int main(int argc, char ** argv, char ** envp) {
 	_log("%s Ended(Daemon: %s)", PROGNAME, daemon_mode);	
 		
 	//remove PidFile
-	if(strcmp(daemon_mode,"true") == 0) {	
-		
-		bartlby_end_daemon(argv[1]);
-	} 	
+	bartlby_end_clean(argv[1]);
 	free(daemon_mode);
 	free(cfg_user);
 	return 1;

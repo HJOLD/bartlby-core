@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.45  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.44  2006/05/24 13:07:39  hjanuschka
 NRPE support (--enable-nrpe)
 
@@ -655,7 +662,8 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		svc->service_retain_current=0;
 		svc->last_state=svc->current_state;
 		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
-		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);					
+		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
+		bartlby_callback(EXTENSION_CALLBACK_STATE_CHANGED, svc);
 	}	
 	if(svc->service_retain_current == svc->service_retain && svc->current_state != svc->notify_last_state) {
 		//udate tstamp text and call trigger *g*
@@ -668,8 +676,9 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 		
 		svc->notify_last_state=svc->current_state;
-		
-		bartlby_trigger(svc, cfgfile, shm_addr, 1);
+		if(bartlby_callback(EXTENSION_CALLBACK_TRIGGER_PRE, svc) == EXTENSION_OK) {
+			bartlby_trigger(svc, cfgfile, shm_addr, 1);
+		}
 				
 		//_log("%s:%d/%s|%s trigger end",svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		
@@ -682,11 +691,16 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	}
 	
 	//WTF?
+	if(svc->service_type != SVC_TYPE_PASSIVE) {
+			svc->last_check=time(NULL);
+	}
 	
 	for(x=0; x<=strlen(svc->new_server_text); x++) {
 		if(svc->new_server_text[x] == '\'')
 			svc->new_server_text[x]='"';
 	}
+	bartlby_callback(EXTENSION_CALLBACK_POST_CHECK, svc);
+	
 	svc->service_retain_current++;
 	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
 	doUpdate(svc,cfgfile);
@@ -705,12 +719,12 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 	setenv("BARTLBY_CURR_HOST", svc->server_name,1);
 	setenv("BARTLBY_CURR_SERVICE", svc->service_name,1);
 	
-	
-	if(svc->service_type != SVC_TYPE_PASSIVE) {
-			svc->last_check=time(NULL);
-	}
-	
-	
+	if(bartlby_callback(EXTENSION_CALLBACK_PRE_CHECK, svc) != EXTENSION_OK) {
+			/*
+			a extension canceld the check
+			*/
+			return;	
+	}	
 	if(svc->service_type == SVC_TYPE_GROUP) {
 		bartlby_check_group(svc, shm_addr);
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
@@ -758,10 +772,15 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		return;
 	
 	}
-	
-	_log("Undefined service check type: %d", svc->service_type);
-	sprintf(svc->new_server_text, "undefined service type (%d)", svc->service_type);
-	svc->current_state=STATE_CRITICAL;
+	//
+	if(bartlby_callback(EXTENSION_CALLBACK_UNKOWN_CHECK_TYPE, svc) != EXTENSION_OK) {
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;
+	} else {
+		_log("Undefined service check type: %d", svc->service_type);
+		sprintf(svc->new_server_text, "undefined service type (%d)", svc->service_type);
+		svc->current_state=STATE_CRITICAL;
+	}
 	
 	return;
 }

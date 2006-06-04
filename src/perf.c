@@ -16,6 +16,13 @@ $Source$
 
 
 $Log$
+Revision 1.6  2006/06/04 23:55:28  hjanuschka
+core: SSL_connect (timeout issue's solved , at least i hope :))
+core: when perfhandlers_enabled == false, you now can enable single services
+core: plugin_arguments supports $MACROS
+core: config variables try now to cache themselfe to minimize I/O activity
+core: .so extensions support added
+
 Revision 1.5  2006/05/06 23:32:02  hjanuschka
 *** empty log message ***
 
@@ -75,10 +82,12 @@ int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int t
 			
 			hdr->pstat.counter++;
 			hdr->pstat.sum += time;
+			bartlby_callback(EXTENSION_CALLBACK_ROUND_TIME, hdr);
 		break;
 		case PERF_TYPE_SVC_TIME:
 			svc->pstat.counter++;
 			svc->pstat.sum += time;
+			bartlby_callback(EXTENSION_CALLBACK_CHECK_TIME, svc);
 			
 		break;
 		
@@ -96,21 +105,32 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 	char * perf_enabled;
 	int perf_child;
 	struct timeval stat_end, stat_start;
+	char my_own_handler[1024];
+	char * found_my_own;
 	
 	//signal(SIGCHLD, SIG_IGN);
+	sprintf(my_own_handler, "perfhandler_enabled_%d", svc->service_id);
+	
 	
 	perf_enabled=getConfigValue("perfhandler_enabled", cfgfile);
+	found_my_own=getConfigValue(my_own_handler, cfgfile);
+	
 	if(perf_enabled == NULL) {
 		perf_enabled=strdup("true");
 		//sprintf(perf_enabled, "true");
 	}
-	if(strcmp(perf_enabled, "false") == 0)  {
+	if(found_my_own == NULL) {
+		found_my_own=strdup("false");
+		//sprintf(perf_enabled, "true");
+	}
+	
+	if(strcmp(perf_enabled, "false") == 0 && strcmp(found_my_own, "false") == 0)  {
 		free(perf_enabled);
-		
+		free(found_my_own);
 		return;
 			
 	}
-	
+	free(found_my_own);
 	free(perf_enabled);
 	
 	cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
