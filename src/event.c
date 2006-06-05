@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2006/06/05 00:00:06  hjanuschka
+*** empty log message ***
+
 Revision 1.3  2006/05/06 23:32:02  hjanuschka
 *** empty log message ***
 
@@ -86,7 +89,7 @@ int bartlby_push_event(int event_id, char * str,  ...) {
  	evs[hdr->cur_event_index].evnt_id=event_id;
  	evs[hdr->cur_event_index].evnt_time=time(NULL);
  	
-   	
+   	bartlby_callback(EXTENSION_CALLBACK_EVENT_PUSHED, &evs[hdr->cur_event_index]);
    	vsnprintf(evs[hdr->cur_event_index].evnt_message, 900, str, argzeiger);
    	
    	//_log("Event pushed: index=>%d id=>%d, Message=>'%s'", hdr->cur_event_index, evs[hdr->cur_event_index].evnt_id, evs[hdr->cur_event_index].evnt_message);
