@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/06/05 21:06:06  hjanuschka
+*** empty log message ***
+
 Revision 1.1  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -83,7 +86,7 @@ int bartlby_callback(int type, void *data) {
         		
 		}	
 	}
-	
+
 	return EXTENSION_OK;
 }
 

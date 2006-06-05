@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2006/06/05 21:06:06  hjanuschka
+*** empty log message ***
+
 Revision 1.8  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -72,8 +75,8 @@ static int cur_el=0;
 void cfg_init_cache(void) {
 	int x;
 	for(x=0; x<MAX_CCACHE; x++) {
-		snprintf(ccache[cur_el].key,1020,  "%s", "");
-		snprintf(ccache[cur_el].value,2000, "%s", "");
+		snprintf(ccache[x].key,1020,  "%s", "");
+		snprintf(ccache[x].value,2000, "%s", "");
 	}
 	_log("Cache init ready for %d variables to hold", MAX_CCACHE);
 			

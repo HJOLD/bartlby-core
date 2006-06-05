@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.8  2006/06/05 21:06:07  hjanuschka
+*** empty log message ***
+
 Revision 1.7  2006/04/23 18:07:43  hjanuschka
 core/ui/php: checks can now be forced
 ui: remote xml special_addon support
@@ -80,6 +83,6 @@ Revision 1.1  2005/09/18 01:33:54  hjanuschka
 
 int replication_go(char * cfgfile, void * shm_addr, void * SOHandle) {
 	//_log("FIXME: replication with external program XML-RPC API");
-	
+	bartlby_callback(EXTENSION_CALLBACK_REPLICATION_GO, NULL);
 	return 1;
 }
