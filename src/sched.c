@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.35  2006/06/14 22:44:50  hjanuschka
+fixing stdout bug on early mysql errors
+fixing miss behavior of the extension interface in various code pieces
+
 Revision 1.34  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -262,7 +266,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 			return 1;
 		}
 	}	
-	if(bartlby_callback(EXTENSION_CALLBACK_SCHED_WAIT, svc) == EXTENSION_OK) {
+	if(bartlby_callback(EXTENSION_CALLBACK_SCHED_WAIT, svc) != EXTENSION_OK) {
 		return 1;
 	} else {
 		return -1;

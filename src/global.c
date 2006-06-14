@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.14  2006/06/14 22:44:50  hjanuschka
+fixing stdout bug on early mysql errors
+fixing miss behavior of the extension interface in various code pieces
+
 Revision 1.13  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -172,19 +176,25 @@ int _log(char * str,  ...) {
 	
  	va_start(argzeiger,str);
    
-   	
-	fp=fopen(logfile, "a");   	
-	if(fp == NULL) {
-		perror(logfile);
-		exit(1);	
-	}
-   	fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
-   	vfprintf(fp, str, argzeiger);
-   	fprintf(fp, ";\n");
-   	//vprintf(string,argzeiger);
-   	//fflush(pos2_log_file);
+   	if(strcmp(logfile, "/dev/stdout") == 0) {
+   		printf("%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
+   		vprintf(str, argzeiger);
+   		printf(";\n");
+	} else {
+		fp=fopen(logfile, "a");   	
+		if(fp == NULL) {
+			perror(logfile);
+			exit(1);	
+		}
+   		fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
+   		vfprintf(fp, str, argzeiger);
+   		fprintf(fp, ";\n");
+   		//vprintf(string,argzeiger);
+   		//fflush(pos2_log_file);
+   		
+   		fclose(fp);
+   	}
    	va_end(argzeiger);
-   	fclose(fp);
    	free(logfile);
    	free(logfile_dd);
 	return 1;   

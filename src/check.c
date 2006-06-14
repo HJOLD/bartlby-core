@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.46  2006/06/14 22:44:50  hjanuschka
+fixing stdout bug on early mysql errors
+fixing miss behavior of the extension interface in various code pieces
+
 Revision 1.45  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -676,7 +680,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 		
 		svc->notify_last_state=svc->current_state;
-		if(bartlby_callback(EXTENSION_CALLBACK_TRIGGER_PRE, svc) == EXTENSION_OK) {
+		if(bartlby_callback(EXTENSION_CALLBACK_TRIGGER_PRE, svc) != EXTENSION_OK) {
 			bartlby_trigger(svc, cfgfile, shm_addr, 1);
 		}
 				
