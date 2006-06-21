@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.47  2006/06/21 11:34:30  hjanuschka
+fixing trigger bug
+
 Revision 1.46  2006/06/14 22:44:50  hjanuschka
 fixing stdout bug on early mysql errors
 fixing miss behavior of the extension interface in various code pieces
@@ -680,9 +683,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 		
 		svc->notify_last_state=svc->current_state;
-		if(bartlby_callback(EXTENSION_CALLBACK_TRIGGER_PRE, svc) != EXTENSION_OK) {
-			bartlby_trigger(svc, cfgfile, shm_addr, 1);
-		}
+		bartlby_trigger(svc, cfgfile, shm_addr, 1);
 				
 		//_log("%s:%d/%s|%s trigger end",svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		
