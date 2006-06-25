@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.38  2006/06/25 21:24:25  hjanuschka
+strip "'" out of plugin arguments during saving
+
 Revision 1.37  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -1178,9 +1181,14 @@ int AddService(struct service * svc, char *config) {
 	int rtc;
 	
 	char * sqlupd;
+	int x;
 	
 	char * SVC_TIME_FROM, * SVC_TIME_TO;
 	
+	for(x=0; x<=strlen(svc->plugin_arguments); x++) {
+		if(svc->plugin_arguments[x] == '\'')
+			svc->plugin_arguments[x]=' '; 
+	}
 	
 	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00                      "));
 	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00                      "));
@@ -1226,6 +1234,9 @@ int AddService(struct service * svc, char *config) {
 	 */
 	 
 	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVICE)+sizeof(struct service)+20));
+	
+	
+	
 	sprintf(sqlupd, ADD_SERVICE, 
 	svc->server_id, 
 	svc->plugin, 
@@ -1252,12 +1263,15 @@ int AddService(struct service * svc, char *config) {
 	
 	//Log("dbg", sqlupd);
 	
+	
+	
 	mysql_query(mysql, sqlupd);
 		CHK_ERR(mysql);
 	
 	
 	free(sqlupd);
 	rtc=mysql_insert_id(mysql);
+	
 	mysql_close(mysql);
 		
 	free(mysql_host);
