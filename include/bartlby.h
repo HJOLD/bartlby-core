@@ -1,8 +1,8 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Ictineo II"
-#define VERSION  "1.2.1b"
-#define EXPECTCORE 1102010 //Module V Check's
+#define REL_NAME "Druid"
+#define VERSION  "1.2.2"
+#define EXPECTCORE 1102021 //Module V Check's
 
 #define MAX_CCACHE 1024
 
