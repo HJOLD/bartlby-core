@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.18  2006/06/29 18:14:40  hjanuschka
+fixing trigger check typo
+
 Revision 1.17  2006/02/12 18:37:51  hjanuschka
 trigger fixes trigger logging refined
 datalib: mysql/ returns now the server version
@@ -131,7 +134,7 @@ int bartlby_trigger_worker_level(struct worker * w, int level) {
 	
 	free(blevel);
 	free(find_level);	
-	return TR;
+	return rt;
 }
 
 int bartlby_trigger_escalation(struct worker *w) {
