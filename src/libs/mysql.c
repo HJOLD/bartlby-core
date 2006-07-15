@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.39  2006/07/15 14:02:08  hjanuschka
+data lib active_service etc..
+
 Revision 1.38  2006/06/25 21:24:25  hjanuschka
 strip "'" out of plugin arguments during saving
 
@@ -229,7 +232,7 @@ CVS Header
 #define DELETE_SERVICE "delete from services where service_id=%d"
 
 
-#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d'  where service_id=%d"
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d', service_notify='%d', service_active='%d'  where service_id=%d"
 #define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
@@ -1095,7 +1098,9 @@ int UpdateService(struct service * svc, char *config) {
 	svc->snmp_info.version,
 	svc->snmp_info.warn,
 	svc->snmp_info.crit,
-	svc->snmp_info.type,	
+	svc->snmp_info.type,
+	svc->notify_enabled,
+	svc->service_active,	
 	svc->service_id
 	
 	);
@@ -1243,7 +1248,7 @@ int AddService(struct service * svc, char *config) {
 	svc->service_name,
 	svc->plugin_arguments,
 	svc->notify_enabled,
-	1,
+	svc->service_active,
 	SVC_TIME_FROM,
 	SVC_TIME_TO,
 	svc->check_interval,
