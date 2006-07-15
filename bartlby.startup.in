@@ -87,30 +87,17 @@ function start_bartlby  {
 	LOGDIR=`getConfigValue "logfile"|tr -d [:cntrl:]`;
 	RUSER=`getConfigValue "user"|tr -d [:cntrl:]`;
 	#Check if LogPermission is OK
+	PRECMD="";
+	POSTCMD="";
 	
-	if [ "${2}x" = "x" ];
+	if [ "$USER" != "$RUSER" ];
 	then
-		if [ $USER != $RUSER ]; 
-		then
-			su -c "echo 1 >> ${LOGDIR}.$(date +%Y.%m.%d)" - $RUSER
-			EXC=$?;
-			if [ $EXC != 0 ];
-			then
-				raiseErr "either the user '${RUSER}' does not exist or the logfile: ${LOGDIR}.$(date +%Y.%m.%d) does not exist or is not writeable" 5
-			
-			fi;
-		else
-			echo 1 >> ${LOGDIR}.$(date +%Y.%m.%d)
-			EXC=$?;
-			if [ $EXC != 0 ];
-			then
-				raiseErr "either the user '${RUSER}' does not exist or the logfile: ${LOGDIR}.$(date +%Y.%m.%d) does not exist or is not writeable" 5
-			fi;
-				
-		fi;	
+		su -c "${BTL_DIR}/${BIN_DIR}bartlby $BTL_DIR/${ETC_DIR}bartlby.cfg" - $RUSER
+	else
+		${BTL_DIR}/${BIN_DIR}bartlby $BTL_DIR/${ETC_DIR}bartlby.cfg
 	fi;
 	
-	$BTL_DIR/${BIN_DIR}bartlby $BTL_DIR/${ETC_DIR}bartlby.cfg
+	
 
 }
 
@@ -177,6 +164,14 @@ case $1 in
 		
 
 esac
+
+
+
+
+
+
+
+
 
 
 
