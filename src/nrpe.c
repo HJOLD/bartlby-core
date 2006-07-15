@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.8  2006/07/15 10:28:39  hjanuschka
+nrpe FIXME solved
+
 Revision 1.7  2006/05/30 21:41:18  hjanuschka
 nrpe ssl timeout
 
@@ -530,7 +533,7 @@ int my_connect(char *host_name,int port,int *sd,char *proto, struct service * sv
 void alarm_handler(int sig){
 
         conn_timedout = 1;
-        _log("FIXME: nrpe timeout SSL_connect");
+        //_log("FIXME: nrpe timeout SSL_connect");
         
        
        
