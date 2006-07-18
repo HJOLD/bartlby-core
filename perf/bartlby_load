@@ -18,10 +18,9 @@ function getConfigValue {
 RRD_HTDOCS=$(getConfigValue performance_rrd_htdocs|tr -d [:blank:]);
 
 RRD_TOOLCFG=$(getConfigValue rrd_tool|tr -d [:blank:]);
-RRDTOOL=${RRD_TOOLCFG:-'/usr/bin/rrdtool'}
+RRDTOOL=${RRD_TOOLCFG:-'nice -n19 /usr/bin/rrdtool'}
 
 RRDFILE="${RRD_HTDOCS}/${1}_bartlby_load.rrd";
-
 PNGFILE="${RRD_HTDOCS}/${1}_bartlby_load.png";
 PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_load7.png";
 
@@ -42,38 +41,46 @@ then
 	fi;
 fi;
 
-$RRDTOOL update $RRDFILE N:$3:$4:$5
 
 
-$RRDTOOL graph $PNGFILE --start -86400 \
--a PNG -t "Load Average Last 24 Hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 -M \
-DEF:load1=${RRDFILE}:load1:AVERAGE \
-DEF:load5=${RRDFILE}:load5:AVERAGE \
-DEF:load15=${RRDFILE}:load15:AVERAGE \
-VDEF:load1l=load1,LAST \
-VDEF:load5l=load5,LAST \
-VDEF:load15l=load15,LAST \
-AREA:load1#ff0000:"1 Minutes,   last\:" GPRINT:load1l:"%5.2lf\n" \
-AREA:load5#ff9900:"5 Minutes,  last\:" GPRINT:load5l:"%5.2lf     generated @ \n" \
-AREA:load15#ffff00:"15 Minutes, last\:" GPRINT:load15l:"%5.2lf    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
-LINE1:load5#ff9900:"" \
-LINE1:load1#ff0000:"" > /dev/null
-
-# 7 Tage - Load Average
-$RRDTOOL graph $PNGFILE_SEVEN --start -604800 \
--a PNG -t "Load Average Last 7 Days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 \
-DEF:load1=${RRDFILE}:load1:AVERAGE \
-DEF:load5=${RRDFILE}:load5:AVERAGE \
-DEF:load15=${RRDFILE}:load15:AVERAGE \
-VDEF:load1l=load1,LAST \
-VDEF:load5l=load5,LAST \
-VDEF:load15l=load15,LAST \
-AREA:load1#ff0000:"1 Minutes,   last\:" GPRINT:load1l:"%5.2lf\n" \
-AREA:load5#ff9900:"5 Minutes,  last\:" GPRINT:load5l:"%5.2lf     Generated @ \n" \
-AREA:load15#ffff00:"15 Minutes, last\:" GPRINT:load15l:"%5.2lf    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
-LINE1:load5#ff9900:"" \
-LINE1:load1#ff0000:"" > /dev/null
+if [ "$1" = "graph" ];
+then
+	RRDFILE="${RRD_HTDOCS}/${2}_bartlby_load.rrd";
+	PNGFILE="${RRD_HTDOCS}/${2}_bartlby_load.png";
+	PNGFILE_SEVEN="${RRD_HTDOCS}/${2}_bartlby_load7.png";
 
 
+	nice -n19 $RRDTOOL graph $PNGFILE --start -86400 \
+		-a PNG -t "Load Average Last 24 Hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 -M \
+		DEF:load1=${RRDFILE}:load1:AVERAGE \
+		DEF:load5=${RRDFILE}:load5:AVERAGE \
+		DEF:load15=${RRDFILE}:load15:AVERAGE \
+		VDEF:load1l=load1,LAST \
+		VDEF:load5l=load5,LAST \
+		VDEF:load15l=load15,LAST \
+		AREA:load1#ff0000:"1 Minutes,   last\:" GPRINT:load1l:"%5.2lf\n" \
+		AREA:load5#ff9900:"5 Minutes,  last\:" GPRINT:load5l:"%5.2lf     generated @ \n" \
+		AREA:load15#ffff00:"15 Minutes, last\:" GPRINT:load15l:"%5.2lf    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
+		LINE1:load5#ff9900:"" \
+		LINE1:load1#ff0000:"" > /dev/null
+	echo "generated 24 hour graph";
+	# 7 Tage - Load Average
+	nice -n19 $RRDTOOL graph $PNGFILE_SEVEN --start -604800 \
+		-a PNG -t "Load Average Last 7 Days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Average Load" -w 600 -h 300 \
+		DEF:load1=${RRDFILE}:load1:AVERAGE \
+		DEF:load5=${RRDFILE}:load5:AVERAGE \
+		DEF:load15=${RRDFILE}:load15:AVERAGE \
+		VDEF:load1l=load1,LAST \
+		VDEF:load5l=load5,LAST \
+		VDEF:load15l=load15,LAST \
+		AREA:load1#ff0000:"1 Minutes,   last\:" GPRINT:load1l:"%5.2lf\n" \
+		AREA:load5#ff9900:"5 Minutes,  last\:" GPRINT:load5l:"%5.2lf     Generated @ \n" \
+		AREA:load15#ffff00:"15 Minutes, last\:" GPRINT:load15l:"%5.2lf    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
+		LINE1:load5#ff9900:"" \
+		LINE1:load1#ff0000:"" > /dev/null
+	echo "generated 7day graph";
+else
+	nice -n19 $RRDTOOL update $RRDFILE N:$3:$4:$5
+fi;
 
-echo -n "$RRDFILE done";
+

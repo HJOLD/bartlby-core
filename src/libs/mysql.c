@@ -16,6 +16,15 @@ $Source$
 
 
 $Log$
+Revision 1.40  2006/07/18 21:38:23  hjanuschka
+core: a major BUG has been discoverd in the first production envorioments
+	 when a worker has only selected OK and CRITICAL notifications
+	 he always got notified about a change from (unselected) WARNING back to OK
+	 this had produce ALOT of unserious OK notifications
+	 -- 18-07-06 fixed :-)
+
+core: perfhandlers have been re-worked to only collect data
+
 Revision 1.39  2006/07/15 14:02:08  hjanuschka
 data lib active_service etc..
 
@@ -1855,6 +1864,10 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].pstat.sum=0;
       			svcs[i].pstat.counter=0;
       			svcs[i].do_force=0;
+      			svcs[i].recovery_outstanding=RECOVERY_DONE;
+      			if(svcs[i].current_state == STATE_CRITICAL) {
+      				svcs[i].recovery_outstanding=RECOVERY_OUTSTANDING;
+      			}
       			
       			
       			//Log("load", "%s -> %s", svcs[i].plugin, svcs[i].plugin_arguments);

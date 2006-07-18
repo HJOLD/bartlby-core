@@ -7,6 +7,10 @@
 #define MAX_CCACHE 1024
 
 
+#define RECOVERY_OUTSTANDING 1
+#define RECOVERY_DONE 0
+
+
 #define EXTENSION_OK 0
 #define EXTENSION_NOK 1
 
@@ -157,6 +161,8 @@ struct service {
 	int do_force;
 	
 	struct snmpi snmp_info;
+	
+	int recovery_outstanding; //Flag to see if recover is waiting
 	
 };
 

@@ -16,6 +16,15 @@ $Source$
 
 
 $Log$
+Revision 1.19  2006/07/18 21:38:23  hjanuschka
+core: a major BUG has been discoverd in the first production envorioments
+	 when a worker has only selected OK and CRITICAL notifications
+	 he always got notified about a change from (unselected) WARNING back to OK
+	 this had produce ALOT of unserious OK notifications
+	 -- 18-07-06 fixed :-)
+
+core: perfhandlers have been re-worked to only collect data
+
 Revision 1.18  2006/06/29 18:14:40  hjanuschka
 fixing trigger check typo
 
@@ -107,6 +116,7 @@ CVS Header
 #define TR 1
 #define ESCALATION_MINUTES 2
 #define ESCALATION_LIMIT 50
+#define FLAP_SECONDS (2*60)
 
 static int connection_timed_out=0;
 #define CONN_TIMEOUT 15
@@ -116,16 +126,36 @@ static void trigger_conn_timeout(int signo) {
  	connection_timed_out = 1;
 }
 
-int bartlby_trigger_worker_level(struct worker * w, int level) {
-	char * find_level;
+int bartlby_trigger_worker_level(struct worker * w, int level, int last, struct service * svc) {
+	char * find_level, * last_level;
 	char * blevel;
 	int rt;
 	
 	blevel=bartlby_beauty_state(level);
 	find_level=malloc(10+2);
+	last_level=malloc(10+2);
+	
+	sprintf(last_level, "|%d|", last);
 	sprintf(find_level, "|%d|",level);
 	if(strstr(w->notify_levels, find_level) != NULL || strlen(w->notify_levels) == 0) {
-		rt=TR;
+		if(level < last) {
+			//_log("@debug level:%d < last:%d", level, last);
+			if(strstr(w->notify_levels, last_level) != NULL) {
+				rt=TR;
+				//_log("@debug has both levels: %d/%d", level, last);		
+			} else {
+				if(level == STATE_OK && svc->recovery_outstanding == RECOVERY_OUTSTANDING) {
+					rt=TR;
+					//_log("@debug services has recoverd so pull trigger %d/%d", level, last);
+				} else { 
+					//_log("@debug service doesn't have last_state %d/%d", level, last);	
+					rt = FL;	
+				}
+			}
+		} else {
+			//_log("@debug current level is selected and higher than last so fire!! %d/%d", level, last);	
+			rt=TR;
+		}
 	} else {
 		rt=FL;	
 		_log("Worker %s doesnt have level: %s '%s'-->'%s'(%d)", w->mail, blevel, find_level, w->notify_levels, strlen(w->notify_levels));
@@ -133,6 +163,7 @@ int bartlby_trigger_worker_level(struct worker * w, int level) {
 	}
 	
 	free(blevel);
+	free(last_level);
 	free(find_level);	
 	return rt;
 }
@@ -163,7 +194,7 @@ int bartlby_trigger_chk(struct service *svc) {
 		_log("Suppressed notify: Notifications disabled %s:%d/%s",svc->client_ip, svc->client_port, svc->service_name);
 		return FL;
 	} else {
-		if((time(NULL)- svc->last_notify_send) >= (2*60)) {
+		if((time(NULL)- svc->last_notify_send) >= FLAP_SECONDS) {
 			svc->flap_count=0;
 			return TR;				
 		} else {
@@ -289,7 +320,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 						
 						
 						if((bartlby_trigger_escalation(&wrkmap[x])) == FL) continue;
-						if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state)) == FL) continue;
+						if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state, svc->notify_last_state, svc)) == FL) continue;
 						
 						//_log("EXEC trigger: %s", full_path);
 						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);

@@ -16,6 +16,15 @@ $Source$
 
 
 $Log$
+Revision 1.48  2006/07/18 21:38:23  hjanuschka
+core: a major BUG has been discoverd in the first production envorioments
+	 when a worker has only selected OK and CRITICAL notifications
+	 he always got notified about a change from (unselected) WARNING back to OK
+	 this had produce ALOT of unserious OK notifications
+	 -- 18-07-06 fixed :-)
+
+core: perfhandlers have been re-worked to only collect data
+
 Revision 1.47  2006/06/21 11:34:30  hjanuschka
 fixing trigger bug
 
@@ -668,24 +677,26 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	if(svc->current_state != svc->last_state) {
 		svc->service_retain_current=0;
 		svc->last_state=svc->current_state;
+		
 		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
 		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
 		bartlby_callback(EXTENSION_CALLBACK_STATE_CHANGED, svc);
 	}	
 	if(svc->service_retain_current == svc->service_retain && svc->current_state != svc->notify_last_state) {
-		//udate tstamp text and call trigger *g*
-		//_log("<%d/%d--DOLOG>%d;%d;);	
-		//_log("Retain reached: 	%d/%d", svc->service_retain_current, svc->service_retain);
-		//_log("DD: %d --> %d",svc->current_state, svc->notify_last_state);
-		//_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
-		
+	
 		bartlby_push_event(EVENT_TRIGGER_PUSHED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
-		
-		
-		svc->notify_last_state=svc->current_state;
-		bartlby_trigger(svc, cfgfile, shm_addr, 1);
 				
-		//_log("%s:%d/%s|%s trigger end",svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
+		if(svc->current_state == STATE_CRITICAL && svc->recovery_outstanding == RECOVERY_DONE) {
+			svc->recovery_outstanding = RECOVERY_OUTSTANDING;	
+		}
+		
+		bartlby_trigger(svc, cfgfile, shm_addr, 1);
+		svc->notify_last_state=svc->current_state;
+		
+		if(svc->current_state == STATE_OK && svc->recovery_outstanding == RECOVERY_OUTSTANDING) {
+			svc->recovery_outstanding=RECOVERY_DONE;
+			
+		}
 		
 		if(svc->service_ack == ACK_NEEDED && svc->current_state == STATE_CRITICAL) {
 			svc->service_ack=ACK_OUTSTANDING;	

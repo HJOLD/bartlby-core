@@ -45,13 +45,22 @@ then
 fi;
 
 
-$RRDTOOL update $RRDFILE N:$3:$4
 
 
 
+if [ "$1" = "graph" ];
+then
+	RRDFILE="${RRD_HTDOCS}/${2}_bartlby_if.rrd";
 
-$RRDTOOL graph $PNGFILE --start -86400 -a PNG -t "last 24 hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes/s" -w 600 -h 300 -M DEF:eth0r=${RRDFILE}:eth0r:AVERAGE DEF:eth0t=${RRDFILE}:eth0t:AVERAGE CDEF:eth0tn=eth0t,-1,* VDEF:eth0ra=eth0r,AVERAGE VDEF:eth0rm=eth0r,MAXIMUM VDEF:eth0rc=eth0r,LAST VDEF:eth0ta=eth0t,AVERAGE VDEF:eth0tm=eth0t,MAXIMUM VDEF:eth0tc=eth0t,LAST COMMENT:"               Average           Max          current   per second\n" AREA:eth0r#00dd00:"Receive " GPRINT:eth0ra:"%12.3lf %sb" GPRINT:eth0rm:"%12.3lf %sb" GPRINT:eth0rc:"%12.3lf %sb\n" AREA:eth0tn#0000ff:"Transmit" GPRINT:eth0ta:"%12.3lf %sb" GPRINT:eth0tm:"%12.3lf %sb" GPRINT:eth0tc:"%12.3lf %sb" > /dev/null
-$RRDTOOL graph $PNGFILE_SEVEN --start -604800 -a PNG -t "last 7 days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes/s" -w 600 -h 300 -M DEF:eth0r=${RRDFILE}:eth0r:AVERAGE DEF:eth0t=${RRDFILE}:eth0t:AVERAGE CDEF:eth0tn=eth0t,-1,* VDEF:eth0ra=eth0r,AVERAGE VDEF:eth0rm=eth0r,MAXIMUM VDEF:eth0rc=eth0r,LAST VDEF:eth0ta=eth0t,AVERAGE VDEF:eth0tm=eth0t,MAXIMUM VDEF:eth0tc=eth0t,LAST COMMENT:"               Average           Max          current   per second\n" AREA:eth0r#00dd00:"Receive " GPRINT:eth0ra:"%12.3lf %sb" GPRINT:eth0rm:"%12.3lf %sb" GPRINT:eth0rc:"%12.3lf %sb\n" AREA:eth0tn#0000ff:"Transmit" GPRINT:eth0ta:"%12.3lf %sb" GPRINT:eth0tm:"%12.3lf %sb" GPRINT:eth0tc:"%12.3lf %sb" > /dev/null
+	PNGFILE="${RRD_HTDOCS}/${2}_bartlby_if.png";
+	PNGFILE_SEVEN="${RRD_HTDOCS}/${2}_bartlby_if7.png";
+
+	nice -n19 $RRDTOOL graph $PNGFILE --start -86400 -a PNG -t "last 24 hours ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes/s" -w 600 -h 300 -M DEF:eth0r=${RRDFILE}:eth0r:AVERAGE DEF:eth0t=${RRDFILE}:eth0t:AVERAGE CDEF:eth0tn=eth0t,-1,* VDEF:eth0ra=eth0r,AVERAGE VDEF:eth0rm=eth0r,MAXIMUM VDEF:eth0rc=eth0r,LAST VDEF:eth0ta=eth0t,AVERAGE VDEF:eth0tm=eth0t,MAXIMUM VDEF:eth0tc=eth0t,LAST COMMENT:"               Average           Max          current   per second\n" AREA:eth0r#00dd00:"Receive " GPRINT:eth0ra:"%12.3lf %sb" GPRINT:eth0rm:"%12.3lf %sb" GPRINT:eth0rc:"%12.3lf %sb\n" AREA:eth0tn#0000ff:"Transmit" GPRINT:eth0ta:"%12.3lf %sb" GPRINT:eth0tm:"%12.3lf %sb" GPRINT:eth0tc:"%12.3lf %sb" > /dev/null
+	echo "generated 24 hour graph";
+	nice -n19 $RRDTOOL graph $PNGFILE_SEVEN --start -604800 -a PNG -t "last 7 days ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes/s" -w 600 -h 300 -M DEF:eth0r=${RRDFILE}:eth0r:AVERAGE DEF:eth0t=${RRDFILE}:eth0t:AVERAGE CDEF:eth0tn=eth0t,-1,* VDEF:eth0ra=eth0r,AVERAGE VDEF:eth0rm=eth0r,MAXIMUM VDEF:eth0rc=eth0r,LAST VDEF:eth0ta=eth0t,AVERAGE VDEF:eth0tm=eth0t,MAXIMUM VDEF:eth0tc=eth0t,LAST COMMENT:"               Average           Max          current   per second\n" AREA:eth0r#00dd00:"Receive " GPRINT:eth0ra:"%12.3lf %sb" GPRINT:eth0rm:"%12.3lf %sb" GPRINT:eth0rc:"%12.3lf %sb\n" AREA:eth0tn#0000ff:"Transmit" GPRINT:eth0ta:"%12.3lf %sb" GPRINT:eth0tm:"%12.3lf %sb" GPRINT:eth0tc:"%12.3lf %sb" > /dev/null
+	echo "generated 7 day graph";
+else
+	$RRDTOOL update $RRDFILE N:$3:$4
+fi;
 
 
-echo -n "$RRDFILE done";
