@@ -1,6 +1,6 @@
 include Makefile.conf
 
-SUBDIRS = src/ src/libs/ src/tools/ 
+SUBDIRS = src/ src/libs/ src/tools/
 
 
 DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui bartlby-docs
@@ -51,6 +51,7 @@ cvs-clean:
 	$(RMVFR) shmt
 	$(RMVFR) bartlby_shmt
 	$(RMVFR) bartlby_cmd
+	$(RMVFR) bartlby_portier
 	$(RMVFR) *2006*
 	$(RMVFR) config.status
 	$(RMVFR) config.log
