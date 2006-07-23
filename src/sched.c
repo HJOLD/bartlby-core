@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.36  2006/07/23 02:09:00  hjanuschka
+core extension's fixup
+
 Revision 1.35  2006/06/14 22:44:50  hjanuschka
 fixing stdout bug on early mysql errors
 fixing miss behavior of the extension interface in various code pieces
@@ -266,11 +269,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 			return 1;
 		}
 	}	
-	if(bartlby_callback(EXTENSION_CALLBACK_SCHED_WAIT, svc) != EXTENSION_OK) {
-		return 1;
-	} else {
-		return -1;
-	}
+	return -1;
 }
 
 void sched_wait_open(int timeout) {
