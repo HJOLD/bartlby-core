@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.37  2006/07/25 21:42:03  hjanuschka
+auto commit
+
 Revision 1.36  2006/07/23 02:09:00  hjanuschka
 core extension's fixup
 
@@ -311,7 +314,7 @@ void sched_reaper(int signum) {
 	 }
 	
 	if(WIFSIGNALED(status)) {
-		if(WTERMSIG(status) != SIGCHLD) {
+		if(WTERMSIG(status) == SIGSEGV) {
 			_log("Child exited unexpected status: %d / %s", WTERMSIG(status), strsignal(WTERMSIG(status))); 
 			if(gshm_hdr->current_running > 0) {
 				gshm_hdr->current_running--;

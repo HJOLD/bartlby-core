@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.16  2006/07/25 21:42:03  hjanuschka
+auto commit
+
 Revision 1.15  2006/07/23 20:32:54  hjanuschka
 *** empty log message ***
 
@@ -93,6 +96,9 @@ CVS Header
 #include <bartlby.h>
 
 char config_file[255];
+char last_log_line[1024];
+int last_line_count=0;
+
 
 void set_cfg(char * cfg) {
 	sprintf(config_file, "%s", cfg);	
@@ -144,7 +150,8 @@ void bartlby_encode(char * msg, int length) {
 
 int _log(char * str,  ...) {
 //	printf("LOG: %s\n", str);
-
+	
+	char cur_log_line[1024];
 	va_list argzeiger;
 	time_t tnow;
 	struct tm *tmnow;
@@ -177,25 +184,45 @@ int _log(char * str,  ...) {
 	}
 	
 	
+	
  	va_start(argzeiger,str);
    
-   	if(strcmp(logfile, "/dev/stdout") == 0) {
-   		printf("%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
-   		vprintf(str, argzeiger);
-   		printf(";\n");
-	} else {
-		fp=fopen(logfile, "a");   	
-		if(fp == NULL) {
-			perror(logfile);
-			exit(1);	
-		}
-   		fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
-   		vfprintf(fp, str, argzeiger);
-   		fprintf(fp, ";\n");
-   		//vprintf(string,argzeiger);
-   		//fflush(pos2_log_file);
-   		
-   		fclose(fp);
+   	vsnprintf(cur_log_line, 1000, str, argzeiger);
+   	if(strcmp(cur_log_line, last_log_line) == 0) {
+   		last_line_count++;	
+   	} else {
+   	
+   		if(strcmp(logfile, "/dev/stdout") == 0) {
+   			printf("%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
+   			vprintf(str, argzeiger);
+   			printf(";\n");
+   			
+   			if(last_line_count > 0) {
+   				printf("%02d.%02d.%02d %02d:%02d:%02d;[%d]; Last log message repeated %d times (%20s);\n", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid(), last_line_count, last_log_line);	
+   			}
+   			vsnprintf(last_log_line, 1000, str, argzeiger);
+   			last_line_count=0;
+		} else {
+			fp=fopen(logfile, "a");   	
+			if(fp == NULL) {
+				perror(logfile);
+				exit(1);	
+			}
+   			fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d];", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid());
+   			vfprintf(fp, str, argzeiger);
+   			fprintf(fp, ";\n");
+   			//vprintf(string,argzeiger);
+   			//fflush(pos2_log_file);
+   			
+   			
+   			
+   			if(last_line_count > 0) {
+   				fprintf(fp, "%02d.%02d.%02d %02d:%02d:%02d;[%d]; Last log message repeated %d times (%20s);\n", tmnow->tm_mday,tmnow->tm_mon + 1,tmnow->tm_year + 1900, tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec, getpid(), last_line_count, last_log_line);	
+   			}
+   			vsnprintf(last_log_line, 1000, str, argzeiger);
+   			last_line_count=0;
+   			fclose(fp);
+   		}
    	}
    	va_end(argzeiger);
    	free(logfile);

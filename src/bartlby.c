@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.33  2006/07/25 21:42:03  hjanuschka
+auto commit
+
 Revision 1.32  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -276,6 +279,12 @@ int main(int argc, char ** argv, char ** envp) {
 	#ifdef WITH_NRPE
 	_log("NRPE Support compiled in");
 	#endif
+	_log("test");
+	_log("test");
+	_log("test1");
+	_log("test");
+	_log("test");
+	
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
 		daemon_mode=strdup("false");	
