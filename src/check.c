@@ -16,14 +16,8 @@ $Source$
 
 
 $Log$
-Revision 1.51  2006/07/28 20:27:40  hjanuschka
-*** empty log message ***
-
-Revision 1.50  2006/07/28 20:15:40  hjanuschka
-*** empty log message ***
-
-Revision 1.49  2006/07/28 20:04:26  hjanuschka
-passive services support perf handlers now
+Revision 1.52  2006/07/28 21:17:44  hjanuschka
+auto commit
 
 Revision 1.48  2006/07/18 21:38:23  hjanuschka
 core: a major BUG has been discoverd in the first production envorioments
@@ -358,7 +352,7 @@ void bartlby_check_local(struct service * svc, char * cfgfile) {
 		connection_timed_out = 0;
 		sprintf(rmessage, "%d|%s", WEXITSTATUS(plugin_rtc), rmessage_temp); 
 		
-		bartlby_action_handle_reply(svc, rmessage, cfgfile, 0);
+		bartlby_action_handle_reply(svc, rmessage, cfgfile);
 		
 		free(rmessage_temp);
 		free(rmessage);
@@ -512,14 +506,14 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	close(client_socket);
 	
 	
-	bartlby_action_handle_reply(svc, rmessage, cfgfile, 0);
+	bartlby_action_handle_reply(svc, rmessage, cfgfile);
 	
 	free(rmessage);
 	
         return;
 		
 }
-void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * cfgfile, int type) {
+void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * cfgfile) {
 	int char_idx=0, cur_char_idx=0;
 	
 	char * curr_line;
@@ -541,7 +535,7 @@ void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * c
    			curr_line[cur_char_idx]='\0';
    			
    			if(strlen(curr_line) > 0) {
-   				data_is_ok=bartlby_action_handle_reply_line(svc, curr_line, cfgfile, type);
+   				data_is_ok=bartlby_action_handle_reply_line(svc, curr_line, cfgfile);
    			}
    			
    			cur_char_idx=0;	
@@ -561,7 +555,7 @@ void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * c
 	}
 	
 }
-int bartlby_action_handle_reply_line(struct service * svc, char * line, char * cfgfile, int type) {
+int bartlby_action_handle_reply_line(struct service * svc, char * line, char * cfgfile) {
 	char * return_token;
 	
 	if(strlen(line) == 0) {
@@ -577,37 +571,30 @@ int bartlby_action_handle_reply_line(struct service * svc, char * line, char * c
 		return 0;
 	}
 	//_log("DATA: '%s'", line);
-	if(type == 0) { //active services
-		return_token = strtok(line, "|");
-     	   if(return_token != NULL) {
-     	   	//Verfiy result code to be 0-2 :-) 
-     	   	if(return_token[0] != '0' && return_token[0] != '1' && return_token[0] != '2') {
-     	   		svc->current_state=STATE_UNKOWN;	
-     	   	} else {
-     	   		svc->current_state=atoi(return_token);
-     	   	}
-     	   	
-     	   	return_token = strtok(NULL, "|");
-     	   	if(return_token != NULL) {
-     	   		sprintf(svc->new_server_text, "%s", return_token);
-     	   	} else {
-     	   		
-     	   		sprintf(svc->new_server_text, "(empty output)");
-     	   		
-     	   	}	
-     	   	return 1;
-     	   } else {
-     	   	
-     	   	sprintf(svc->new_server_text, PROTOCOL_ERROR);
-     	   	svc->current_state=STATE_CRITICAL;
-     	   	return 1;
-     	   }
-	} else if(type == 1) { //Passive services
-		sprintf(svc->new_server_text, line); 	
-		return 1;
-	} else {
-		return 0;	
-	}
+	return_token = strtok(line, "|");
+        if(return_token != NULL) {
+        	//Verfiy result code to be 0-2 :-) 
+        	if(return_token[0] != '0' && return_token[0] != '1' && return_token[0] != '2') {
+        		svc->current_state=STATE_UNKOWN;	
+        	} else {
+        		svc->current_state=atoi(return_token);
+        	}
+        	
+        	return_token = strtok(NULL, "|");
+        	if(return_token != NULL) {
+        		sprintf(svc->new_server_text, "%s", return_token);
+        	} else {
+        		
+        		sprintf(svc->new_server_text, "(empty output)");
+        		
+        	}	
+        	return 1;
+        } else {
+        	
+        	sprintf(svc->new_server_text, PROTOCOL_ERROR);
+        	svc->current_state=STATE_CRITICAL;
+        	return 1;
+        }
 	
 	
 	
@@ -744,7 +731,6 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandle, char * cfgfile) {
 	//_log("check service");
 	int ctime, pdiff;
-	char * rmessage_tmp;
 	//_log("<%d/%d -- CHECK >: %s",svc->current_state,svc->last_state, svc->service_name);
 	
 	setenv("BARTLBY_CONFIG", cfgfile,1);
@@ -775,11 +761,6 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 		}
 		//_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
-		rmessage_tmp = strdup(svc->new_server_text);
-		bartlby_action_handle_reply(svc, rmessage_tmp, cfgfile, 1);
-		free(rmessage_tmp);
-		
-		
 		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}
