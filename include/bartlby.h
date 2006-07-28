@@ -247,8 +247,8 @@ void set_cfg(char * cfg);
 void str_replace(char *str, const char *from, const char *to, int maxlen);
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max);
 
-void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * cfgfile);
-int bartlby_action_handle_reply_line(struct service * svc, char * line, char *cfgfile);
+void bartlby_action_handle_reply(struct service * svc, char * rmessage, char * cfgfile, int type);
+int bartlby_action_handle_reply_line(struct service * svc, char * line, char *cfgfile, int type);
 void bartlby_check_sirene(char * configfile, void * bartlby_address);
 int bartlby_is_in_downtime(void * bartlby_address, struct service * svc);
 ssize_t recvall(int _socket, char* buffer, int max_len,int flags);
