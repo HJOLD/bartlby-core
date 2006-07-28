@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.50  2006/07/28 20:15:40  hjanuschka
+*** empty log message ***
+
 Revision 1.49  2006/07/28 20:04:26  hjanuschka
 passive services support perf handlers now
 
@@ -762,9 +765,11 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 		}
 		//_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
-		rmessage_tmp = strdup(svc->new_server_text);
+		/*rmessage_tmp = strdup(svc->new_server_text);
 		bartlby_action_handle_reply(svc, rmessage_tmp, cfgfile);
 		free(rmessage_tmp);
+		*/
+		
 		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}
