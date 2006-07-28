@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.49  2006/07/28 20:04:26  hjanuschka
+passive services support perf handlers now
+
 Revision 1.48  2006/07/18 21:38:23  hjanuschka
 core: a major BUG has been discoverd in the first production envorioments
 	 when a worker has only selected OK and CRITICAL notifications
@@ -728,6 +731,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandle, char * cfgfile) {
 	//_log("check service");
 	int ctime, pdiff;
+	char * rmessage_tmp;
 	//_log("<%d/%d -- CHECK >: %s",svc->current_state,svc->last_state, svc->service_name);
 	
 	setenv("BARTLBY_CONFIG", cfgfile,1);
@@ -758,6 +762,9 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 		}
 		//_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
+		rmessage_tmp = strdup(svc->new_server_text);
+		bartlby_action_handle_reply(svc, rmessage_tmp, cfgfile);
+		free(rmessage_tmp);
 		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}
