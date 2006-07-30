@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.41  2006/07/30 22:47:06  hjanuschka
+auto commit
+
 Revision 1.40  2006/07/18 21:38:23  hjanuschka
 core: a major BUG has been discoverd in the first production envorioments
 	 when a worker has only selected OK and CRITICAL notifications
@@ -242,7 +245,7 @@ CVS Header
 
 
 #define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d', service_notify='%d', service_active='%d'  where service_id=%d"
-#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, srv.server_ico from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 
@@ -1016,6 +1019,12 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->snmp_info.warn = atoi(row[27]);
       		svc->snmp_info.crit = atoi(row[28]);
       		svc->snmp_info.type = atoi(row[29]);
+      		
+      		if(row[30] != NULL) {
+      			snprintf(svc->server_icon, 1000, "%s", row[30]);
+      		} else {
+      			sprintf(svc->server_icon, "(null)");	
+      		}		
       		
       		
       		tmprc=0;
