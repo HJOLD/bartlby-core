@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.42  2006/07/31 22:19:11  hjanuschka
+auto commit
+
 Revision 1.41  2006/07/30 22:47:06  hjanuschka
 auto commit
 
@@ -236,13 +239,14 @@ CVS Header
 #define DELETE_SERVER "delete from servers where server_id=%d"
 #define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s' where server_id=%d"
 #define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico from servers where server_id=%d"
-
+#define SERVER_CHANGE_ID "update servers set server_id=%d where server_id=%d"
+#define SERVER_CHANGE_SERVICES "update services set server_id=%d where server_id=%d"
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
 #define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain, service_snmp_community, service_snmp_objid, service_snmp_version, service_snmp_warning, service_snmp_critical, service_snmp_type) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d)"
 #define DELETE_SERVICE "delete from services where service_id=%d"
-
+#define SERVICE_CHANGE_ID "update services set service_id=%d where service_id=%d"
 
 #define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d', service_notify='%d', service_active='%d'  where service_id=%d"
 #define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, srv.server_ico from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
@@ -254,11 +258,15 @@ CVS Header
 #define DELETE_WORKER "delete from workers where worker_id=%d"
 #define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s', enabled_triggers='%s' WHERE worker_id=%d"
 #define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers where worker_id=%d"
+#define WORKER_CHANGE_ID "update workers set worker_id=%d where worker_id=%d"
+
 
 #define UPDATE_DOWNTIME "update downtime set downtime_notice='%s', downtime_from=%d,downtime_to=%d, service_id=%d, downtime_type=%d where downtime_id=%d"
 #define DEL_DOWNTIME "delete from downtime where downtime_id=%d"
 #define ADD_DOWNTIME "INSERT INTO downtime(downtime_type, downtime_from,downtime_to,service_id, downtime_notice) VALUES(%d,%d,%d,%d, '%s')"
 #define DOWNTIME_SEL "select downtime_id, downtime_type, downtime_from, downtime_to, downtime_notice, service_id from downtime"
+#define DOWNTIME_CHANGE_ID "update downtime set downtime_id=%d where downtime_id=%d"
+
 
 //Counters
 #define COUNT_SERVICES "select count(1) from services"
@@ -466,6 +474,175 @@ int DeleteDowntime(int downtime_id, char * config) {
 	
 }
 
+int DowntimeChangeId(int from, int to, char * config) {
+	MYSQL *mysql;
+	
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(DOWNTIME_CHANGE_ID)+40));
+	sprintf(sqlupd, DOWNTIME_CHANGE_ID, to, from);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+			
+	free(sqlupd);
+		
+	
+	mysql_close(mysql);
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	return to;	
+}
+
+int WorkerChangeId(int from, int to, char * config) {
+	MYSQL *mysql;
+	
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(WORKER_CHANGE_ID)+40));
+	sprintf(sqlupd, WORKER_CHANGE_ID, to, from);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+			
+	free(sqlupd);
+		
+	
+	mysql_close(mysql);
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	return to;	
+}
+
+int ServiceChangeId(int from, int to, char * config) {
+	MYSQL *mysql;
+	
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(SERVICE_CHANGE_ID)+40));
+	sprintf(sqlupd, SERVICE_CHANGE_ID, to, from);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+			
+	free(sqlupd);
+		
+	
+	mysql_close(mysql);
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	return to;	
+}
+
+int ServerChangeId(int from, int to, int sr, char * config) {
+	MYSQL *mysql;
+	
+	
+	char * sqlupd;
+	
+
+
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+	
+	
+	sqlupd=malloc(sizeof(char)*(strlen(SERVER_CHANGE_ID)+40));
+	sprintf(sqlupd, SERVER_CHANGE_ID, to, from);
+	
+	
+	
+	mysql_query(mysql, sqlupd);
+		CHK_ERR(mysql);
+			
+	free(sqlupd);
+	
+	if(sr == 1) {
+		
+		sqlupd=malloc(sizeof(char)*(strlen(SERVER_CHANGE_SERVICES)+40));
+		sprintf(sqlupd, SERVER_CHANGE_SERVICES, to,from);
+		mysql_query(mysql, sqlupd);
+			CHK_ERR(mysql);
+		free(sqlupd);	
+			
+	}
+	
+	
+	mysql_close(mysql);
+	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	return to;	
+}
 int AddDowntime(struct downtime * svc, char *config) {
 	
 	MYSQL *mysql;
