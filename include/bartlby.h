@@ -220,6 +220,10 @@ void bartlby_check_service(struct service * svc, void *, void *, char *);
 void bartlby_check_snmp(struct service * svc, char * cfgfile);
 void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl);
 
+void str_mysql_safe(char * str);
+void service_mysql_safe(struct service * svc);
+
+
 //Replication
 int replication_go(char *, void *, void *);
 

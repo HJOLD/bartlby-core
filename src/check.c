@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.53  2006/08/03 20:52:57  hjanuschka
+*** empty log message ***
+
 Revision 1.52  2006/07/28 21:17:44  hjanuschka
 auto commit
 
@@ -666,7 +669,7 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,char * cfgfile) {
 	char * dlmsg;
 	struct worker * wrkmap;
-	int x;
+
 	
 	struct shm_header * hdr;
 	
@@ -714,10 +717,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 			svc->last_check=time(NULL);
 	}
 	
-	for(x=0; x<=strlen(svc->new_server_text); x++) {
-		if(svc->new_server_text[x] == '\'')
-			svc->new_server_text[x]='"';
-	}
+	
 	bartlby_callback(EXTENSION_CALLBACK_POST_CHECK, svc);
 	
 	svc->service_retain_current++;

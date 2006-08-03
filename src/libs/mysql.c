@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.44  2006/08/03 20:52:57  hjanuschka
+*** empty log message ***
+
 Revision 1.43  2006/08/03 20:29:13  hjanuschka
 auto commit
 
@@ -1384,24 +1387,22 @@ int AddService(struct service * svc, char *config) {
 	int rtc;
 	
 	char * sqlupd;
-	int x;
-	
 	char * SVC_TIME_FROM, * SVC_TIME_TO;
 	
-	for(x=0; x<=strlen(svc->plugin_arguments); x++) {
-		if(svc->plugin_arguments[x] == '\'')
-			svc->plugin_arguments[x]=' '; 
-	}
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+
+	service_mysql_safe(svc);
+	
 	
 	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00                      "));
 	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00                      "));
 	sprintf(SVC_TIME_FROM,"%d:%d:00", svc->hour_from, svc->min_from);
 	sprintf(SVC_TIME_TO,"%d:%d:00", svc->hour_to, svc->min_to);
 	
-	char * mysql_host = getConfigValue("mysql_host", config);
-	char * mysql_user = getConfigValue("mysql_user", config);
-	char * mysql_pw = getConfigValue("mysql_pw", config);
-	char * mysql_db = getConfigValue("mysql_db", config);
 
 	mysql=mysql_init(NULL);
 		CHK_ERR(mysql);
@@ -1581,6 +1582,8 @@ int ModifyServer(struct service * svc, char *config) {
 	char * mysql_pw = getConfigValue("mysql_pw", config);
 	char * mysql_db = getConfigValue("mysql_db", config);
 
+	service_mysql_safe(svc);
+
 	mysql=mysql_init(NULL);
 		CHK_ERR(mysql);
 	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
@@ -1734,9 +1737,7 @@ char * GetVersion() {
 }
 
 int doUpdate(struct service * svc, char * config) {
-	
-	
-	
+
 	MYSQL *mysql;
 	
 	char * sqlupd;
@@ -1756,7 +1757,7 @@ int doUpdate(struct service * svc, char * config) {
       		CHK_ERR(mysql);
 	
 	
-	
+	service_mysql_safe(svc);
 	
 	sqlupd=malloc(sizeof(char) *(strlen(SERVICE_UPDATE_TEXT)+sizeof(struct service)+255));
 	

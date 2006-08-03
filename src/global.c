@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.17  2006/08/03 20:52:57  hjanuschka
+*** empty log message ***
+
 Revision 1.16  2006/07/25 21:42:03  hjanuschka
 auto commit
 
@@ -140,6 +143,27 @@ void bartlby_decode(char * msg, int length) {
 	}
 	
 }
+void str_mysql_safe(char * str) {
+	int x;
+	for(x=0; x<=strlen(str); x++) {
+		if(str[x] == '\'')
+			str[x]=' '; 
+	}	
+}
+void service_mysql_safe(struct service * svc) {
+	str_mysql_safe(svc->new_server_text);	
+	str_mysql_safe(svc->service_name);
+	str_mysql_safe(svc->server_name);
+	str_mysql_safe(svc->client_ip);
+	str_mysql_safe(svc->plugin);
+	str_mysql_safe(svc->plugin_arguments);
+	str_mysql_safe(svc->service_var);
+	str_mysql_safe(svc->server_icon);
+	str_mysql_safe(svc->snmp_info.community);
+	str_mysql_safe(svc->snmp_info.objid);
+	
+}
+
 void bartlby_encode(char * msg, int length) {
 	int x;
 	for(x=0; x<length; x++) {

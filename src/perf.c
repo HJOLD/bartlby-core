@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2006/08/03 20:52:57  hjanuschka
+*** empty log message ***
+
 Revision 1.6  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -99,7 +102,7 @@ int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int t
 
 void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile) {
 	struct stat perf_s;
-	char perf_out[2048];
+	//char perf_out[2048];
 	char * cfg_perf_dir;
 	char * perf_trigger;
 	char * perf_enabled;
