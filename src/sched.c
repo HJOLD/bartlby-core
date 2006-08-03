@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.38  2006/08/03 20:29:13  hjanuschka
+auto commit
+
 Revision 1.37  2006/07/25 21:42:03  hjanuschka
 auto commit
 
@@ -230,6 +233,25 @@ void catch_signal(int signum) {
 	}
 }
 
+void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
+	int x;
+	
+	struct service * services;
+	int (*doUpdate)(struct service *,char *);
+	char * dlmsg;
+	
+	gshm_hdr=bartlby_SHM_GetHDR(shm_addr); //just to be sure ;)
+	services=bartlby_SHM_ServiceMap(shm_addr);
+	
+	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
+	
+	for(x=0; x<gshm_hdr->svccount; x++) {
+		doUpdate(&services[x], cfgfile);
+	}	
+	_log("wrote back %d services!", x);
+	
+}
+
 void sched_reschedule(struct service * svc) {
 	svc->last_check=time(NULL);
 	//_log("Set last_check to %d on %s:%d/%s(%s)", svc->last_check, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
@@ -257,7 +279,8 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 	
 	if(svc->do_force == 1) {
 		svc->do_force=0; //dont force again
-		_log("Force: %s:%d/%s", svc->server_name, svc->client_port, svc->service_name);
+		//_log("Force: %s:%d/%s", svc->server_name, svc->client_port, svc->service_name);
+		_log("@FORCE@%d|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
 		return 1;	
 	}
 	

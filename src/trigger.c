@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.20  2006/08/03 20:29:13  hjanuschka
+auto commit
+
 Revision 1.19  2006/07/18 21:38:23  hjanuschka
 core: a major BUG has been discoverd in the first production envorioments
 	 when a worker has only selected OK and CRITICAL notifications
@@ -126,10 +129,15 @@ static void trigger_conn_timeout(int signo) {
  	connection_timed_out = 1;
 }
 
-int bartlby_trigger_worker_level(struct worker * w, int level, int last, struct service * svc) {
+int bartlby_trigger_worker_level(struct worker * w,  struct service * svc) {
 	char * find_level, * last_level;
 	char * blevel;
 	int rt;
+	int level;
+	int last;
+	
+	level = svc->current_state;
+	last  = svc->notify_last_state;
 	
 	blevel=bartlby_beauty_state(level);
 	find_level=malloc(10+2);
@@ -158,7 +166,7 @@ int bartlby_trigger_worker_level(struct worker * w, int level, int last, struct 
 		}
 	} else {
 		rt=FL;	
-		_log("Worker %s doesnt have level: %s '%s'-->'%s'(%d)", w->mail, blevel, find_level, w->notify_levels, strlen(w->notify_levels));
+		//_log("Worker %s doesnt have level: %s '%s'-->'%s'(%d)", w->mail, blevel, find_level, w->notify_levels, strlen(w->notify_levels));
 		
 	}
 	
@@ -168,7 +176,7 @@ int bartlby_trigger_worker_level(struct worker * w, int level, int last, struct 
 	return rt;
 }
 
-int bartlby_trigger_escalation(struct worker *w) {
+int bartlby_trigger_escalation(struct worker *w, struct service * svc) {
 	if(w->active != 1) {
 		//_log("Worker: %s is inactive", w->mail);
 		return FL;	
@@ -178,7 +186,7 @@ int bartlby_trigger_escalation(struct worker *w) {
 		return TR;	
 	} else {
 		if(w->escalation_count > ESCALATION_LIMIT) {
-			_log("escalation!!! %s->%d/%d",w->mail, w->escalation_count, ESCALATION_LIMIT);	
+			_log("@NOT-EXT@%d|%d|%d|%s||%s:%d/%s|'(escalation %d/%d)'", svc->service_id, svc->last_state ,svc->current_state,w->name, svc->server_name, svc->client_port, svc->service_name,w->escalation_count, ESCALATION_LIMIT);
 			return FL;
 		} else {
 			w->escalation_count++;
@@ -191,7 +199,8 @@ int bartlby_trigger_chk(struct service *svc) {
 	
 	
 	if(svc->notify_enabled == 0) {
-		_log("Suppressed notify: Notifications disabled %s:%d/%s",svc->client_ip, svc->client_port, svc->service_name);
+		//_log("Suppressed notify: Notifications disabled %s:%d/%s",svc->client_ip, svc->client_port, svc->service_name);
+		_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Notifications disabled)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
 		return FL;
 	} else {
 		if((time(NULL)- svc->last_notify_send) >= FLAP_SECONDS) {
@@ -200,7 +209,7 @@ int bartlby_trigger_chk(struct service *svc) {
 		} else {
 			
 			if(svc->flap_count > 2) {
-				_log("Suppressed notify: Service %s:%d/%s currently flapping: %d", svc->client_ip, svc->client_port, svc->service_name, svc->flap_count);
+				_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Service flapping %d)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->flap_count);
 				return FL;
 			} else {
 				//Log("trigger", "Service %s:%d/%s Sent", svc->client_ip, svc->client_port, svc->service_name);	
@@ -319,8 +328,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 					if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
 						
 						
-						if((bartlby_trigger_escalation(&wrkmap[x])) == FL) continue;
-						if((bartlby_trigger_worker_level(&wrkmap[x], svc->current_state, svc->notify_last_state, svc)) == FL) continue;
+						if((bartlby_trigger_escalation(&wrkmap[x], svc)) == FL) continue;
+						if((bartlby_trigger_worker_level(&wrkmap[x], svc)) == FL) continue;
 						
 						//_log("EXEC trigger: %s", full_path);
 						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
@@ -335,13 +344,14 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 							alarm(CONN_TIMEOUT);
 							if(fgets(trigger_return, 1024, ptrigger) != NULL) {
 								trigger_return[strlen(trigger_return)-1]='\0';
-								_log("Trigger(%s/%s) returned: `%s'", entry->d_name, wrkmap[x].name, trigger_return);
+								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'%s'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name, trigger_return);
+								
       							} else {
-      								_log("Trigger(%s/%s) empty output", entry->d_name, wrkmap[x].name);
+      								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(empty output)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
       							}
       							
       							if(connection_timed_out == 1) {
-      								_log("Trigger(%s/%s) Trigger timed out", entry->d_name, wrkmap[x].name);	
+      								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(timed out)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
       							}
       							connection_timed_out=0;
 							alarm(0);
@@ -349,7 +359,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
       								pclose(ptrigger);
       							}
       						} else {
-      							_log("trigger failed `%s'", full_path);	
+      							_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(failed %s)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name, full_path);	
       						}
 						free(exec_str);
 					} else {

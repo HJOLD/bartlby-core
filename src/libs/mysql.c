@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.43  2006/08/03 20:29:13  hjanuschka
+auto commit
+
 Revision 1.42  2006/07/31 22:19:11  hjanuschka
 auto commit
 
@@ -232,7 +235,7 @@ CVS Header
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers from workers"
-#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d, service_active=%d, service_notify=%d, service_check_timeout=%d, service_ack=%d where service_id=%d"
+#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
 
 #define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico) VALUES('%s','%s', '%d', '%s')"
@@ -1757,7 +1760,7 @@ int doUpdate(struct service * svc, char * config) {
 	
 	sqlupd=malloc(sizeof(char) *(strlen(SERVICE_UPDATE_TEXT)+sizeof(struct service)+255));
 	
-	sprintf(sqlupd, SERVICE_UPDATE_TEXT, svc->last_check, svc->new_server_text, svc->current_state, svc->service_active, svc->notify_enabled, svc->service_check_timeout,svc->service_ack, svc->service_id);
+	sprintf(sqlupd, SERVICE_UPDATE_TEXT, svc->last_check, svc->new_server_text, svc->current_state, svc->service_id);
 	
 	
 	mysql_query(mysql, sqlupd);

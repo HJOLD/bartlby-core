@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.34  2006/08/03 20:29:13  hjanuschka
+auto commit
+
 Revision 1.33  2006/07/25 21:42:03  hjanuschka
 auto commit
 
@@ -445,10 +448,11 @@ int main(int argc, char ** argv, char ** envp) {
 		exi_code=schedule_loop(argv[1], bartlby_address, SOHandle);
 		_log("Scheduler ended with: %d", exi_code);
 		
-		
-		
 		//Destroy SHM
 		bartlby_ext_shutdown(exi_code);
+		//write back all services 
+		sched_write_back_all(argv[1], bartlby_address, SOHandle);
+		
 		shmdt(bartlby_address);
 		shm_id = shmget(ftok(shmtok, 32), 0, 0600);
 		shmctl(shm_id, IPC_RMID, &shm_desc);
