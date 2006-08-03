@@ -102,4 +102,4 @@ CREATE TABLE `workers` (
   PRIMARY KEY  (`worker_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=15 ;
 
-insert into workers(worker_name, worker_mail,password) VALUES('admin', 'bartlby-default@januschka.com', 'password');
+insert into workers(worker_name, worker_mail,password) VALUES('admin', 'bartlby-default@januschka.com', '21232f297a57a5a743894a0e4a801fc3');
