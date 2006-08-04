@@ -1,5 +1,5 @@
 data_library=@prefix@/lib/mysql.so
-max_concurent_checks=50
+max_concurent_checks=6
 shm_key=@prefix@
 shm_size=10
 trigger_dir=@prefix@/trigger
@@ -9,7 +9,7 @@ logfile=@prefix@/var/bartlby
 daemon=true
 performance_dir=@prefix@/perf/
 pidfile_dir=@prefix@
-sched_round_pause=1
+sched_round_pause=6
 sirene_interval=10
 
 trigger_msg=State Change ($READABLE_STATE)\\\\n*********** $PROGNAME $VERSION ********************\\\\n[  Server: $SERVER, Service: $SERVICE, State: $READABLE_STATE]\\\\n$MESSAGE
