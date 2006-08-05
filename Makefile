@@ -1,6 +1,8 @@
 include Makefile.conf
 
 SUBDIRS = src/ src/libs/ src/tools/
+TRIGGERS = icq.sh jabber.sh mail.sh
+PERFHANDLERS = bartlby_http bartlby_if bartlby_load bartlby_snmp.sh bartlby_swap.sh
 
 
 DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui bartlby-docs
@@ -20,14 +22,19 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/trigger/
 	$(MKDIRP) ${BARTLBY_HOME}/contrib/
 	$(MKDIRP) ${BARTLBY_HOME}/var/log/
+	test -f ${BARTLBY_HOME}/etc/bartlby.cfg || $(CPPVA) bartlby.cfg ${BARTLBY_HOME}/etc/
 	
-	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}
-	$(CPPVA) bartlby.startup ${BARTLBY_HOME}
-	$(CHMOD) a+x ${BARTLBY_HOME}/bartlby.startup 
-	$(CPPVA) trigger/* ${BARTLBY_HOME}/trigger/
-	$(CPPVA) contrib/* ${BARTLBY_HOME}/contrib/
-	cp -a perf/* ${BARTLBY_HOME}/perf/
+	$(CPPVA) -m 777 bartlby.startup ${BARTLBY_HOME}/etc/
 	
+	list='$(TRIGGERS)'; for trigger in $$list; do \
+	  $(CPPVA) -m 777 trigger/$$trigger ${BARTLBY_HOME}/trigger/; \
+	done		
+	
+	list='$(PERFHANDLERS)'; for perfhandler in $$list; do \
+	  $(CPPVA) -m 777 perf/$$perfhandler ${BARTLBY_HOME}/perf/; \
+	  $(CPPVA) perf/defaults/$$perfhandler.rrd ${BARTLBY_HOME}/perf/defaults/; \
+	done		
+		
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make install); \
 	done

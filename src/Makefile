@@ -10,14 +10,13 @@ OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o repl
 
 
 install: all
-	$(CPPVA) ../bartlby ${BARTLBY_HOME}/bin/
-	$(CPPVA) ../bartlby ${BARTLBY_HOME}/
+	$(CPPVA) bartlby ${BARTLBY_HOME}/bin/
 	$(CPPVA) ../mysql.shema ${BARTLBY_HOME}/
 	
 	
 
 bartlby: ${OBJS}
-	$(CC)  $(EXTRAOPTIONS) $(OPENSSL_ADDON) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o ../bartlby ${OBJS}
+	$(CC)  $(EXTRAOPTIONS) $(OPENSSL_ADDON) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o bartlby ${OBJS}
 
 
 

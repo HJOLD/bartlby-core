@@ -13,19 +13,19 @@ CMD = ../config.o ../global.o cmd.o
 
 
 install: all
-	$(CPPVA) ../../bartlby_shmt ${BARTLBY_HOME}/
-	$(CPPVA) ../../bartlby_portier ${BARTLBY_HOME}/
-	$(CPPVA) ../../bartlby_cmd ${BARTLBY_HOME}/
+	$(CPPVA) bartlby_shmt ${BARTLBY_HOME}/bin/
+	$(CPPVA) bartlby_portier ${BARTLBY_HOME}/bin/
+	$(CPPVA) bartlby_cmd ${BARTLBY_HOME}/bin/
 	
 
 shmt: ${SHMT}
-	$(CC)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o ../../bartlby_shmt ${SHMT}
+	$(CC)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o bartlby_shmt ${SHMT}
 
 
 cmd: ${CMD}
-	$(CC)   $(EXTRAOPTIONS) $(INCLUDE_LL)   -o ../../bartlby_cmd ${CMD}
+	$(CC)   $(EXTRAOPTIONS) $(INCLUDE_LL)   -o bartlby_cmd ${CMD}
 portier: ${PORTIER}
-	$(CC)  $(LDL) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o ../../bartlby_portier ${PORTIER}
+	$(CC)  $(LDL) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o bartlby_portier ${PORTIER}
 	
 
 

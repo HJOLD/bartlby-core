@@ -5,10 +5,10 @@ shm_size=10
 trigger_dir=@prefix@/trigger
 basedir=@prefix@/
 user=@BARTLBY_USER@
-logfile=@prefix@/var/bartlby
+logfile=@prefix@/var/log/bartlby
 daemon=true
 performance_dir=@prefix@/perf/
-pidfile_dir=@prefix@
+pidfile_dir=@prefix@/var/
 sched_round_pause=6
 sirene_interval=10
 
