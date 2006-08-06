@@ -24,6 +24,7 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/contrib/
 	$(MKDIRP) ${BARTLBY_HOME}/var/log/
 	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}/etc/
+	$(CPPVA) config.log ${BARTLBY_HOME}/var/log/
 	
 	$(CPPVA) -m 777 bartlby.startup ${BARTLBY_HOME}/etc/
 	
