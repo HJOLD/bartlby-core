@@ -20,9 +20,10 @@ install: all
 	$(MKDIRP) ${BARTLBY_HOME}/perf/
 	$(MKDIRP) ${BARTLBY_HOME}/perf/defaults/
 	$(MKDIRP) ${BARTLBY_HOME}/trigger/
+	$(MKDIRP) ${BARTLBY_HOME}/ext/
 	$(MKDIRP) ${BARTLBY_HOME}/contrib/
 	$(MKDIRP) ${BARTLBY_HOME}/var/log/
-	test -f ${BARTLBY_HOME}/etc/bartlby.cfg || $(CPPVA) bartlby.cfg ${BARTLBY_HOME}/etc/
+	$(CPPVA) bartlby.cfg ${BARTLBY_HOME}/etc/
 	
 	$(CPPVA) -m 777 bartlby.startup ${BARTLBY_HOME}/etc/
 	
