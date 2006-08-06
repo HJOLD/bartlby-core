@@ -27,13 +27,13 @@ function has_executable {
 }
 
 function getConfigValue {
-	if [ ! -f $BARTLBY_HOME/bartlby.cfg ];
+	if [ ! -f $BARTLBY_HOME/etc/bartlby.cfg ];
 	then
-		raiseErr "Config $BARTLBY_HOME/bartlby.cfg doesnt look like a file"  3
+		raiseErr "Config $BARTLBY_HOME/etc/bartlby.cfg doesnt look like a file"  3
 		
 	fi;
 	
-	r=`cat $BARTLBY_HOME/bartlby.cfg |grep $1|awk -F"=" '{print \$2}'`
+	r=`cat $BARTLBY_HOME/etc/bartlby.cfg |grep $1|awk -F"=" '{print \$2}'`
 	echo $r;
 
 }
