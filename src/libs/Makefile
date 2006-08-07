@@ -12,7 +12,7 @@ MYSQL = ../global.o ../config.o mysql.o
 	$(CC) $(EXTRAOPTIONS)  $(INCLUDE_MYSQL) $(INCLUDE_LL) -c $<
 
 
-
+all:   mysql
 
 mysql: ${MYSQL}
 	$(CC)  $(INCLUDE_MYSQL) $(LMYSQL) $(DYNLINK)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o mysql.so ${MYSQL}
@@ -21,7 +21,7 @@ mysql: ${MYSQL}
 install: all
 	$(CPPVA) mysql.so ${BARTLBY_HOME}/lib/
 
-all:   mysql
+
 	
 
 

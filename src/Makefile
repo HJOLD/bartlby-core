@@ -8,6 +8,8 @@ OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o repl
 
 	$(CC) $(EXTRAOPTIONS)  $(INCLUDE_L)   -c $<
 
+all:    bartlby
+
 
 install: all
 	$(CPPVA) bartlby ${BARTLBY_HOME}/bin/
@@ -20,7 +22,7 @@ bartlby: ${OBJS}
 
 
 
-all:    bartlby
+
 
 
 
