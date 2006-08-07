@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.21  2006/08/07 18:40:10  hjanuschka
+auto commit
+
 Revision 1.20  2006/08/03 20:29:13  hjanuschka
 auto commit
 
@@ -234,6 +237,8 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 	struct stat finfo;	
 	int x;
 	
+	struct ext_notify en;
+	
 	char * notify_msg;
 	char * find_str;
 	struct worker * wrkmap;
@@ -330,6 +335,12 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 						
 						if((bartlby_trigger_escalation(&wrkmap[x], svc)) == FL) continue;
 						if((bartlby_trigger_worker_level(&wrkmap[x], svc)) == FL) continue;
+						
+						
+						en.trigger = entry->d_name;
+						en.svc = svc;
+						en.wrk = &wrkmap[x];
+						bartlby_callback(EXTENSION_CALLBACK_TRIGGER_FIRED, &en);
 						
 						//_log("EXEC trigger: %s", full_path);
 						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);

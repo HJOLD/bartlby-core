@@ -26,6 +26,7 @@
 #define EXTENSION_CALLBACK_CHECK_TIME 8
 #define EXTENSION_CALLBACK_EVENT_PUSHED 9
 #define EXTENSION_CALLBACK_REPLICATION_GO 10
+#define EXTENSION_CALLBACK_TRIGGER_FIRED 11
 
 
 
@@ -202,6 +203,11 @@ struct btl_event {
 	int evnt_time;
 		
 }eb;
+struct ext_notify {
+	struct service * svc;	
+	struct worker * wrk;
+	char * trigger;
+} ty;
 
 
 
