@@ -1,0 +1,8 @@
+#!/bin/sh
+adduser bartlby 2>&1>>/dev/null
+if [ -f /opt/bartlby/etc/bartlby.cfg ];
+then
+	echo "backing up bartlby.cfg";
+	cp /opt/bartlby/etc/bartlby.cfg /opt/bartlby/etc/bartlby.cfg.$$
+fi;
+exit 0;
