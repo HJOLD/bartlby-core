@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/08/08 00:09:58  hjanuschka
+auto commit
+
 Revision 1.1  2006/07/22 23:03:12  hjanuschka
 remove agent from the core  for portability reasons
 
@@ -103,6 +106,7 @@ static int connection_timed_out=0;
 #define CMD_GET_PLG 2
 #define CMD_REPL 3
 #define CMD_SVCLIST 4
+#define CMD_GETSERVERID 5
 
 #define CONN_TIMEOUT 10
 
@@ -147,6 +151,7 @@ int main(int argc, char ** argv) {
 	struct sigaction act1, oact1;
 	char svc_in[2048];
 	char svc_out[2048];
+	char * in_server_name;
 	
 	char * allowed_ip_list;
 	int ip_ok=-1;
@@ -423,6 +428,24 @@ int main(int argc, char ** argv) {
 				} else {
 					sprintf(svc_out, "SVCID missing\n");	
 					
+				}
+			break;
+			case CMD_GETSERVERID:
+				token=strtok(NULL, "|");
+				if(token != NULL) {
+					in_server_name=strdup(token);
+					sprintf(svc_out, " ");
+					
+					for(x=0; x<shm_hdr->svccount; x++) {
+						if(strcmp(svcmap[x].server_name, in_server_name) == 0) {
+							printf("%d", svcmap[x].server_id);
+								
+						}
+					}
+					printf("\n");
+					fflush(stdout);
+				} else {
+					sprintf(svc_out, "-5 server_name missing");	
 				}
 			break;
 			case CMD_SVCLIST:
