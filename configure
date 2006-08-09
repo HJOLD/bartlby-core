@@ -7450,7 +7450,7 @@ done
 
 
 
-                              ac_config_files="$ac_config_files Makefile.conf bartlby.cfg bartlby.startup"
+                                                  ac_config_files="$ac_config_files Makefile.conf bartlby.cfg bartlby.startup preinstall-pak postinstall-pak"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8005,6 +8005,8 @@ do
   "Makefile.conf" ) CONFIG_FILES="$CONFIG_FILES Makefile.conf" ;;
   "bartlby.cfg" ) CONFIG_FILES="$CONFIG_FILES bartlby.cfg" ;;
   "bartlby.startup" ) CONFIG_FILES="$CONFIG_FILES bartlby.startup" ;;
+  "preinstall-pak" ) CONFIG_FILES="$CONFIG_FILES preinstall-pak" ;;
+  "postinstall-pak" ) CONFIG_FILES="$CONFIG_FILES postinstall-pak" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;

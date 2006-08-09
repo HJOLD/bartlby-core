@@ -1,5 +1,0 @@
-#!/bin/sh
-chown -R bartlby /opt/bartlby/
-chmod -R a+rw /opt/bartlby/var/
-chmod a+rw /opt/bartlby/etc/bartlby.cfg
-exit 0

@@ -106,6 +106,7 @@ then
 		MYSQL_DO_DROP="true";
 	else
 		start_it_up;
+		exit;
 	fi;
 fi;
 
