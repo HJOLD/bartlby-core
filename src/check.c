@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.54  2006/08/12 17:44:34  hjanuschka
+auto commit
+
 Revision 1.53  2006/08/03 20:52:57  hjanuschka
 *** empty log message ***
 
@@ -643,14 +646,14 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 			}	
 			if(svg == NULL) { 
 				
-				sprintf(svc->new_server_text, "%s", GROUP_CRITICAL);
+				sprintf(svc->new_server_text, "%s (Service: %d not found)", GROUP_CRITICAL, svc_id);
 				svc->current_state=STATE_CRITICAL;
 				return;
 			}
 			
-			if(svg->current_state != state) {
+			if(svg->current_state == state) {
 				//_log("Service: is not %d\n", svg->current_state );
-				sprintf(svc->new_server_text, "%s", GROUP_CRITICAL);
+				sprintf(svc->new_server_text, "%s %s:%d/%s - %d", GROUP_CRITICAL, svg->server_name, svg->client_port, svg->service_name, state);
 				svc->current_state=STATE_CRITICAL;
 				
 				return;	
