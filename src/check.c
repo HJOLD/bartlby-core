@@ -16,6 +16,10 @@ $Source$
 
 
 $Log$
+Revision 1.55  2006/08/19 00:07:29  hjanuschka
+version bump 1.2.3 (August)
+core: passive services get critical after timeout*2
+
 Revision 1.54  2006/08/12 17:44:34  hjanuschka
 auto commit
 
@@ -759,7 +763,11 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		if(svc->service_passive_timeout > 0 && pdiff >= svc->service_passive_timeout) {
 			
 			sprintf(svc->new_server_text, "%s", PASSIVE_TIMEOUT);
-			svc->current_state=STATE_WARNING;
+			if(pdiff >= svc->service_passive_timeout * 2) {
+				svc->current_state=STATE_CRITICAL;
+			} else {
+				svc->current_state=STATE_WARNING;
+			}
 			
 			
 		}
