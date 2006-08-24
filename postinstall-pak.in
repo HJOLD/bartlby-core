@@ -31,15 +31,55 @@ function start_it_up {
 	
 }
 
+echo "--------------------------------------------------------------";
+echo -n "What type of installation is this: [(u)pgrade, First Time (i)nstall, (e)xit post-setup][i]:";
+read INST_TYPE;
+case $INST_TYPE in
+
+	u) echo "upgrade";;
+	i) echo "first time installation";;
+	e) echo "Dont run post install steps";;
+	*) INST_TYPE="i"; echo "default INSTALL";;
+esac;
+
+echo "--------------------------------------------------------------";
+echo "";
+
+if [ "$INST_TYPE" = "e" ];
+then
+	echo "--------------------------------------------------------------";
+	echo "exiting now!!!";
+	echo "you HAVE to restart bartlby that the upgraded binarys get loaded";
+	echo "--------------------------------------------------------------";
+	echo "";
+	exit;
+fi;
+
+
+
+
 echo "####################################################";
 echo "####################################################";
 echo "###              Bartlby Setup                   ###";
 echo "####################################################";
 echo "####################################################";
-echo " You are now asked to fill in the username and password";
-echo " of the 'root' mysql user, or at least someone who";
-echo " can DROP and CREATE databases";
+echo " You are now asked to fill in the username and ";
+echo " password of the 'root' mysql user, or at ";
+echo " least someone who can DROP and CREATE databases";
 echo "####################################################";
+
+echo "--------------------------------------------------------------";
+echo -n "do database create/upgrade [y/n](y):";
+read DO_DB_STUFF;
+echo "--------------------------------------------------------------";
+echo "";
+if [ "x$DO_DB_STUFF" = "x" ];
+then
+	DO_DB_STUFF="y";
+fi;
+
+if [ "$DO_DB_STUFF" = "y" ];
+then
 
 MY_MYSQL=$(type -P mysql|tr -d [:blank:]);
 MYSQL_FOUND="true";
@@ -183,6 +223,17 @@ echo "done setting up database";
 echo "--------------------------------------------------------------";
 echo "";
 echo "";
+
+fi;
+
+if [ "$INST_TYPE" = "u" ];
+then
+	echo "--------------------------------------------------------------";
+	echo "it was a upgrade restore bartlby.cfg";
+	cp -v ${BARTLBY_HOME}/etc/bartlby.cfg.UPGRADE ${BARTLBY_HOME}/etc/bartlby.cfg
+	echo "--------------------------------------------------------------";
+	echo "";
+fi;
 
 start_it_up;
 

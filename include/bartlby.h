@@ -1,6 +1,6 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "August"
+#define REL_NAME "Cerebrum"
 #define VERSION  "1.2.3"
 #define EXPECTCORE 1102031 //Module V Check's
 

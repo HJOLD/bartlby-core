@@ -6,4 +6,5 @@ then
 	echo "backing up bartlby.cfg";
 	cp ${BARTLBY_HOME}/etc/bartlby.cfg ${BARTLBY_HOME}/etc/bartlby.cfg.UPGRADE
 fi;
+export BARTLBY_UPGRADE="true";
 exit 0;
