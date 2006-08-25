@@ -25,6 +25,8 @@ RRDFILE="${RRD_HTDOCS}/${1}_bartlby_snmp.sh_${3}_${5}.rrd";
 
 PNGFILE="${RRDFILE}.png";
 PNGFILE_SEVEN="${RRDFILE}7.png";
+PNGFILE_MONTH="${RRDFILE}31.png";
+PNGFILE_YEAR="${RRDFILE}365.png";
 
 
 RRD_VALUE=$(echo $6|sed 's/INTEGER: //g');
@@ -54,6 +56,8 @@ echo "'${RRD_VALUE}'";
 
 $RRDTOOL graph $PNGFILE --start -86400 -a PNG -t "SNMP ( $3 / $5 ) @ $(/bin/date "+%d.%m.%Y %H:%M:%S")" --vertical-label "Average Load" -w 600 -h 300 -M DEF:load1=${RRDFILE}:load1:AVERAGE VDEF:load1l=load1,LAST AREA:load1#ff0000:"Load Last\:" GPRINT:load1l:"%5.2lf\n" LINE1:load1#ff0000:""
 $RRDTOOL graph $PNGFILE_SEVEN --start -604800 -a PNG -t "SNMP ( $3 / $5 ) @ $(/bin/date "+%d.%m.%Y %H:%M:%S")" --vertical-label "Average Load" -w 600 -h 300 -M DEF:load1=${RRDFILE}:load1:AVERAGE VDEF:load1l=load1,LAST AREA:load1#ff0000:"Load Last\:" GPRINT:load1l:"%5.2lf\n" LINE1:load1#ff0000:""
+$RRDTOOL graph $PNGFILE_SEVEN --start -1month -a PNG -t "SNMP ( $3 / $5 ) @ $(/bin/date "+%d.%m.%Y %H:%M:%S")" --vertical-label "Average Load" -w 600 -h 300 -M DEF:load1=${RRDFILE}:load1:AVERAGE VDEF:load1l=load1,LAST AREA:load1#ff0000:"Load Last\:" GPRINT:load1l:"%5.2lf\n" LINE1:load1#ff0000:""
+$RRDTOOL graph $PNGFILE_SEVEN --start -1year -a PNG -t "SNMP ( $3 / $5 ) @ $(/bin/date "+%d.%m.%Y %H:%M:%S")" --vertical-label "Average Load" -w 600 -h 300 -M DEF:load1=${RRDFILE}:load1:AVERAGE VDEF:load1l=load1,LAST AREA:load1#ff0000:"Load Last\:" GPRINT:load1l:"%5.2lf\n" LINE1:load1#ff0000:""
 
 
 

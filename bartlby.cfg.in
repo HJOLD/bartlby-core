@@ -11,6 +11,9 @@ performance_dir=@prefix@/perf/
 pidfile_dir=@prefix@/var/
 sched_round_pause=6
 sirene_interval=10
+instant_write_back=true
+
+
 
 trigger_msg=State Change ($READABLE_STATE)\\\\n*********** $PROGNAME $VERSION ********************\\\\n[  Server: $SERVER, Service: $SERVICE, State: $READABLE_STATE]\\\\n$MESSAGE
 

@@ -24,7 +24,8 @@ RRDFILE="${RRD_HTDOCS}/${1}_bartlby_if.rrd";
 
 PNGFILE="${RRD_HTDOCS}/${1}_bartlby_if.png";
 PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_if7.png";
-
+PNGFILE_MONTH="${RRD_HTDOCS}/${1}_bartlby_if31.png";
+PNGFILE_YEAR="${RRD_HTDOCS}/${1}_bartlby_if365.png";
 
 #Check if RRD file is existing
 
@@ -54,8 +55,11 @@ then
 
 	PNGFILE="${RRD_HTDOCS}/${2}_bartlby_if.png";
 	PNGFILE_SEVEN="${RRD_HTDOCS}/${2}_bartlby_if7.png";
+	PNGFILE_MONTH="${RRD_HTDOCS}/${2}_bartlby_if31.png";
+	PNGFILE_YEAR="${RRD_HTDOCS}/${2}_bartlby_if365.png";
 
-$RRDTOOL graph $PNGFILE -a PNG -h 300 -w 600 -s -86400 -v "Data Throughput" \
+
+$RRDTOOL graph $PNGFILE -a PNG -h 300 -w 600 -s -86400 -v "Data Throughput 24hours" \
     DEF:in=${RRDFILE}:in:AVERAGE \
     DEF:out=${RRDFILE}:out:AVERAGE \
     'CDEF:kbin=in,1024,/' \
@@ -65,7 +69,7 @@ $RRDTOOL graph $PNGFILE -a PNG -h 300 -w 600 -s -86400 -v "Data Throughput" \
     'GPRINT:kbin:AVERAGE:Average Bandwidth In\: %3.2lf KBps'    'GPRINT:kbout:AVERAGE:Average Bandwidth Out\:%3.2lf KBps\j' > /dev/null
 
 	echo "generated 24 hour graph";
-$RRDTOOL graph $PNGFILE_SEVEN -a PNG -h 300 -w 600 -s -604800 -v "Data Throughput" \
+$RRDTOOL graph $PNGFILE_SEVEN -a PNG -h 300 -w 600 -s -604800 -v "Data Throughput 7days" \
     DEF:in=${RRDFILE}:in:AVERAGE \
     DEF:out=${RRDFILE}:out:AVERAGE \
     'CDEF:kbin=in,1024,/' \
@@ -75,6 +79,30 @@ $RRDTOOL graph $PNGFILE_SEVEN -a PNG -h 300 -w 600 -s -604800 -v "Data Throughpu
     'GPRINT:kbin:AVERAGE:Average Bandwidth In\: %3.2lf KBps'    'GPRINT:kbout:AVERAGE:Average Bandwidth Out\:%3.2lf KBps\j' > /dev/null
 
 	echo "generated 7 day graph";
+	
+	
+$RRDTOOL graph $PNGFILE_MONTH -a PNG -h 300 -w 600 -s -1month -v "Data Throughput (1month)" \
+    DEF:in=${RRDFILE}:in:AVERAGE \
+    DEF:out=${RRDFILE}:out:AVERAGE \
+    'CDEF:kbin=in,1024,/' \
+    'CDEF:kbout=out,1024,/' \
+    'AREA:in#00FF00:Bandwidth In'                               'LINE1:out#0000FF:Bandwidth Out\j' \
+    'GPRINT:kbin:LAST:Last Bandwidth In\:    %3.2lf KBps'       'GPRINT:kbout:LAST:Last Bandwidth Out\:   %3.2lf KBps\j' \
+    'GPRINT:kbin:AVERAGE:Average Bandwidth In\: %3.2lf KBps'    'GPRINT:kbout:AVERAGE:Average Bandwidth Out\:%3.2lf KBps\j' > /dev/null
+
+	echo "generated 1 month graph";
+	
+$RRDTOOL graph $PNGFILE_YEAR -a PNG -h 300 -w 600 -s -1year -v "Data Throughput (1year)" \
+    DEF:in=${RRDFILE}:in:AVERAGE \
+    DEF:out=${RRDFILE}:out:AVERAGE \
+    'CDEF:kbin=in,1024,/' \
+    'CDEF:kbout=out,1024,/' \
+    'AREA:in#00FF00:Bandwidth In'                               'LINE1:out#0000FF:Bandwidth Out\j' \
+    'GPRINT:kbin:LAST:Last Bandwidth In\:    %3.2lf KBps'       'GPRINT:kbout:LAST:Last Bandwidth Out\:   %3.2lf KBps\j' \
+    'GPRINT:kbin:AVERAGE:Average Bandwidth In\: %3.2lf KBps'    'GPRINT:kbout:AVERAGE:Average Bandwidth Out\:%3.2lf KBps\j' > /dev/null
+
+	echo "generated 1 year graph $PNGFILE_YEAR";
+
 else
 	D=$3
 	U=$4

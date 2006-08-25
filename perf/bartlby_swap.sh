@@ -24,6 +24,8 @@ RRDFILE="${RRD_HTDOCS}/${1}_bartlby_swap.sh.rrd";
 
 PNGFILE="${RRD_HTDOCS}/${1}_bartlby_swap.sh.png";
 PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_swap.sh7.png";
+PNGFILE_MONTH="${RRD_HTDOCS}/${1}_bartlby_swap.sh31.png";
+PNGFILE_YEAR="${RRD_HTDOCS}/${1}_bartlby_swap.sh365.png";
 
 if [ ! -f $RRDFILE ];
 then
@@ -52,6 +54,9 @@ then
 
 	PNGFILE="${RRD_HTDOCS}/${2}_bartlby_swap.sh.png";
 	PNGFILE_SEVEN="${RRD_HTDOCS}/${2}_bartlby_swap.sh7.png";
+	PNGFILE_MONTH="${RRD_HTDOCS}/${2}_bartlby_swap.sh31.png";
+	PNGFILE_YEAR="${RRD_HTDOCS}/${2}_bartlby_swap.sh365.png";
+
 
 	SWAPT=`grep SwapTotal: /proc/meminfo|tr -s [:blank:]|cut -f2 -d" "`
 	MEMT=`grep MemTotal: /proc/meminfo|tr -s [:blank:]|cut -f2 -d" "`
@@ -98,6 +103,41 @@ then
 	LINE1:bswap#000000:"used SWAP" \
 	LINE1:fswapb#006600:"free SWAP" > /dev/null
 	echo "generated 7 day graph";
+	
+	
+	# 1 Monat  - RAM und Swap in einen
+	nice -n19 $RRDTOOL graph $PNGFILE_MONTH \
+	-b 1024 --start -1month -a PNG -t "RAM und SWAP ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes" -w 600 -h 300 \
+	DEF:fram=${RRDFILE}:fram:AVERAGE \
+	DEF:fswap=${RRDFILE}:fswap:AVERAGE \
+	CDEF:framb=fram,1024,* \
+	CDEF:fswapb=fswap,1024,* \
+	CDEF:bram=$MEMTOTAL,framb,- \
+	CDEF:bswap=$SWAPTOTAL,fswapb,- \
+	AREA:bram#99ffff:"used  RAM" \
+	LINE1:framb#ff0000:"free RAM" \
+	LINE1:bswap#000000:"used SWAP" \
+	LINE1:fswapb#006600:"free SWAP" > /dev/null
+	echo "generated 1 month graph $PNGFILE_MONTH";
+	
+	
+	
+	# 7 Tage - RAM und Swap in einen
+	nice -n19 $RRDTOOL graph $PNGFILE_YEAR \
+	-b 1024 --start -1year -a PNG -t "RAM und SWAP ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE )" --vertical-label "Bytes" -w 600 -h 300 \
+	DEF:fram=${RRDFILE}:fram:AVERAGE \
+	DEF:fswap=${RRDFILE}:fswap:AVERAGE \
+	CDEF:framb=fram,1024,* \
+	CDEF:fswapb=fswap,1024,* \
+	CDEF:bram=$MEMTOTAL,framb,- \
+	CDEF:bswap=$SWAPTOTAL,fswapb,- \
+	AREA:bram#99ffff:"used  RAM" \
+	LINE1:framb#ff0000:"free RAM" \
+	LINE1:bswap#000000:"used SWAP" \
+	LINE1:fswapb#006600:"free SWAP" > /dev/null
+	echo "generated 1 year graph $PNGFILE_YEAR";
+	
+	
 else
 	nice -n19 $RRDTOOL update $RRDFILE N:$3:$4
 fi;

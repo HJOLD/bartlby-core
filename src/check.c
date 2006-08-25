@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.56  2006/08/25 20:10:10  hjanuschka
+auto commit
+
 Revision 1.55  2006/08/19 00:07:29  hjanuschka
 version bump 1.2.3 (August)
 core: passive services get critical after timeout*2
@@ -728,8 +731,20 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	bartlby_callback(EXTENSION_CALLBACK_POST_CHECK, svc);
 	
 	svc->service_retain_current++;
-	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
-	doUpdate(svc,cfgfile);
+	
+	
+	char * cfg_instant_wb;
+	cfg_instant_wb = getConfigValue("instant_write_back", cfgfile);
+	if(cfg_instant_wb == NULL) {
+		cfg_instant_wb=strdup("true");	
+	}
+	
+	if(strcmp(cfg_instant_wb, "true") == 0) {
+		LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
+		doUpdate(svc,cfgfile);
+	}
+	
+	free(cfg_instant_wb);
 	
 	
 	
