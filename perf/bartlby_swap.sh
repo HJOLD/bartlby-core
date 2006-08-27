@@ -58,11 +58,11 @@ then
 	PNGFILE_YEAR="${RRD_HTDOCS}/${2}_bartlby_swap.sh365.png";
 
 
-	SWAPT=`grep SwapTotal: /proc/meminfo|tr -s [:blank:]|cut -f2 -d" "`
-	MEMT=`grep MemTotal: /proc/meminfo|tr -s [:blank:]|cut -f2 -d" "`
+	SWAPT=$(cat ${RRDFILE}.info|awk '{print $2}');
+	MEMT=$(cat ${RRDFILE}.info|awk '{print $1}');
 	
-	MEMTOTAL=$(expr $MEMT \* 1024)
-	SWAPTOTAL=$(expr $SWAPT \* 1024)
+	MEMTOTAL=$MEMT;
+	SWAPTOTAL=$SWAPT;
 	
 	
 	
@@ -140,6 +140,7 @@ then
 	
 else
 	nice -n19 $RRDTOOL update $RRDFILE N:$3:$4
+	echo "$5 $6" > ${RRDFILE}.info
 fi;
 
 
