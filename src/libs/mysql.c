@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.45  2006/09/03 22:19:47  hjanuschka
+auto commit
+
 Revision 1.44  2006/08/03 20:52:57  hjanuschka
 *** empty log message ***
 
@@ -1997,7 +2000,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			
       			
       			svcs[i].last_check=atoi(row[9]);
-      			
+      				                                 
       			svcs[i].check_interval=atoi(row[10]);
       			
       			/*if(i > POS2_QUEUER_THREADS*POS2_QUEUER_THREADS*POS2_QUEUER_THREADS) {
@@ -2047,7 +2050,8 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].service_retain_current=atoi(row[24])+1;
       			
       			svcs[i].flap_count=0;
-      			svcs[i].check_is_running = 0;
+      			svcs[i].process.pid = 0;
+      			svcs[i].process.start_time = 0;
       			
       			svcs[i].notify_last_state=svcs[i].current_state;
       			svcs[i].notify_last_time=time(NULL);

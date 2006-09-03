@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.57  2006/09/03 22:19:47  hjanuschka
+auto commit
+
 Revision 1.56  2006/08/25 20:10:10  hjanuschka
 auto commit
 
@@ -679,7 +682,7 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,char * cfgfile) {
 	char * dlmsg;
 	struct worker * wrkmap;
-
+	char * cfg_instant_wb;
 	
 	struct shm_header * hdr;
 	
@@ -733,7 +736,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	svc->service_retain_current++;
 	
 	
-	char * cfg_instant_wb;
+	
 	cfg_instant_wb = getConfigValue("instant_write_back", cfgfile);
 	if(cfg_instant_wb == NULL) {
 		cfg_instant_wb=strdup("true");	

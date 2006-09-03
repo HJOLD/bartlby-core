@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.39  2006/09/03 22:19:47  hjanuschka
+auto commit
+
 Revision 1.38  2006/08/03 20:29:13  hjanuschka
 auto commit
 
@@ -215,6 +218,12 @@ int do_shutdown=0;
 pid_t sched_pid;
 
 struct shm_header * gshm_hdr;
+struct service * gservices;
+void * gSOHandle;
+void * gshm_addr;
+char * gConfig;
+
+
 
 void catch_signal(int signum) {
 	pid_t sig_pid;
@@ -252,10 +261,7 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 }
 
-void sched_reschedule(struct service * svc) {
-	svc->last_check=time(NULL);
-	//_log("Set last_check to %d on %s:%d/%s(%s)", svc->last_check, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
-}
+
 
 int sched_needs_ack(struct service * svc) {
 	if(svc->service_ack == ACK_OUTSTANDING) {
@@ -265,9 +271,56 @@ int sched_needs_ack(struct service * svc) {
 	}	
 }
 
-int sched_check_waiting(void * shm_addr, struct service * svc) {
+void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, void * SOHandle) {
+	int rtc;
+	//kill the subprocess ;)
+	//also kills the perf handlers etc :-)
+	if(svc->process.pid < 2)  {
+		return;
+	}
+		
+	
+	rtc=kill(svc->process.pid, 9);
+	if(rtc < 0 ) {
+		
+		switch(errno) {
+			case EINVAL:
+				_log("Killing runaaway process: %d (Invalid signal)",svc->process.pid); 
+			break;
+			case EPERM:
+				_log("Killing runaaway process: %d (permission denied)",svc->process.pid); 
+			break;
+			
+			case ESRCH:
+				_log("Killing runaaway process: %d (no such process)",svc->process.pid); 
+			break;	
+			default:
+				_log("Killing runaaway process: %d (unkw return: %d)",svc->process.pid, rtc); 
+			
+		}
+	} else {
+		
+		//_log("@KILL@Killing runaaway process: %s:%d/%s %d (done)",svc->process.pid); 	
+		_log("@KILL@%d|%d|%s:%d/%s|Killing process with pid: %d", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->process.pid);
+	}
+		
+	sprintf(svc->new_server_text, "%s", "in-core time out");
+	svc->current_state=STATE_CRITICAL;
+	bartlby_fin_service(svc,SOHandle,shm_addr,cfg);		
+	svc->process.pid=0;
+	svc->process.start_time=0;
+	if(gshm_hdr->current_running > 0) {
+		gshm_hdr->current_running--;
+	} else {
+		gshm_hdr->current_running=0;	
+	}
+	
+}
+
+int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void * SOHandle, int sched_pause) {
 	int cur_time;
 	int my_diff;
+	int kill_diff;
 	time_t tnow;
 	struct tm *tmnow;
 		
@@ -276,6 +329,9 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 	time(&tnow);
 	tmnow = localtime(&tnow);
 	my_diff=cur_time - svc->last_check;
+	
+	
+	
 	
 	if(svc->do_force == 1) {
 		svc->do_force=0; //dont force again
@@ -289,17 +345,50 @@ int sched_check_waiting(void * shm_addr, struct service * svc) {
 		return -1; //Dont sched this	
 	}
 	
-	if(svc->service_active == 1 && my_diff >= svc->check_interval && tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to && svc->check_is_running == 0) {
-		//_log("Mydiff %d >= %d, %d>=%d, %d<=%d %d>=%d %d<=%d", my_diff, svc->check_interval,tmnow->tm_hour,svc->hour_from,tmnow->tm_hour , svc->hour_to,tmnow->tm_min , svc->min_from ,tmnow->tm_min , svc->min_to);	
-		if(bartlby_is_in_downtime(shm_addr, svc) > 0) {
-			return 1;
+	if(svc->service_active == 1) {
+		if(tmnow->tm_hour >= svc->hour_from && tmnow->tm_hour <= svc->hour_to && tmnow->tm_min >= svc->min_from && tmnow->tm_min <= svc->min_to) {
+			//Time Range matched ;)	
+			if(my_diff >= svc->check_interval) {
+				//diff is higher
+				if(bartlby_is_in_downtime(shm_addr, svc) > 0) {
+					//not downtime'd
+					
+					if(svc->process.pid == 0) {
+						//No check running so DO-IT
+						return 1;
+					} 
+				}
+			}
+			
 		}
-	}	
+	}
+	/*
+	 bug discovered on large NRPE setup where SSL_handshake did not cleanly timeout
+	*/
+	
+	if(svc->process.pid > 2) {
+		kill_diff=(svc->service_check_timeout+sched_pause);
+		my_diff=cur_time - svc->process.start_time;
+		
+		if(svc->service_type != SVC_TYPE_PASSIVE) {
+			//Passive's should'nt time out either
+			if(my_diff > kill_diff) {
+				//_log("@@@ %d/%d @@ ", my_diff, kill_diff);
+				//A little offset
+				//so this is a "so called" miss coded extension ;) with faulted timeout handlers ;)
+				sched_kill_runaaway(shm_addr, svc, cfg,SOHandle);	
+				return -1;
+			}	
+		}
+	}
+	
 	return -1;
 }
 
 void sched_wait_open(int timeout) {
 	int x;
+	int y;
+	y=0;
 	x=0;
 	int olim;
 	
@@ -319,7 +408,10 @@ void sched_wait_open(int timeout) {
 				gshm_hdr->current_running=0;
 				break;
 				
-			}		
+			}
+			for(y=0; y<gshm_hdr->svccount; y++) {
+				sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, 1);
+			}
 			
 	}	
 	if(x > olim) {
@@ -337,7 +429,7 @@ void sched_reaper(int signum) {
 	 }
 	
 	if(WIFSIGNALED(status)) {
-		if(WTERMSIG(status) == SIGSEGV) {
+		if(WTERMSIG(status) == SIGSEGV || WTERMSIG(status) == SIGTERM) {
 			_log("Child exited unexpected status: %d / %s", WTERMSIG(status), strsignal(WTERMSIG(status))); 
 			if(gshm_hdr->current_running > 0) {
 				gshm_hdr->current_running--;
@@ -378,6 +470,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	sched_pid=getpid();
 	
+	gshm_addr=shm_addr;
+	gSOHandle=SOHandle;
+	gConfig=cfgfile;
 	
 	gshm_hdr=bartlby_SHM_GetHDR(shm_addr);
 	
@@ -398,6 +493,8 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	signal(SIGCHLD, sched_reaper);
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);
+	gservices=services;
+	
 	gshm_hdr->do_reload=0;
 	
 	cfg_sched_pause = getConfigValue("sched_round_pause", cfgfile);
@@ -444,11 +541,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			}
 			
 			if(gshm_hdr->current_running < cfg_max_parallel) { 
-				if(sched_check_waiting(shm_addr, &services[x]) == 1) {
+				if(sched_check_waiting(shm_addr, &services[x], cfgfile, SOHandle, sched_pause) == 1) {
 						
 						//_log("SVC timeout: %d", services[x].service_check_timeout);
 						round_visitors++;
 				 		//services[x].last_check=time(NULL);
+				 		
 						child_pid=fork();
 						switch(child_pid) {
 							case -1:
@@ -462,7 +560,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								
 								gettimeofday(&check_start, NULL);
 										
-								services[x].check_is_running=getpid();						
+								services[x].process.pid=getpid();
+								services[x].process.start_time=time(NULL);
+														
 								bartlby_check_service(&services[x], shm_addr, SOHandle, cfgfile);	
 								
 								
@@ -471,8 +571,8 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 								
 								bartlby_core_perf_track(gshm_hdr, &services[x], PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
 								
-								services[x].check_is_running=0;
-								
+								services[x].process.pid=0;
+								services[x].process.start_time=0;
 								
 								
 								if(gshm_hdr->current_running > 0) {

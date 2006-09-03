@@ -94,6 +94,11 @@ struct snmpi {
 	int crit;
 	int type;
 };
+struct sprocess {
+	int start_time;
+	int pid;
+		
+};
 
 struct shm_header {
 	int size_of_structs;
@@ -155,7 +160,7 @@ struct service {
 	int service_retain;
 	int service_retain_current;
 	
-	int check_is_running;
+	
 	
 	struct perf_statistic pstat;
 	
@@ -164,6 +169,8 @@ struct service {
 	struct snmpi snmp_info;
 	
 	int recovery_outstanding; //Flag to see if recover is waiting
+	
+	struct sprocess process;
 	
 };
 
@@ -279,6 +286,8 @@ void bartlby_ext_init(void * shm_addr, void * data_loader, char * cfg);
 void bartlby_ext_shutdown(int sched_exit_code);
 int bartlby_ext_register_callback(int type, void * fcn);
 int bartlby_callback(int type, void *data);
+
+void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,char * cfgfile);
 
 extern char config_file[255];
 

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.35  2006/09/03 22:19:47  hjanuschka
+auto commit
+
 Revision 1.34  2006/08/03 20:29:13  hjanuschka
 auto commit
 
@@ -282,11 +285,7 @@ int main(int argc, char ** argv, char ** envp) {
 	#ifdef WITH_NRPE
 	_log("NRPE Support compiled in");
 	#endif
-	_log("test");
-	_log("test");
-	_log("test1");
-	_log("test");
-	_log("test");
+	
 	
 	daemon_mode=getConfigValue("daemon", argv[1]);
 	if(daemon_mode == NULL) {
