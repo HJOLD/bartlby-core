@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.40  2006/09/09 19:38:34  hjanuschka
+auto commit
+
 Revision 1.39  2006/09/03 22:19:47  hjanuschka
 auto commit
 
@@ -367,7 +370,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	*/
 	
 	if(svc->process.pid > 2) {
-		kill_diff=(svc->service_check_timeout+sched_pause);
+		kill_diff=(svc->service_check_timeout);
 		my_diff=cur_time - svc->process.start_time;
 		
 		if(svc->service_type != SVC_TYPE_PASSIVE) {
@@ -424,7 +427,7 @@ void sched_wait_open(int timeout) {
 void sched_reaper(int signum) {
 	 int status;
 	 
-	 while (waitpid (-1, &status, WNOHANG) > 0) {
+	 while (waitpid (-1, &status, WUNTRACED) > 0) {
 	 		 	
 	 }
 	
@@ -604,7 +607,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		}
 		sched_wait_open(60); //Nothing should run
 		
-		if(time(NULL)-round_start > sched_pause*3) {
+		if(time(NULL)-round_start > sched_pause*3 && sched_pause > 0) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		}
 		round_start=time(NULL);

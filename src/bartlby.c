@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.36  2006/09/09 19:38:34  hjanuschka
+auto commit
+
 Revision 1.35  2006/09/03 22:19:47  hjanuschka
 auto commit
 
@@ -167,7 +170,6 @@ CVS header ;-)
 
 
 #include <bartlby.h>
-
 
 
 

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.8  2006/09/09 19:38:34  hjanuschka
+auto commit
+
 Revision 1.7  2006/08/03 20:52:57  hjanuschka
 *** empty log message ***
 
@@ -101,6 +104,7 @@ int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int t
 }
 
 void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile) {
+	
 	struct stat perf_s;
 	//char perf_out[2048];
 	char * cfg_perf_dir;

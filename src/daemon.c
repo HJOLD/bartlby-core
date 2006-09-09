@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.11  2006/09/09 19:38:34  hjanuschka
+auto commit
+
 Revision 1.10  2006/06/04 23:55:28  hjanuschka
 core: SSL_connect (timeout issue's solved , at least i hope :))
 core: when perfhandlers_enabled == false, you now can enable single services
@@ -90,10 +93,111 @@ CVS Header
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <errno.h>
 
 
 
 #include <bartlby.h>
+
+void bartlby_exit(void) {
+	//bartlby_log_usage();	
+}
+
+
+void bartlby_log_usage(void) {
+	struct rusage ru;
+	
+	if(getrusage(RUSAGE_CHILDREN, &ru) == -1 ) {
+		_log("getrusage() error...(%s)", strerror(errno));	
+		return;
+	}
+	_log("*********** dumping usage of bartlby process...*****************");
+	_log("user time used (secs/usecs): %ld/%ld", ru.ru_utime.tv_sec, ru.ru_utime.tv_usec);
+	_log("system time used (secs/usecs): %ld/%ld", ru.ru_stime.tv_sec, ru.ru_stime.tv_usec);
+	_log("%-10ld\t%s", ru.ru_maxrss, " maximum resident size"); 
+	_log("%-10ld\t%s", ru.ru_ixrss, " integral shared memory size"); 
+	_log("%-10ld\t%s", ru.ru_idrss, " integral unshared memory size"); 
+	_log("%-10ld\t%s", ru.ru_isrss, " integral unshared data stack size"); 
+	_log("%-10ld\t%s", ru.ru_minflt, " page reclaims"); 
+	_log("%-10ld\t%s", ru.ru_majflt, " page faults"); 
+	_log("%-10ld\t%s", ru.ru_nswap, " swaps"); 
+	
+	_log("%-10ld\t%s", ru.ru_inblock, " block input operations"); 
+	_log("%-10ld\t%s", ru.ru_oublock, " block output operations"); 
+	_log("%-10ld\t%s", ru.ru_msgsnd, " messages sent"); 
+	_log("%-10ld\t%s", ru.ru_msgrcv, " messages received"); 
+	_log("%-10ld\t%s", ru.ru_nsignals, " signals received"); 
+	_log("%-10ld\t%s", ru.ru_nvcsw, " voluntary context switches"); 
+	_log("%-10ld\t%s", ru.ru_nivcsw, " involuntary context switches"); 
+	_log("******************* DONE ***************************************");
+	
+	
+}
+
+void bartlby_read_limit(int resource, char *name)
+{
+
+	struct rlimit limit;
+
+   	
+	if(getrlimit(resource, &limit) == -1)	{
+		_log("getrlimit error...\n");
+		return;
+	}
+	limit.rlim_cur=RLIM_INFINITY;
+	if(setrlimit(resource, &limit) == -1) {
+		_log("setrlimit error...%s (%s)",name, strerror(errno));
+	}
+	
+	if(getrlimit(resource, &limit) == -1)	{
+		_log("getrlimit error...\n");
+		return;
+	}
+
+	if(limit.rlim_cur == RLIM_INFINITY) {
+		_log("%15s | Soft-Limit : unlimited",name);
+	} else {
+		_log("%15s | Soft-Limit : %12ld",name, limit.rlim_cur);
+		
+	}
+	
+	if(limit.rlim_max == RLIM_INFINITY) {
+		_log("%15s | Hard-Limit : unlimited",name);
+	} else {
+		_log("%15s | Hard-Limit : %12ld",name, limit.rlim_cur);
+		
+	}
+
+	
+}
+
+void bartlby_set_limits(void) {
+	int limit_value[] = {RLIMIT_CORE, RLIMIT_CPU, RLIMIT_DATA, RLIMIT_FSIZE,
+                    RLIMIT_MEMLOCK, RLIMIT_NPROC,
+                    RLIMIT_RSS, RLIMIT_STACK, /*RLIMIT_VMEM*/};
+
+	char *limit_name[] = {"RLIMIT_CORE","RLIMIT_CPU","RLIMIT_DATA","RLIMIT_FSIZE",
+                      "RLIMIT_MEMLOCK","RLIMIT_NPROC",
+                      "RLIMIT_RSS","RLIMIT_STACK",/*"RLIMIT_VMEM",*/NULL};
+                      
+	int i;
+
+	for(i=0; limit_name[i]!= NULL; i++) {
+		bartlby_read_limit(limit_value[i], limit_name[i]);
+		
+	}
+     
+     
+}
+void bartlby_log_banner(void) {
+	_log("*****************Welcome to Bartlby*********************");	
+	_log("*        Next generation of system monitoring          *");
+	_log("*                                                      *");
+	_log("*       License: GPLv2                                 *");
+	_log("*                                                      *");
+	_log("********************************************************");
+}
+
 
 void bartlby_pre_init(char * cfgfile) {
 	FILE * pidfile;
@@ -102,9 +206,9 @@ void bartlby_pre_init(char * cfgfile) {
 	char pidstr[1024];
 	char * pid_def_name;
 	
-	struct rlimit rlim; /* resource limits -kre */
 	
-	
+	//atexit(bartlby_exit);
+	bartlby_log_banner();
 	
 	base_dir = getConfigValue("basedir", cfgfile);
 	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
@@ -118,9 +222,9 @@ void bartlby_pre_init(char * cfgfile) {
 	if(pid_def_name == NULL) {
 		pid_def_name=strdup(base_dir);
 	}
-	getrlimit(RLIMIT_CORE, &rlim);
-  	rlim.rlim_cur = rlim.rlim_max;
-  	setrlimit(RLIMIT_CORE, &rlim);
+	
+	bartlby_set_limits();
+  	
   	
 	chdir(base_dir);
 	_log("basedir set to:%s", base_dir);
@@ -162,6 +266,7 @@ void bartlby_end_clean(char *cfgfile) {
 	base_dir = getConfigValue("basedir", cfgfile);
 	pid_def_name = getConfigValue("pidfile_dir", cfgfile);
 	
+	bartlby_log_usage();
 	
 	if(base_dir == NULL) {
 		

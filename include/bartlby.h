@@ -292,5 +292,6 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 extern char config_file[255];
 
 
+void bartlby_log_usage(void);
 
 void nrpe_display_license(void);
