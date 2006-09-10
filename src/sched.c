@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.41  2006/09/10 21:27:53  hjanuschka
+auto commit
+
 Revision 1.40  2006/09/09 19:38:34  hjanuschka
 auto commit
 
@@ -335,12 +338,13 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	
 	
 	
-	
-	if(svc->do_force == 1) {
-		svc->do_force=0; //dont force again
-		//_log("Force: %s:%d/%s", svc->server_name, svc->client_port, svc->service_name);
-		_log("@FORCE@%d|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
-		return 1;	
+	if(sched_pause >= 0) {
+		if(svc->do_force == 1) {
+			svc->do_force=0; //dont force again
+			//_log("Force: %s:%d/%s", svc->server_name, svc->client_port, svc->service_name);
+			_log("@FORCE@%d|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
+			return 1;	
+		}
 	}
 	
 	if(sched_needs_ack(svc) == 1) {
@@ -413,7 +417,7 @@ void sched_wait_open(int timeout) {
 				
 			}
 			for(y=0; y<gshm_hdr->svccount; y++) {
-				sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, 1);
+				sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, -1);
 			}
 			
 	}	
