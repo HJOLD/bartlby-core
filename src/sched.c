@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.43  2006/09/10 23:34:46  hjanuschka
+*** empty log message ***
+
 Revision 1.42  2006/09/10 23:15:43  hjanuschka
 auto commit
 
@@ -409,7 +412,7 @@ void sched_wait_open(int timeout, int fasten) {
 	}
 	
 	while(gshm_hdr->current_running > fasten && do_shutdown == 0 && x < olim) {
-		
+			
 			sleep(1);
 			x++;
 			olim=gshm_hdr->current_running*timeout;
@@ -434,7 +437,7 @@ void sched_wait_open(int timeout, int fasten) {
 void sched_reaper(int signum) {
 	 int status;
 	 
-	 while (waitpid (-1, &status, WUNTRACED) > 0) {
+	 while (waitpid (-1, &status, WNOHANG) != -1) {
 	 		 	
 	 }
 	
