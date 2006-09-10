@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.42  2006/09/10 23:15:43  hjanuschka
+auto commit
+
 Revision 1.41  2006/09/10 21:27:53  hjanuschka
 auto commit
 
@@ -392,7 +395,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	return -1;
 }
 
-void sched_wait_open(int timeout) {
+void sched_wait_open(int timeout, int fasten) {
 	int x;
 	int y;
 	y=0;
@@ -405,7 +408,7 @@ void sched_wait_open(int timeout) {
 		olim=timeout;	
 	}
 	
-	while(gshm_hdr->current_running != 0 && do_shutdown == 0 && x < olim) {
+	while(gshm_hdr->current_running > fasten && do_shutdown == 0 && x < olim) {
 		
 			sleep(1);
 			x++;
@@ -517,13 +520,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		if(gshm_hdr->do_reload == 1) {
 			_log("queuing Reload");	
-			sched_wait_open(1);
+			sched_wait_open(1, 0);
 			signal(SIGCHLD, SIG_IGN);
 			return -2;
 		}
 		if(do_shutdown == 1) {
 			_log("Exit recieved");	
-			sched_wait_open(1);
+			sched_wait_open(1,0);
 			signal(SIGCHLD, SIG_IGN);
 			break;
 		}
@@ -605,11 +608,11 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 				
 				}				
 			} else {
-				sched_wait_open(60);	
+				sched_wait_open(60,cfg_max_parallel-1);	
 			}
 			
 		}
-		sched_wait_open(60); //Nothing should run
+		sched_wait_open(60,0); //Nothing should run
 		
 		if(time(NULL)-round_start > sched_pause*3 && sched_pause > 0) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
