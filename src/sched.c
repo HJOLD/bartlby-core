@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.45  2006/09/11 21:22:06  hjanuschka
+auto commit
+
 Revision 1.44  2006/09/10 23:40:06  hjanuschka
 *** empty log message ***
 
@@ -404,16 +407,56 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 void sched_wait_open(int timeout, int fasten) {
 	int x;
 	int y;
+	
+	int olim;
+	int pid;
+	int status;
+	
 	y=0;
 	x=0;
-	int olim;
-	
-	olim=3;
+	olim=3000;
 	
 	if(timeout != 0) {
-		olim=timeout;	
+		olim=timeout*1000;	
+	}
+	while(x<olim && do_shutdown == 0) {
+		usleep(100);
+		x++;
+		olim=gshm_hdr->current_running*timeout*1000;
+		
+		
+		pid = waitpid(WAIT_ANY, &status, WNOHANG);
+		if(pid < 0) {
+			//_log("waitpid() error %s", 	strerror(errno));
+			break;
+		}
+		if(pid != 0) {
+			//_log("child with pid: %d exited", pid);	
+			continue; //nother one?
+		} else {
+			
+			for(y=0; y<gshm_hdr->svccount; y++) {
+				sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, -1);
+			}
+			if(gshm_hdr->current_running <= fasten) {
+				//_log("return!!! %d/%d", fasten, gshm_hdr->current_running);	
+				break;
+			}
+			
+		}
+		if(gshm_hdr->current_running == 0) {
+			//_log("ISNULL");
+			break;	
+		}
+		if(x > olim) {
+			//_log("sched_wait_open timed out %d/%d", x, olim);	
+			gshm_hdr->current_running=0;
+			break;
+		}
+		
 	}
 	
+	/*
 	while(gshm_hdr->current_running > fasten && do_shutdown == 0 && x < olim) {
 			
 			sleep(1);
@@ -435,12 +478,14 @@ void sched_wait_open(int timeout, int fasten) {
 		gshm_hdr->current_running=0;
 		
 	}
+	*/
 }
 
+/*
 void sched_reaper(int signum) {
 	 int status;
 	 
-	 //while (waitpid (-1, &status, WNOHANG) != -1) {
+	 //while (waitpid (-1, &status, WNOHANG) > 0) {
 	 while (waitpid (-1, &status, WUNTRACED) > 0) {
 	 		 	
 	 }
@@ -460,7 +505,7 @@ void sched_reaper(int signum) {
 	
 		
 }
-
+*/
 
 int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 
@@ -507,7 +552,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	signal(SIGINT, catch_signal);
 	signal(SIGUSR1, catch_signal);
-	signal(SIGCHLD, sched_reaper);
+	//signal(SIGCHLD, sched_reaper);
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);
 	gservices=services;
@@ -573,7 +618,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 							case 0:
 								gshm_hdr->current_running++;
 								
-								signal(SIGCHLD, sched_reaper);
+								//signal(SIGCHLD, sched_reaper);
 								
 								gettimeofday(&check_start, NULL);
 										
@@ -619,8 +664,8 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			}
 			
 		}
-		sched_wait_open(60,0); //Nothing should run
-		
+		//sched_wait_open(60,0); //Nothing should run
+		//_log("round!!!");
 		if(time(NULL)-round_start > sched_pause*3 && sched_pause > 0) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		}
@@ -633,6 +678,8 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		
 		sleep(sched_pause);
+		_log("@@@@@@@@@@@@@ ROUND @@@@@@@@@@@@@@");
+		
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
 		if(i_am_a_slave == NULL) {
 			replication_go(cfgfile, shm_addr, SOHandle);

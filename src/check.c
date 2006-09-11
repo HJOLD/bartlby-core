@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.58  2006/09/11 21:22:06  hjanuschka
+auto commit
+
 Revision 1.57  2006/09/03 22:19:47  hjanuschka
 auto commit
 
@@ -410,7 +413,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	
 	
 	
-	
+	//sleep(40);
 	
 	connection_timed_out=0;
 	
