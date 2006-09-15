@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.46  2006/09/15 18:45:38  hjanuschka
+auto commit
+
 Revision 1.45  2006/09/11 21:22:06  hjanuschka
 auto commit
 
@@ -291,6 +294,7 @@ int sched_needs_ack(struct service * svc) {
 
 void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, void * SOHandle) {
 	int rtc;
+	int rnd_intv;
 	//kill the subprocess ;)
 	//also kills the perf handlers etc :-)
 	if(svc->process.pid < 2)  {
@@ -324,6 +328,11 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 		
 	sprintf(svc->new_server_text, "%s", "in-core time out");
 	svc->current_state=STATE_CRITICAL;
+	
+	rnd_intv=1+(rand() % 10);
+	svc->check_interval += rnd_intv;
+	_log("bumped intervall: %d", rnd_intv);
+	
 	bartlby_fin_service(svc,SOHandle,shm_addr,cfg);		
 	svc->process.pid=0;
 	svc->process.start_time=0;
@@ -332,6 +341,7 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	} else {
 		gshm_hdr->current_running=0;	
 	}
+	
 	
 }
 
@@ -409,8 +419,6 @@ void sched_wait_open(int timeout, int fasten) {
 	int y;
 	
 	int olim;
-	int pid;
-	int status;
 	
 	y=0;
 	x=0;
@@ -424,26 +432,15 @@ void sched_wait_open(int timeout, int fasten) {
 		x++;
 		olim=gshm_hdr->current_running*timeout*1000;
 		
-		
-		pid = waitpid(WAIT_ANY, &status, WNOHANG);
-		if(pid < 0) {
-			//_log("waitpid() error %s", 	strerror(errno));
+		for(y=0; y<gshm_hdr->svccount; y++) {
+			sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, -1);
+		}
+		if(gshm_hdr->current_running <= fasten) {
+			//_log("return!!! %d/%d", fasten, gshm_hdr->current_running);	
 			break;
 		}
-		if(pid != 0) {
-			//_log("child with pid: %d exited", pid);	
-			continue; //nother one?
-		} else {
 			
-			for(y=0; y<gshm_hdr->svccount; y++) {
-				sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, -1);
-			}
-			if(gshm_hdr->current_running <= fasten) {
-				//_log("return!!! %d/%d", fasten, gshm_hdr->current_running);	
-				break;
-			}
-			
-		}
+		
 		if(gshm_hdr->current_running == 0) {
 			//_log("ISNULL");
 			break;	
@@ -456,63 +453,82 @@ void sched_wait_open(int timeout, int fasten) {
 		
 	}
 	
-	/*
-	while(gshm_hdr->current_running > fasten && do_shutdown == 0 && x < olim) {
-			
-			sleep(1);
-			x++;
-			olim=gshm_hdr->current_running*timeout;
-			
-			if(gshm_hdr->current_running < 0 || gshm_hdr->current_running  == 1) {
-				gshm_hdr->current_running=0;
-				break;
-				
+
+}
+
+
+void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void * SOHandle) {
+       struct timeval check_start, check_end;
+       int wait_result;
+       int child_pid;
+       
+       
+	child_pid=fork();
+	switch(child_pid) {
+		case -1:
+			_log("FORK Error %s", strerror(errno));
+			return;
+		break;
+		case 0:
+			//fork another one to run the check
+			child_pid=fork();
+			if(child_pid == -1) {
+				_log("FORK1 Error %s", strerror(errno));
+				return;
 			}
-			for(y=0; y<gshm_hdr->svccount; y++) {
-				sched_check_waiting(gshm_addr,&gservices[y], gConfig, gSOHandle, -1);
-			}
+			//grand child runs the check
+			if(child_pid == 0) {
+				setpgid(0,0);
+				gshm_hdr->current_running++;
+				//signal(SIGCHLD, sched_reaper);
+				gettimeofday(&check_start, NULL);
+					
+				svc->process.pid=getpid();
+				svc->process.start_time=time(NULL);
+									
+				bartlby_check_service(svc, shm_addr, SOHandle, cfgfile);	
 			
-	}	
-	if(x > olim) {
-		
-		gshm_hdr->current_running=0;
-		
+			
+				gettimeofday(&check_end, NULL);
+			
+			
+				bartlby_core_perf_track(gshm_hdr, svc, PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
+			
+				svc->process.pid=0;
+				svc->process.start_time=0;
+			
+			
+				if(gshm_hdr->current_running > 0) {
+					gshm_hdr->current_running--;
+				} else {
+					gshm_hdr->current_running=0;	
+				}
+			
+			
+			
+				shmdt(shm_addr);
+			
+				exit(0);
+			} else if (child_pid > 0) {
+				//child exits
+				shmdt(shm_addr);
+				exit(1);
+			}
+		break;	
+		default:
+			//just wait for the child
+			wait_result=waitpid(child_pid,NULL,0);
+			
+			
+		break;
 	}
-	*/
+	
 }
-
-/*
-void sched_reaper(int signum) {
-	 int status;
-	 
-	 //while (waitpid (-1, &status, WNOHANG) > 0) {
-	 while (waitpid (-1, &status, WUNTRACED) > 0) {
-	 		 	
-	 }
-	
-	if(WIFSIGNALED(status)) {
-		if(WTERMSIG(status) == SIGSEGV || WTERMSIG(status) == SIGTERM) {
-			_log("Child exited unexpected status: %d / %s", WTERMSIG(status), strsignal(WTERMSIG(status))); 
-			if(gshm_hdr->current_running > 0) {
-				gshm_hdr->current_running--;
-			} else {
-				gshm_hdr->current_running=0;	
-			}
-		}
-	} 
-	
-	
-	
-		
-}
-*/
-
 int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 
 	
 	
 	int x;
-	int child_pid;
 	int cfg_max_parallel=0;
 	
 	
@@ -522,7 +538,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	int sched_pause;
 	
-	struct timeval check_start, check_end, stat_round_start, stat_round_end;
+	struct timeval  stat_round_start, stat_round_end;
 	
 	char * i_am_a_slave;
 	char * cfg_mps;
@@ -566,6 +582,10 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	} else {
 		sched_pause=atoi(cfg_sched_pause);
 		free(cfg_sched_pause);
+		if(sched_pause <= 0) {
+			sched_pause=1;
+			_log("info: sched_pause really low should'nt be less than 1 seconds defaulting to it: %d", sched_pause);
+		}
 	}
 	
 	while(1) {
@@ -604,73 +624,18 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			
 			if(gshm_hdr->current_running < cfg_max_parallel) { 
 				if(sched_check_waiting(shm_addr, &services[x], cfgfile, SOHandle, sched_pause) == 1) {
-						
-						//_log("SVC timeout: %d", services[x].service_check_timeout);
-						round_visitors++;
-				 		//services[x].last_check=time(NULL);
-				 		
-						child_pid=fork();
-						switch(child_pid) {
-							case -1:
-								_log("FORK Error %s", strerror(errno));
-								return -1;
-							break;
-							case 0:
-								gshm_hdr->current_running++;
-								
-								//signal(SIGCHLD, sched_reaper);
-								
-								gettimeofday(&check_start, NULL);
-										
-								services[x].process.pid=getpid();
-								services[x].process.start_time=time(NULL);
-														
-								bartlby_check_service(&services[x], shm_addr, SOHandle, cfgfile);	
-								
-								
-								gettimeofday(&check_end, NULL);
-								
-								
-								bartlby_core_perf_track(gshm_hdr, &services[x], PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
-								
-								services[x].process.pid=0;
-								services[x].process.start_time=0;
-								
-								
-								if(gshm_hdr->current_running > 0) {
-									gshm_hdr->current_running--;
-								} else {
-									gshm_hdr->current_running=0;	
-								}
-								
-								
-								
-								shmdt(shm_addr);
-								
-								exit(0);
-								
-							break;	
-							default:
-								//gshm_hdr->current_running++;
-								
-								
-							break;
-						}
-				
-				
+					round_visitors++;
+			 		sched_run_check(&services[x], cfgfile, shm_addr, SOHandle);
 				}				
 			} else {
 				sched_wait_open(60,cfg_max_parallel-1);	
 			}
 			
 		}
-		//sched_wait_open(60,0); //Nothing should run
-		//_log("round!!!");
+		
 		if(time(NULL)-round_start > sched_pause*3 && sched_pause > 0) {
 			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
 		}
-		round_start=time(NULL);
-		round_visitors=0;
 		
 		//Log Round End
 		gettimeofday(&stat_round_end,NULL);
@@ -678,7 +643,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		
 		sleep(sched_pause);
-		_log("@@@@@@@@@@@@@ ROUND @@@@@@@@@@@@@@");
+		//_log("@@@@@@@@@@@@@ ROUND (%d/%d/%d) @@@@@@@@@@@@@@", round_visitors, gshm_hdr->current_running, cfg_max_parallel);
+		round_start=time(NULL);
+		round_visitors=0;
 		
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
 		if(i_am_a_slave == NULL) {
