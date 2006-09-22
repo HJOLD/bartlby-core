@@ -34,7 +34,7 @@ install: all
 	
 	list='$(PERFHANDLERS)'; for perfhandler in $$list; do \
 	  $(CPPVA) -m 777 perf/$$perfhandler ${BARTLBY_HOME}/perf/; \
-	  $(CPPVA) perf/defaults/$$perfhandler.rrd ${BARTLBY_HOME}/perf/defaults/; \
+	  $(CPPVA) perf/defaults/$$perfhandler.rrd.xml ${BARTLBY_HOME}/perf/defaults/; \
 	done		
 		
 	list='$(SUBDIRS)'; for subdir in $$list; do \

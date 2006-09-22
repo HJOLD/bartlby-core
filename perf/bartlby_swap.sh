@@ -31,10 +31,10 @@ if [ ! -f $RRDFILE ];
 then
 	if [ "x${BARTLBY_HOME}" != "x" ];
 	then
-		ORIGFILE="${BARTLBY_HOME}/perf/defaults/bartlby_swap.sh.rrd";
+		ORIGFILE="${BARTLBY_HOME}/perf/defaults/bartlby_swap.sh.rrd.xml";
 		if [ -f $ORIGFILE ];
 		then
-			cp $ORIGFILE $RRDFILE;
+			$RRDTOOL restore $ORIGFILE $RRDFILE;
 			chmod a+rw $RRDFILE;
 		fi;
 	else
