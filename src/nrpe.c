@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2006/09/23 22:38:46  hjanuschka
+auto commit
+
 Revision 1.8  2006/07/15 10:28:39  hjanuschka
 nrpe FIXME solved
 
@@ -377,7 +380,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 		svc->current_state=STATE_CRITICAL;
 		return;
 	}else if(bytes_to_recv<sizeof(receive_packet)){
-		sprintf(svc->new_server_text, "CHECK_NRPE: Receive underflow - only %d bytes received (%d expected).\n",bytes_to_recv,sizeof(receive_packet));
+		sprintf(svc->new_server_text, "CHECK_NRPE: Receive underflow - only %d bytes received (%ld expected).\n",bytes_to_recv,sizeof(receive_packet));
 		svc->current_state=STATE_CRITICAL;
 		return;
 	}

@@ -2,7 +2,7 @@
 #define PROGNAME "bartlby"
 #define REL_NAME "Cerebrum"
 #define VERSION  "1.2.3"
-#define EXPECTCORE 1102031 //Module V Check's
+#define EXPECTCORE 1102032 //Module V Check's
 
 #define MAX_CCACHE 1024
 
@@ -172,6 +172,8 @@ struct service {
 	
 	struct sprocess process;
 	
+	int flap_seconds;
+	
 };
 
 struct worker {
@@ -190,6 +192,8 @@ struct worker {
 	char notify_levels[20];
 	char enabled_triggers[2048];
 	char t[500];
+	int escalation_limit;
+	int escalation_minutes;
 
 }sa;
 

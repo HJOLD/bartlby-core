@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.22  2006/09/23 22:38:46  hjanuschka
+auto commit
+
 Revision 1.21  2006/08/07 18:40:10  hjanuschka
 auto commit
 
@@ -120,9 +123,7 @@ CVS Header
 #define DEFAULT_NOTIFY_MSG "State Change ($READABLE_STATE)\\n*********** $PROGNAME $VERSION ********************\\n[  Server: $SERVER, Service: $SERVICE, State: $READABLE_STATE]\\n%$MESSAGE"
 #define FL 0
 #define TR 1
-#define ESCALATION_MINUTES 2
-#define ESCALATION_LIMIT 50
-#define FLAP_SECONDS (2*60)
+
 
 static int connection_timed_out=0;
 #define CONN_TIMEOUT 15
@@ -184,12 +185,12 @@ int bartlby_trigger_escalation(struct worker *w, struct service * svc) {
 		//_log("Worker: %s is inactive", w->mail);
 		return FL;	
 	}
-	if((time(NULL) - w->escalation_time) >= (ESCALATION_MINUTES*60)) {
+	if((time(NULL) - w->escalation_time) >= (w->escalation_minutes*60)) {
 		w->escalation_count=0;
 		return TR;	
 	} else {
-		if(w->escalation_count > ESCALATION_LIMIT) {
-			_log("@NOT-EXT@%d|%d|%d|%s||%s:%d/%s|'(escalation %d/%d)'", svc->service_id, svc->last_state ,svc->current_state,w->name, svc->server_name, svc->client_port, svc->service_name,w->escalation_count, ESCALATION_LIMIT);
+		if(w->escalation_count > w->escalation_limit) {
+			_log("@NOT-EXT@%d|%d|%d|%s||%s:%d/%s|'(escalation %d/%d)'", svc->service_id, svc->last_state ,svc->current_state,w->name, svc->server_name, svc->client_port, svc->service_name,w->escalation_count, w->escalation_limit);
 			return FL;
 		} else {
 			w->escalation_count++;
@@ -206,7 +207,7 @@ int bartlby_trigger_chk(struct service *svc) {
 		_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Notifications disabled)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
 		return FL;
 	} else {
-		if((time(NULL)- svc->last_notify_send) >= FLAP_SECONDS) {
+		if((time(NULL)- svc->last_notify_send) >= svc->flap_seconds) {
 			svc->flap_count=0;
 			return TR;				
 		} else {
