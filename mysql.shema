@@ -106,3 +106,5 @@ CREATE TABLE `workers` (
 ) TYPE=MyISAM AUTO_INCREMENT=15 ;
 
 insert into workers(worker_name, worker_mail,password) VALUES('admin', 'bartlby-default@januschka.com', '5f4dcc3b5aa765d61d8327deb882cf99');
+
+
