@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.47  2006/09/24 19:06:50  hjanuschka
+auto commit
+
 Revision 1.46  2006/09/15 18:45:38  hjanuschka
 auto commit
 
@@ -401,7 +404,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 		
 		if(svc->service_type != SVC_TYPE_PASSIVE) {
 			//Passive's should'nt time out either
-			if(my_diff > kill_diff) {
+			if(my_diff > kill_diff+10) {
 				//_log("@@@ %d/%d @@ ", my_diff, kill_diff);
 				//A little offset
 				//so this is a "so called" miss coded extension ;) with faulted timeout handlers ;)
