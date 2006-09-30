@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.59  2006/09/30 17:48:11  hjanuschka
+auto commit
+
 Revision 1.58  2006/09/11 21:22:06  hjanuschka
 auto commit
 
@@ -265,7 +268,7 @@ CVS Header
 #define PROTOCOL_ERROR "Protocol Error"
 #define TIMEOUT_ERROR "Recv() timedout"
 
-#define CONN_TIMEOUT 15
+
 
 
 
@@ -280,6 +283,51 @@ static int connection_timed_out=0;
 
 static void bartlby_conn_timeout(int signo) {
  	connection_timed_out = 1;
+}
+void bartlby_check_grep_perf_line(char * l, struct service * svc, char * cfgfile) {
+	char * tmp_line;
+	int x;
+	int lf_found=0;
+	int n_orig=0;
+	int p_line=0;
+	char * pl;
+	
+	
+	
+	
+	if(strncmp(l, "PERF: ", 6) == 0) {
+		tmp_line = strdup(l);
+		pl=strdup(l);
+		
+		for(x=0; x<strlen(tmp_line); x++) {
+			if(lf_found == 0) {
+				if(tmp_line[x] == '\n') {
+					lf_found=1;
+					continue;	
+				}
+				pl[p_line] = tmp_line[x];
+				p_line++;
+				
+			} else {
+				if(tmp_line[x] != '\n') {
+					l[n_orig] = tmp_line[x];
+					n_orig++;
+						
+				}	
+			}
+		}
+		
+		pl[p_line]='\0';
+		l[n_orig]='\n';
+		l[n_orig+1]='\0';
+		
+		bartlby_perf_track(svc,pl, strlen(pl), cfgfile);
+				
+		free(pl);
+		free(tmp_line);		
+	} else {
+		return;	
+	}
 }
 
 void bartlby_check_local(struct service * svc, char * cfgfile) {
@@ -368,6 +416,8 @@ void bartlby_check_local(struct service * svc, char * cfgfile) {
 				
 		} 
 		
+		
+		bartlby_check_grep_perf_line(rmessage_temp, svc, cfgfile);
 		connection_timed_out = 0;
 		sprintf(rmessage, "%d|%s", WEXITSTATUS(plugin_rtc), rmessage_temp); 
 		
@@ -793,6 +843,8 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 		}
 		//_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
+		bartlby_check_grep_perf_line(svc->new_server_text, svc, cfgfile);
+		
 		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}

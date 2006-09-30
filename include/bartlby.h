@@ -293,6 +293,8 @@ int bartlby_callback(int type, void *data);
 
 void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,char * cfgfile);
 
+void bartlby_check_grep_perf_line(char * l, struct service * svc, char * cfgfile);
+
 extern char config_file[255];
 
 
