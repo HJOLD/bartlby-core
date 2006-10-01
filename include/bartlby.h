@@ -1,7 +1,7 @@
 
 #define PROGNAME "bartlby"
 #define REL_NAME "Cerebrum"
-#define VERSION  "1.2.3"
+#define VERSION  "1.2.3r2"
 #define EXPECTCORE 1102033 //Module V Check's
 
 #define MAX_CCACHE 1024
