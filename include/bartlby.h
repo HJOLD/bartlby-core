@@ -1,8 +1,8 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Vaskulitis"
-#define VERSION  "1.2.4"
-#define EXPECTCORE 1102042 //Module V Check's
+#define REL_NAME "Cerebrum"
+#define VERSION  "1.2.3"
+#define EXPECTCORE 1102033 //Module V Check's
 
 #define MAX_CCACHE 1024
 
