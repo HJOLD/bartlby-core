@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.23  2006/10/05 23:19:37  hjanuschka
+auto commit
+
 Revision 1.22  2006/09/23 22:38:46  hjanuschka
 auto commit
 
@@ -201,12 +204,25 @@ int bartlby_trigger_escalation(struct worker *w, struct service * svc) {
 
 int bartlby_trigger_chk(struct service *svc) {
 	
-	
+	if(svc->srv->server_notify == 0) {
+		_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Notifications disabled on this server)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
+	}
 	if(svc->notify_enabled == 0) {
 		//_log("Suppressed notify: Notifications disabled %s:%d/%s",svc->client_ip, svc->client_port, svc->service_name);
 		_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Notifications disabled)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
 		return FL;
 	} else {
+		if((time(NULL) - svc->srv->last_notify_send) > svc->srv->server_flap_seconds) {
+			svc->srv->flap_count=0;	
+		} else {
+			if(svc->srv->flap_count > 2) {
+				_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Server lazy %d)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->flap_count);
+				return FL;
+			} else {
+				svc->srv->flap_count++;	
+			}	
+		}
+		
 		if((time(NULL)- svc->last_notify_send) >= svc->flap_seconds) {
 			svc->flap_count=0;
 			return TR;				
@@ -347,6 +363,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
 						
 						svc->last_notify_send=time(NULL);
+						svc->srv->last_notify_send=time(NULL);
 						wrkmap[x].escalation_time=time(NULL);
 						exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"                         ")+strlen(wrkmap[x].icq)+strlen(wrkmap[x].name)+strlen(notify_msg)+strlen(wrkmap[x].mail)));
 						sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);

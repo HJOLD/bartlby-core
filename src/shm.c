@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2006/10/05 23:19:37  hjanuschka
+auto commit
+
 Revision 1.5  2006/04/24 22:20:00  hjanuschka
 core: event queue
 
@@ -46,19 +49,58 @@ struct shm_header * bartlby_SHM_GetHDR(void * shm_addr) {
 	return (struct shm_header *)(void *)shm_addr;
 }
 
+void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile) {
+	struct shm_header * hdr;
+	struct server * srvmap;
+	struct service * svcmap;
+	int x;
+	int y;
+	
+	
+	hdr=bartlby_SHM_GetHDR(shm_addr);
+	srvmap=bartlby_SHM_ServerMap(shm_addr);
+	svcmap=bartlby_SHM_ServiceMap(shm_addr);
+	
+	for(x=0; x<hdr->svccount; x++) {
+		for(y=0; y<hdr->srvcount; y++) {
+			if(svcmap[x].server_id == srvmap[y].server_id) {
+				//_log("linking: %s -> %s", svcmap[x].service_name, srvmap[y].server_name);
+				svcmap[x].srv=&srvmap[y];
+				svcmap[x].srv_place=y;
+				
+			}	
+		}	
+	}
+	_log("linked services with servers!");
+	
+}
 
 struct btl_event * bartlby_SHM_EventMap(void * shm_addr) {
 	//Is beyond the 3 integers :-)
 	struct shm_header * hdr;
+	struct server * srvmap;
+	
+	hdr=bartlby_SHM_GetHDR(shm_addr);
+	srvmap=bartlby_SHM_ServerMap(shm_addr);
+	
+	
+	return (struct btl_event *)(void *)&srvmap[hdr->srvcount]+20;
+}
+
+struct server * bartlby_SHM_ServerMap(void * shm_addr) {
+	//Is beyond the 3 integers :-)
+	struct shm_header * hdr;
+	struct service * svcmap;
 	struct downtime * dtmap;
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
+	
+	svcmap=bartlby_SHM_ServiceMap(shm_addr);
+	//wrkmap=(struct worker *)(void*)&svcmap[hdr->svccount]+20;
 	dtmap=bartlby_SHM_DowntimeMap(shm_addr);
 	
-	
-	return (struct btl_event *)(void *)&dtmap[hdr->dtcount]+20;
+	return (struct server *)(void *)&dtmap[hdr->dtcount]+20;
 }
-
 
 struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr) {
 	//Is beyond the 3 integers :-)

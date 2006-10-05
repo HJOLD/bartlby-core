@@ -77,7 +77,8 @@
 struct shm_counter {
 	int worker;
 	int services;
-	int downtimes;	
+	int downtimes;
+	int servers;	
 };
 
 struct perf_statistic {
@@ -104,6 +105,7 @@ struct shm_header {
 	int size_of_structs;
 	int svccount;
 	int wrkcount;
+	int srvcount;
 	int current_running;
 	char  version[50];
 	int do_reload;
@@ -115,6 +117,21 @@ struct shm_header {
 	int cur_event_index;
 	
 };
+
+struct server {
+	int server_id;
+	char  client_ip[2048];
+	char  server_name[2048];
+	char server_icon[1024];
+	int server_enabled;
+	int client_port;
+	int server_dead;
+	int server_notify;
+	int server_flap_seconds;
+	int flap_count;
+	int last_notify_send;
+	
+} xxyz;
 
 struct service {
 	int service_id;
@@ -173,6 +190,9 @@ struct service {
 	struct sprocess process;
 	
 	int flap_seconds;
+	
+	struct server * srv;
+	int srv_place;
 	
 };
 
@@ -251,6 +271,8 @@ struct service * bartlby_SHM_ServiceMap(void *);
 struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr);
 struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);
+struct server * bartlby_SHM_ServerMap(void * shm_addr);
+void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile);
 
 void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile);
 int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int type, int time);

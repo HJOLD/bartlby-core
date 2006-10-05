@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.48  2006/10/05 23:19:37  hjanuschka
+auto commit
+
 Revision 1.47  2006/09/24 19:06:50  hjanuschka
 auto commit
 
@@ -270,18 +273,29 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 	int x;
 	
 	struct service * services;
+	struct server * servers;
 	int (*doUpdate)(struct service *,char *);
+	int (*ModifyServer)(struct server *, char *);
+	
 	char * dlmsg;
 	
 	gshm_hdr=bartlby_SHM_GetHDR(shm_addr); //just to be sure ;)
 	services=bartlby_SHM_ServiceMap(shm_addr);
+	servers=bartlby_SHM_ServerMap(shm_addr);
+	
 	
 	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
+	LOAD_SYMBOL(ModifyServer,SOHandle, "ModifyServer");
 	
 	for(x=0; x<gshm_hdr->svccount; x++) {
 		doUpdate(&services[x], cfgfile);
 	}	
 	_log("wrote back %d services!", x);
+	for(x=0; x<gshm_hdr->srvcount; x++) {
+		ModifyServer(&servers[x], cfgfile);
+	}
+	_log("wrote back %d servers!", x);
+	
 	
 }
 
@@ -375,6 +389,10 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	if(sched_needs_ack(svc) == 1) {
 		//_log("Service: %s is in status outstanding", svc->service_name);
 		return -1; //Dont sched this	
+	}
+	
+	if(svc->srv->server_enabled == 0 || svc->srv->server_dead == 1) {
+		return -1;	
 	}
 	
 	if(svc->service_active == 1) {

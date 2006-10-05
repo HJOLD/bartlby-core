@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.37  2006/10/05 23:19:37  hjanuschka
+auto commit
+
 Revision 1.36  2006/09/09 19:38:34  hjanuschka
 auto commit
 
@@ -199,6 +202,7 @@ int main(int argc, char ** argv, char ** envp) {
 	int global_startup_time;
 	
 	int (*GetServiceMap)(struct service *, char *);
+	int (*GetServerMap)(struct server *, char *);
 	int (*GetWorkerMap)(struct worker *,char *);
 	int (*GetDowntimeMap)(struct downtime *, char *);
 	
@@ -224,6 +228,7 @@ int main(int argc, char ** argv, char ** envp) {
 	int shm_svc_cnt;
 	int shm_wrk_cnt;
 	int shm_dt_cnt;
+	int shm_srv_cnt;
 	
 	struct shmid_ds shm_desc;
 	long SHMSize;
@@ -232,6 +237,8 @@ int main(int argc, char ** argv, char ** envp) {
 	struct service * svcmap;
 	struct worker * wrkmap;
 	struct downtime * dtmap;
+	struct server * srvmap;
+	
 		
 	/*
 		END SHM stuff
@@ -309,6 +316,7 @@ int main(int argc, char ** argv, char ** envp) {
 	LOAD_SYMBOL(GetAutor,SOHandle, "GetAutor");
     	LOAD_SYMBOL(GetVersion,SOHandle, "GetVersion");
     	LOAD_SYMBOL(GetServiceMap,SOHandle, "GetServiceMap");
+    	LOAD_SYMBOL(GetServerMap,SOHandle, "GetServerMap");
     	LOAD_SYMBOL(GetWorkerMap,SOHandle, "GetWorkerMap");
     	LOAD_SYMBOL(GetDowntimeMap,SOHandle, "GetDowntimeMap");
     	LOAD_SYMBOL(GetName,SOHandle, "GetName");
@@ -366,7 +374,7 @@ int main(int argc, char ** argv, char ** envp) {
 		}
 		SHMSize=cfg_shm_size_bytes*1024*1024;	
 		
-		suggested_minimum = (sizeof(struct shm_header) + (sizeof(struct worker) * shmc->worker) + (sizeof(struct service) * shmc->services) + (sizeof(struct downtime) * shmc->downtimes) + 2000 + (sizeof(struct btl_event)*EVENT_QUEUE_MAX)) * 2;
+		suggested_minimum = (sizeof(struct shm_header) + (sizeof(struct server) * shmc->servers) + (sizeof(struct worker) * shmc->worker) + (sizeof(struct service) * shmc->services) + (sizeof(struct downtime) * shmc->downtimes) + 2000 + (sizeof(struct btl_event)*EVENT_QUEUE_MAX)) * 2;
 		if(SHMSize <= suggested_minimum) {
 			_log("SHM is to small minimum: %d KB ", suggested_minimum/1024);
 			exit(1);	
@@ -403,6 +411,10 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_dt_cnt=GetDowntimeMap(dtmap, argv[1]);
 			shm_hdr->dtcount=shm_dt_cnt;
 				
+			srvmap=(struct server *)(void *)&dtmap[shm_dt_cnt]+20;
+			shm_srv_cnt=GetServerMap(srvmap, argv[1]);
+			
+			shm_hdr->srvcount=shm_srv_cnt;
 				
 			//06.04.24 Init EVENT QUEUE
 			bartlby_event_init(bartlby_address);
@@ -412,6 +424,7 @@ int main(int argc, char ** argv, char ** envp) {
 			
 			_log("Workers: %d", shm_hdr->wrkcount);
 			_log("Downtimes: %d", shm_hdr->dtcount);
+			_log("Servers: %d", shm_hdr->srvcount);
 			shm_hdr->current_running=0;
 			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 						
@@ -421,7 +434,7 @@ int main(int argc, char ** argv, char ** envp) {
 			shm_hdr->startup_time=global_startup_time;
 			
 			shm_hdr->sirene_mode=0; //Default disable	
-			shm_hdr->size_of_structs=sizeof(struct shm_header)+sizeof(struct worker)+sizeof(struct service)+sizeof(struct downtime);
+			shm_hdr->size_of_structs=sizeof(struct shm_header)+sizeof(struct worker)+sizeof(struct service)+sizeof(struct downtime)+sizeof(struct server);
 			shm_hdr->pstat.sum=0;
 			shm_hdr->pstat.counter=0;
 			
@@ -437,6 +450,7 @@ int main(int argc, char ** argv, char ** envp) {
 				break;
 				
 			}
+			bartlby_SHM_link_services_servers(bartlby_address, argv[1]);
 			
 			
 		} else {

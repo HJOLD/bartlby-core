@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.47  2006/10/05 23:19:37  hjanuschka
+auto commit
+
 Revision 1.46  2006/09/23 22:38:46  hjanuschka
 auto commit
 
@@ -238,19 +241,19 @@ CVS Header
 
 #define AUTOR "Helmut Januschka \"helmut@januschka.com\" http://bartlby.org"
 #define NAME "MYSQL Connector"
-#define DLVERSION  "0.9.1"
+#define DLVERSION  "1.1.2"
 
-
+#define SERVER_MAP_SELECTOR "select server_id, server_ip, server_name, server_ico, server_enabled, server_port, server_dead, server_flap_seconds, server_notify from servers"
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, svc.flap_seconds  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY svc.service_type asc, svc.server_id"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
 
-#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico) VALUES('%s','%s', '%d', '%s')"
+#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico, server_enabled, server_notify, server_flap_seconds) VALUES('%s','%s', '%d', '%s', '%d', '%d', '%d')"
 #define DELETE_SERVER "delete from servers where server_id=%d"
-#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s' where server_id=%d"
-#define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico from servers where server_id=%d"
+#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s', server_enabled='%d', server_notify='%d', server_flap_seconds='%d' where server_id=%d"
+#define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico, server_enabled, server_notify, server_flap_seconds from servers where server_id=%d"
 #define SERVER_CHANGE_ID "update servers set server_id=%d where server_id=%d"
 #define SERVER_CHANGE_SERVICES "update services set server_id=%d where server_id=%d"
 
@@ -284,7 +287,7 @@ CVS Header
 #define COUNT_SERVICES "select count(1) from services"
 #define COUNT_WORKERS "select count(1) from workers"
 #define COUNT_DOWNTIMES "select count(1) from downtime"
-
+#define COUNT_SERVERS "select count(1) from servers"
 
 /*
 
@@ -382,7 +385,26 @@ struct shm_counter * GetCounter(char * config) {
      }
       		
      mysql_free_result(res);
+     //COUNT_SERVERS
+     mysql_query(mysql, COUNT_SERVERS);
+	CHK_ERR_NULL(mysql);
+     res = mysql_store_result(mysql);
+     CHK_ERR_NULL(mysql);
      
+     
+     if(mysql_num_rows(res) > 0) {
+     	row=mysql_fetch_row(res);
+
+  		if(row[0] != NULL) {
+     	 	shmc->servers = atoi(row[0]);
+     	}
+     	
+     	
+     } else {
+     	shmc->downtimes = 0;	
+     }
+      		
+     mysql_free_result(res);
      
 	mysql_close(mysql);
 	free(mysql_host);
@@ -1507,7 +1529,7 @@ int AddService(struct service * svc, char *config) {
 	return rtc;	
 }
 
-int GetServerById(int server_id, struct service * svc, char * config) {
+int GetServerById(int server_id, struct server * svc, char * config) {
 	
 	int tmprc;
 	MYSQL *mysql;
@@ -1565,6 +1587,10 @@ int GetServerById(int server_id, struct service * svc, char * config) {
       		} else {
       			sprintf(svc->server_icon, "(null)");
       		}
+      		svc->server_enabled=atoi(row[4]);
+      		svc->server_notify=atoi(row[5]);
+      		svc->server_flap_seconds=atoi(row[6]);
+      		
       		tmprc=0;
       	} else {
 			tmprc=-1;
@@ -1582,7 +1608,7 @@ int GetServerById(int server_id, struct service * svc, char * config) {
 		
 }
 		
-int ModifyServer(struct service * svc, char *config) {
+int ModifyServer(struct server * svc, char *config) {
 	/*
 		We get a struct service
 		filled with server_name, client_port, client_ip, server_id
@@ -1601,7 +1627,7 @@ int ModifyServer(struct service * svc, char *config) {
 	char * mysql_pw = getConfigValue("mysql_pw", config);
 	char * mysql_db = getConfigValue("mysql_db", config);
 
-	service_mysql_safe(svc);
+	//service_mysql_safe(svc);
 
 	mysql=mysql_init(NULL);
 		CHK_ERR(mysql);
@@ -1612,7 +1638,7 @@ int ModifyServer(struct service * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20+strlen(svc->server_icon)));
-	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_icon, svc->server_id);
+	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_icon,svc->server_enabled, svc->server_notify, svc->server_flap_seconds, svc->server_id);
 	
 	//Log("dbg", sqlupd);
 	
@@ -1690,7 +1716,7 @@ int DeleteServer(int server_id, char * config) {
 	
 	
 }
-int AddServer(struct service * svc, char *config) {
+int AddServer(struct server * svc, char *config) {
 	/*
 		We get a struct service
 		filled with server_name, client_port, client_ip
@@ -1718,7 +1744,7 @@ int AddServer(struct service * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20+strlen(svc->server_icon)));
-	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port, svc->server_icon);
+	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port, svc->server_icon, svc->server_enabled, svc->server_notify, svc->server_flap_seconds);
 	
 	//Log("dbg", sqlupd);
 	
@@ -2140,3 +2166,104 @@ int GetServiceMap(struct service * svcs, char * config) {
 }
 
 
+
+/*
+//#define SERVER_MAP_SELECTOR "select 
+0 = server_id
+1 = server_ip
+2 = server_name
+3 = server_ico
+4 =  server_enabled 
+5 = server_port
+6 = server_dead
+7 = server_flap_seconds
+8 =  server_notify
+
+*/
+int GetServerMap(struct server * srv, char * config) {
+	
+	MYSQL *mysql;
+	MYSQL_ROW  row;
+	MYSQL_RES  *res;
+	
+	char * mysql_host = getConfigValue("mysql_host", config);
+	char * mysql_user = getConfigValue("mysql_user", config);
+	char * mysql_pw = getConfigValue("mysql_pw", config);
+	char * mysql_db = getConfigValue("mysql_db", config);
+	int i=0;
+	set_cfg(config);
+	mysql=mysql_init(NULL);
+		CHK_ERR(mysql);
+	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+		CHK_ERR(mysql);
+      	mysql_select_db(mysql, mysql_db);
+      		CHK_ERR(mysql);
+      		
+      	mysql_query(mysql, SERVER_MAP_SELECTOR);
+		CHK_ERR(mysql);
+      	res = mysql_store_result(mysql);
+      		CHK_ERR(mysql);
+      		
+      		
+	if(mysql_num_rows(res) > 0) {
+      		
+      		
+      		while ( (row=mysql_fetch_row(res)) != NULL) {
+      			
+      			srv[i].server_id=atoi(row[0]);
+      			srv[i].server_enabled=atoi(row[4]);
+      			srv[i].client_port=atoi(row[5]);
+      			srv[i].server_dead=atoi(row[6]);
+      			srv[i].server_flap_seconds=atoi(row[7]);
+      			srv[i].server_notify=atoi(row[8]);
+      			srv[i].last_notify_send=time(NULL);
+      			srv[i].flap_count=0;
+      			
+      			
+      			if(row[1] != NULL) {
+      				//svcs[i].service_name=malloc(strlen(row[1])*sizeof(char)+2);
+      				sprintf(srv[i].client_ip, "%s", row[1]);
+      				
+      			} else {
+      				//svcs[i].service_name=NULL;     				
+      				sprintf(srv[i].client_ip, "(null)");
+      			}
+      			if(row[2] != NULL) {
+      				//svcs[i].service_name=malloc(strlen(row[1])*sizeof(char)+2);
+      				sprintf(srv[i].server_name, "%s", row[2]);
+      				
+      			} else {
+      				//svcs[i].service_name=NULL;     				
+      				sprintf(srv[i].server_name, "(null)");
+      			}
+      			if(row[3] != NULL) {
+      				//svcs[i].service_name=malloc(strlen(row[1])*sizeof(char)+2);
+      				sprintf(srv[i].server_icon, "%s", row[3]);
+      				
+      			} else {
+      				//svcs[i].service_name=NULL;     				
+      				sprintf(srv[i].server_icon, "(null)");
+      			}
+      			
+      			
+      			i++;
+      		}
+      		
+      		
+      		mysql_free_result(res);
+      		mysql_close(mysql);
+      		free(mysql_host);
+		free(mysql_user);
+		free(mysql_pw);
+		free(mysql_db);
+      		return i;
+      	} else { 
+      		_log("no servers found!");	
+      	}
+    	
+    	free(mysql_host);
+	free(mysql_user);
+	free(mysql_pw);
+	free(mysql_db);
+	return 0;	
+}
