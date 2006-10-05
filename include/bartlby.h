@@ -1,6 +1,6 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Vaskulitis"
+#define REL_NAME "Plaques"
 #define VERSION  "1.2.4"
 #define EXPECTCORE 1102042 //Module V Check's
 
