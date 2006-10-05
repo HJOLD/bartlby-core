@@ -25,6 +25,7 @@ RRDFILE="${RRD_HTDOCS}/${1}_bartlby_swap.sh.rrd";
 PNGFILE="${RRD_HTDOCS}/${1}_bartlby_swap.sh.png";
 PNGFILE_SEVEN="${RRD_HTDOCS}/${1}_bartlby_swap.sh7.png";
 PNGFILE_MONTH="${RRD_HTDOCS}/${1}_bartlby_swap.sh31.png";
+
 PNGFILE_YEAR="${RRD_HTDOCS}/${1}_bartlby_swap.sh365.png";
 
 if [ ! -f $RRDFILE ];
@@ -55,7 +56,9 @@ then
 	PNGFILE="${RRD_HTDOCS}/${2}_bartlby_swap.sh.png";
 	PNGFILE_SEVEN="${RRD_HTDOCS}/${2}_bartlby_swap.sh7.png";
 	PNGFILE_MONTH="${RRD_HTDOCS}/${2}_bartlby_swap.sh31.png";
+
 	PNGFILE_YEAR="${RRD_HTDOCS}/${2}_bartlby_swap.sh365.png";
+	PNGFILE_HOUR="${RRD_HTDOCS}/${2}_bartlby_swap.sh24h.png";
 
 
 	SWAPT=$(cat ${RRDFILE}.info|awk '{print $2}');
@@ -66,6 +69,28 @@ then
 	
 	
 	
+	nice -n19 $RRDTOOL graph $PNGFILE_HOUR \
+        -b 1024 --start -1hour -a PNG -t "RAM and SWAP ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE ) " --vertical-label "Bytes" -w 600 -h 300 \
+        DEF:fram=${RRDFILE}:fram:AVERAGE \
+        DEF:fswap=${RRDFILE}:fswap:AVERAGE \
+        CDEF:framb=fram,1024,* \
+        CDEF:fswapb=fswap,1024,* \
+        CDEF:bram=$MEMTOTAL,framb,- \
+        CDEF:bswap=$SWAPTOTAL,fswapb,- \
+        CDEF:brammb=bram,1048576,/ \
+        CDEF:frammb=framb,1048576,/ \
+        CDEF:bswapmb=bswap,1048576,/ \
+        CDEF:fswapmb=fswapb,1048576,/ \
+        VDEF:brammb1=brammb,LAST \
+        VDEF:frammb1=frammb,LAST \
+        VDEF:bswapmb1=bswapmb,LAST \
+        VDEF:fswapmb1=fswapmb,LAST \
+        AREA:bram#99ffff:"used RAM,  last\: " GPRINT:brammb1:"%7.3lf MB " \
+        LINE1:framb#ff0000:"free RAM,  last\: " GPRINT:frammb1:"%7.3lf MB     generated @\n" \
+        LINE1:bswap#000000:"used SWAP, last\: " GPRINT:bswapmb1:"%7.3lf MB " \
+        LINE1:fswapb#006600:"free SWAP, last\: " GPRINT:fswapmb1:"%7.3lf MB    $(/bin/date "+%d.%m.%Y %H\:%M\:%S")" \
+        > /dev/null
+
 	
 	nice -n19 $RRDTOOL graph $PNGFILE \
 	-b 1024 --start -86400 -a PNG -t "RAM and SWAP ( $BARTLBY_CURR_HOST / $BARTLBY_CURR_SERVICE ) " --vertical-label "Bytes" -w 600 -h 300 \
