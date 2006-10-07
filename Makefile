@@ -2,7 +2,7 @@ include Makefile.conf
 
 SUBDIRS = src/ src/libs/ src/tools/
 TRIGGERS = icq.sh jabber.sh mail.sh
-PERFHANDLERS = bartlby_http bartlby_if bartlby_load bartlby_snmp.sh bartlby_swap.sh
+PERFHANDLERS = bartlby_http bartlby_if bartlby_load bartlby_snmp.sh bartlby_swap.sh bartlby_files_in_dir
 
 
 DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui bartlby-docs
