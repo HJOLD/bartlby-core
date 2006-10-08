@@ -61,11 +61,11 @@ then
 	PNGFILE_HOUR="${RRD_HTDOCS}/${2}_bartlby_files_in_dir24h.png";
 
 	
-	$RRDTOOL graph $PNGFILE --start -1day -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE AREA:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
-	$RRDTOOL graph $PNGFILE_SEVEN --start -1week -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE AREA:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
-	$RRDTOOL graph $PNGFILE_MONTH --start -1month -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE AREA:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
-	$RRDTOOL graph $PNGFILE_YEAR --start -1year -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE AREA:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
-	$RRDTOOL graph $PNGFILE_HOUR --start -1hour -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE AREA:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
+	$RRDTOOL graph $PNGFILE --start -1day -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE LINE1:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
+	$RRDTOOL graph $PNGFILE_SEVEN --start -1week -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE LINE1:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
+	$RRDTOOL graph $PNGFILE_MONTH --start -1month -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE LINE1:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
+	$RRDTOOL graph $PNGFILE_YEAR --start -1year -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE LINE1:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
+	$RRDTOOL graph $PNGFILE_HOUR --start -1hour -a PNG --vertical-label "File count" -w 600 -h 300 DEF:auswertung=${RRDFILE}:processes:AVERAGE LINE1:auswertung#ff0000:"File counter" VDEF:auswertung1=auswertung,AVERAGE DEF:maxaus=${RRDFILE}:processes:MAX VDEF:maxaus1=maxaus,MAXIMUM
 	echo "done";
 
 
