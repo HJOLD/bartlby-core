@@ -1,8 +1,8 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Plaques"
-#define VERSION  "1.2.4"
-#define EXPECTCORE 1102042 //Module V Check's
+#define REL_NAME "Ketoprofen"
+#define VERSION  "1.2.5"
+#define EXPECTCORE 1102051 //Module V Check's
 
 #define MAX_CCACHE 1024
 
