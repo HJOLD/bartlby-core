@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.24  2006/10/23 22:29:35  hjanuschka
+*** empty log message ***
+
 Revision 1.23  2006/10/05 23:19:37  hjanuschka
 auto commit
 
@@ -206,6 +209,7 @@ int bartlby_trigger_chk(struct service *svc) {
 	
 	if(svc->srv->server_notify == 0) {
 		_log("@NOT-EXT@%d|%d|%d|||%s:%d/%s|'(Notifications disabled on this server)'", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
+		return FL;
 	}
 	if(svc->notify_enabled == 0) {
 		//_log("Suppressed notify: Notifications disabled %s:%d/%s",svc->client_ip, svc->client_port, svc->service_name);
