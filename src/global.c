@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.19  2006/11/07 14:46:58  hjanuschka
+*** empty log message ***
+
 Revision 1.18  2006/08/06 02:01:01  hjanuschka
 *** empty log message ***
 
@@ -263,13 +266,22 @@ void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
 	sprintf(clport, "%d", svc->client_port);
 	
 	str_replace(str,"$READABLE_STATE", human_state, max); 
+	setenv("READABLE_STATE", human_state, 1);
+	setenv("READABLE_LAST", human_state_last, 1);
 	str_replace(str,"$READABLE_LAST", human_state_last, max); 
+	setenv("PROGNAME", PROGNAME, 1);
 	str_replace(str,"$PROGNAME", PROGNAME, max); 
+	setenv("VERSION", VERSION, 1);
 	str_replace(str,"$VERSION", VERSION, max); 
+	setenv("SERVER", svc->server_name, 1);
 	str_replace(str,"$SERVER", svc->server_name, max); 
+	setenv("SERVICE", svc->service_name, 1);
 	str_replace(str,"$SERVICE", svc->service_name, max); 
+	setenv("MESSAGE",  svc->new_server_text, 1);
 	str_replace(str,"$MESSAGE", svc->new_server_text, max); 
+	setenv("CLIENT_IP", svc->client_ip, 1);
 	str_replace(str,"$CLIENT_IP", svc->client_ip, max); 
+	setenv("CLIENT_PORT", clport, 1);
 	str_replace(str,"$CLIENT_PORT", clport, max); 
 	
 	
