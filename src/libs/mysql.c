@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.48  2006/11/10 10:30:43  hjanuschka
+fixing problem where modify-server changes are not taking affect coz of writeback servers feature
+
 Revision 1.47  2006/10/05 23:19:37  hjanuschka
 auto commit
 
@@ -250,12 +253,15 @@ CVS Header
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
 
+
 #define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico, server_enabled, server_notify, server_flap_seconds) VALUES('%s','%s', '%d', '%s', '%d', '%d', '%d')"
 #define DELETE_SERVER "delete from servers where server_id=%d"
 #define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s', server_enabled='%d', server_notify='%d', server_flap_seconds='%d' where server_id=%d"
 #define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico, server_enabled, server_notify, server_flap_seconds from servers where server_id=%d"
 #define SERVER_CHANGE_ID "update servers set server_id=%d where server_id=%d"
 #define SERVER_CHANGE_SERVICES "update services set server_id=%d where server_id=%d"
+
+#define SERVER_UPDATE_TEXT "update servers set server_enabled='%d', server_notify='%d' where server_id=%d"
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
@@ -1781,6 +1787,51 @@ char * GetVersion() {
 	return vers;
 }
 
+//doUpdateServer
+//
+
+int doUpdateServer(struct server * svc, char * config) {
+
+        MYSQL *mysql;
+
+        char * sqlupd;
+
+
+
+        char * mysql_host = getConfigValue("mysql_host", config);
+        char * mysql_user = getConfigValue("mysql_user", config);
+        char * mysql_pw = getConfigValue("mysql_pw", config);
+        char * mysql_db = getConfigValue("mysql_db", config);
+
+        mysql=mysql_init(NULL);
+                CHK_ERR(mysql);
+        mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
+                CHK_ERR(mysql);
+        mysql_select_db(mysql, mysql_db);
+                CHK_ERR(mysql);
+
+
+	sqlupd=malloc(sizeof(char) *(strlen(SERVICE_UPDATE_TEXT)+sizeof(struct service)+255));
+
+
+        sprintf(sqlupd, SERVER_UPDATE_TEXT, svc->server_enabled, svc->server_notify, svc->server_id);
+
+
+        mysql_query(mysql, sqlupd);
+                CHK_ERR(mysql);
+
+
+        free(sqlupd);
+
+        mysql_close(mysql);
+
+        free(mysql_host);
+        free(mysql_user);
+        free(mysql_pw);
+        free(mysql_db);
+        return 1;
+
+}
 int doUpdate(struct service * svc, char * config) {
 
 	MYSQL *mysql;

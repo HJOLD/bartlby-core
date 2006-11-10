@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.49  2006/11/10 10:30:43  hjanuschka
+fixing problem where modify-server changes are not taking affect coz of writeback servers feature
+
 Revision 1.48  2006/10/05 23:19:37  hjanuschka
 auto commit
 
@@ -275,7 +278,7 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 	struct service * services;
 	struct server * servers;
 	int (*doUpdate)(struct service *,char *);
-	int (*ModifyServer)(struct server *, char *);
+	int (*doUpdateServer)(struct server *, char *);
 	
 	char * dlmsg;
 	
@@ -285,14 +288,14 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	
 	LOAD_SYMBOL(doUpdate,SOHandle, "doUpdate");
-	LOAD_SYMBOL(ModifyServer,SOHandle, "ModifyServer");
+	LOAD_SYMBOL(doUpdateServer,SOHandle, "doUpdateServer");
 	
 	for(x=0; x<gshm_hdr->svccount; x++) {
 		doUpdate(&services[x], cfgfile);
 	}	
 	_log("wrote back %d services!", x);
 	for(x=0; x<gshm_hdr->srvcount; x++) {
-		ModifyServer(&servers[x], cfgfile);
+		doUpdateServer(&servers[x], cfgfile);
 	}
 	_log("wrote back %d servers!", x);
 	
