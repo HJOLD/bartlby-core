@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2006/11/13 16:58:55  hjanuschka
+auto commit
+
 Revision 1.9  2006/09/23 22:38:46  hjanuschka
 auto commit
 
@@ -170,7 +173,7 @@ void nrpe_generate_crc32_table(void);
 int my_connect(char *host_name,int port,int *sd,char *proto, struct service * svc);
 void alarm_handler(int sig);
 int my_tcp_connect(char *host_name,int port,int *sd, struct service * svc);
-int my_inet_aton(register const char *cp, struct in_addr *addr);
+int my_inet_aton_self(register const char *cp, struct in_addr *addr);
 unsigned long calculate_crc32(char *buffer, int buffer_size);
 void randomize_buffer(char *buffer,int buffer_size);
 int nrperecvall(int s, char *buf, int *len, int timeout);        
@@ -478,7 +481,7 @@ int my_connect(char *host_name,int port,int *sd,char *proto, struct service * sv
 	servaddr.sin_port=htons(port);
 
 	/* try to bypass using a DNS lookup if this is just an IP address */
-	if(!my_inet_aton(host_name,&servaddr.sin_addr)){
+	if(!my_inet_aton_self(host_name,&servaddr.sin_addr)){
 
 		/* else do a DNS lookup */
 		hp=gethostbyname((const char *)host_name);
@@ -552,7 +555,7 @@ int my_tcp_connect(char *host_name,int port,int *sd, struct service * svc){
 
 /* This code was taken from Fyodor's nmap utility, which was originally taken from
    the GLIBC 2.0.6 libraries because Solaris doesn't contain the inet_aton() funtion. */
-int my_inet_aton(register const char *cp, struct in_addr *addr){
+int my_inet_aton_self(register const char *cp, struct in_addr *addr){
 	register unsigned int val;	/* changed from u_long --david */
 	register int base, n;
 	register char c;
