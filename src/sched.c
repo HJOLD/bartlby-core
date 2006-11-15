@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.50  2006/11/15 22:38:17  hjanuschka
+auto commit
+
 Revision 1.49  2006/11/10 10:30:43  hjanuschka
 fixing problem where modify-server changes are not taking affect coz of writeback servers feature
 
@@ -294,10 +297,15 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 		doUpdate(&services[x], cfgfile);
 	}	
 	_log("wrote back %d services!", x);
+	
+	/*
 	for(x=0; x<gshm_hdr->srvcount; x++) {
 		doUpdateServer(&servers[x], cfgfile);
 	}
 	_log("wrote back %d servers!", x);
+	*/
+	
+	
 	
 	
 }
