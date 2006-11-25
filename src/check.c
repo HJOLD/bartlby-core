@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.60  2006/11/25 00:54:23  hjanuschka
+auto commit
+
 Revision 1.59  2006/09/30 17:48:11  hjanuschka
 auto commit
 
@@ -874,6 +877,11 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;
 	
+	}
+	if(svc->service_type == SVC_TYPE_V2) {
+		bartlby_check_v2(svc, cfgfile, 1);	           
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;	
 	}
 	//
 	if(bartlby_callback(EXTENSION_CALLBACK_UNKOWN_CHECK_TYPE, svc) != EXTENSION_OK) {

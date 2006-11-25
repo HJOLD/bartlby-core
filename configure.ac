@@ -250,6 +250,7 @@ else
 fi;	
 
 dnl Check for ssl library.
+  enable_ssl=yes
   
   AC_ARG_ENABLE(ssl,
   [  --enable-ssl=PREFIX       Enable SSL in varios parts of CORE)],
@@ -283,10 +284,12 @@ dnl Check for ssl library.
 		AC_SUBST(OPENSSL_INCDIR)
 		AC_SUBST(OPENSSL_ADDON)
 		AC_SUBST(OPENSSL_FLAG)
+		openssl dhparam -C 512 | awk '/^-----/ {exit} {print}' > include/bartlby_v2_dh.h
 	fi;
   		
   else
-  	AC_MSG_RESULT(no)	
+  	AC_MSG_ERROR([Unable to locate -lssl -lcrypto. OpenSSL support is currently required.])
+  	
   fi
 
 
@@ -308,6 +311,7 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 
 AC_PATH_PROG(INSTALL_PATH, install)
+AC_PATH_PROG(OPEN_SSL_PATH, openssl)
 if test "x${INSTALL_PATH}" = "x" ; then
  AC_MSG_ERROR(["install" is not found please fix it])
 fi

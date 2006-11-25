@@ -1,6 +1,6 @@
 include ../Makefile.conf
 
-OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o replication.o perf.o downtime.o ack.o event.o snmp.o nrpe.o ext.o
+OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o replication.o perf.o downtime.o ack.o event.o snmp.o nrpe.o ext.o active_v2.o
 
 .SUFFIXES: .c .S .o
 

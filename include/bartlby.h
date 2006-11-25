@@ -60,6 +60,7 @@
 #define SVC_TYPE_SNMP 5
 #define SVC_TYPE_NRPE 6
 #define SVC_TYPE_NRPE_SSL 7
+#define SVC_TYPE_V2 8
 
 
 #define SVC_THRESHOLD 10
@@ -242,6 +243,24 @@ struct ext_notify {
 
 
 
+typedef struct v2_packet_struct{
+
+	u_int32_t crc32_value;
+	int16_t   exit_code;
+	int16_t   packet_type;
+	char      output[2048];
+	char      cmdline[2048];
+	char      plugin[2048];
+	char 	   perf_handler[1024];
+	
+	 
+} agent_v2_packet;
+
+#define AGENT_V2_SENT_PACKET 1
+#define AGENT_V2_RETURN_PACKET 2
+
+
+
 char * getConfigValue(char *, char *);
 int clear_serviceMap(struct service **);
 int clear_workerMap(struct worker ** m);
@@ -323,3 +342,4 @@ extern char config_file[255];
 void bartlby_log_usage(void);
 
 void nrpe_display_license(void);
+void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl);

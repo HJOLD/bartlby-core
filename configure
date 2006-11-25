@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL NRPE_ADDON SNMP_LIBDIR SNMP_INCDIR SNMP_ADDON SNMP_FLAG OPENSSL_LIBDIR OPENSSL_INCDIR OPENSSL_ADDON OPENSSL_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MYSQL_USER MYSQL_PASS MYSQL_HOST MYSQL_DB PLUGIN_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP INC_MYSQL LIB_MYSQL NRPE_ADDON SNMP_LIBDIR SNMP_INCDIR SNMP_ADDON SNMP_FLAG OPENSSL_LIBDIR OPENSSL_INCDIR OPENSSL_ADDON OPENSSL_FLAG LD_DL BARTLBY_USER AWK SET_MAKE INSTALL_PATH OPEN_SSL_PATH INSTALL_OPTIONS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -3733,6 +3733,7 @@ else
 echo "${ECHO_T}no" >&6
 fi;
 
+  enable_ssl=yes
 
   # Check whether --enable-ssl or --disable-ssl was given.
 if test "${enable_ssl+set}" = set; then
@@ -3980,11 +3981,14 @@ fi
 
 
 
+		openssl dhparam -C 512 | awk '/^-----/ {exit} {print}' > include/bartlby_v2_dh.h
 	fi;
 
   else
-  	echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+  	{ { echo "$as_me:$LINENO: error: Unable to locate -lssl -lcrypto. OpenSSL support is currently required." >&5
+echo "$as_me: error: Unable to locate -lssl -lcrypto. OpenSSL support is currently required." >&2;}
+   { (exit 1); exit 1; }; }
+
   fi
 
 
@@ -4903,6 +4907,45 @@ INSTALL_PATH=$ac_cv_path_INSTALL_PATH
 if test -n "$INSTALL_PATH"; then
   echo "$as_me:$LINENO: result: $INSTALL_PATH" >&5
 echo "${ECHO_T}$INSTALL_PATH" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+# Extract the first word of "openssl", so it can be a program name with args.
+set dummy openssl; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_OPEN_SSL_PATH+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $OPEN_SSL_PATH in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_OPEN_SSL_PATH="$OPEN_SSL_PATH" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_OPEN_SSL_PATH="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+OPEN_SSL_PATH=$ac_cv_path_OPEN_SSL_PATH
+
+if test -n "$OPEN_SSL_PATH"; then
+  echo "$as_me:$LINENO: result: $OPEN_SSL_PATH" >&5
+echo "${ECHO_T}$OPEN_SSL_PATH" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -8120,6 +8163,7 @@ s,@BARTLBY_USER@,$BARTLBY_USER,;t t
 s,@AWK@,$AWK,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@INSTALL_PATH@,$INSTALL_PATH,;t t
+s,@OPEN_SSL_PATH@,$OPEN_SSL_PATH,;t t
 s,@INSTALL_OPTIONS@,$INSTALL_OPTIONS,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
