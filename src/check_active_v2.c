@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.1  2006/11/25 22:04:40  hjanuschka
+*** empty log message ***
+
 Revision 1.1  2006/11/25 00:54:23  hjanuschka
 auto commit
 
@@ -39,7 +42,7 @@ auto commit
 #include <fcntl.h>
 #include <openssl/dh.h>
 #include <openssl/ssl.h>
-
+#include <openssl/err.h>
 
 
 
@@ -86,8 +89,9 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	meth=SSLv23_client_method();
        SSL_load_error_strings();
 	if((ctx=SSL_CTX_new(meth))==NULL){
-	sprintf(svc->new_server_text, "%s", "AgentV2: Error - could not create SSL context.");
+		sprintf(svc->new_server_text, "%s", "AgentV2: Error - could not create SSL context.");
        	svc->current_state=STATE_CRITICAL;
+       	_log("%s", ERR_error_string(ERR_get_error(), NULL));
 	}
 	/* use only TLSv1 protocol */
 	SSL_CTX_set_options(ctx,SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
@@ -114,7 +118,8 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 		rc=agent_v2_ssl_connect_timeout(ssl, svc->service_check_timeout);
 		if(rc <= 0) {
 			sprintf(svc->new_server_text, "%s", "timed out!!, or connection error");
-			svc->current_state=STATE_CRITICAL;	
+			svc->current_state=STATE_CRITICAL;
+			
 			return;
 		}
 		agent_v2_block_socket(sd);
@@ -123,6 +128,7 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 			
 		if(rc !=1){
 			sprintf(svc->new_server_text, "%s", "AgentV2: Error - Could not complete SSL handshake.");
+				_log("%s", ERR_error_string(ERR_get_error(), NULL));
      	         		svc->current_state=STATE_CRITICAL;
      	         		SSL_CTX_free(ctx);
      	         		return;
@@ -130,6 +136,7 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	} else {
 		sprintf(svc->new_server_text,"AgentV2: Error - Could not create SSL connection structure."); 
 		svc->current_state=STATE_CRITICAL;
+		_log("%s", ERR_error_string(ERR_get_error(), NULL));
 		SSL_CTX_free(ctx);
 		close(sd);
 		return;
