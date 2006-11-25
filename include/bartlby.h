@@ -68,6 +68,26 @@
 #define PERF_TYPE_SVC_TIME 1
 #define PERF_TYPE_ROUND_TIME 2 
 
+
+#define PASSIVE_TIMEOUT "Passive Service has been timed out"
+#define DNS_ERROR "DNS lookup error"
+#define SOCKET_CREATE_ERROR "Socket create error"
+#define ALARM_ERROR "Alarm setup error"
+#define CONN_ERROR "Connection error"
+#define RECV_ERROR "Recieve Error"
+#define PROTOCOL_ERROR "Protocol Error"
+#define TIMEOUT_ERROR "Recv() timedout"
+
+
+
+
+
+#define GROUP_CRITICAL "Group check critical"
+#define GROUP_WITHOUT_PARMS "Group check without parameters"
+#define GROUP_OK "Group check OK"
+
+
+
 #define LOAD_SYMBOL(x,y,z) 	x=dlsym(y, z); \
     	if((dlmsg=dlerror()) != NULL) { \
         	_log("-Error: %s", dlmsg); \
@@ -271,6 +291,9 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle);
 void sched_reschedule(struct service * svc);
 
 void bartlby_check_service(struct service * svc, void *, void *, char *);
+void bartlby_check_active(struct service * svc, char * cfgfile);
+void bartlby_check_local(struct service * svc, char * cfgfile);
+void bartlby_check_group(struct service * svc, void * shm_addr);
 
 
 void bartlby_check_snmp(struct service * svc, char * cfgfile);
