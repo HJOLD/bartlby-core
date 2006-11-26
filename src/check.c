@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.62  2006/11/26 20:52:20  hjanuschka
+auto commit
+
 Revision 1.61  2006/11/25 01:16:00  hjanuschka
 auto commit
 
@@ -363,7 +366,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	
 	//WTF?
 	if(svc->service_type != SVC_TYPE_PASSIVE) {
-			svc->last_check=time(NULL);
+		svc->last_check=time(NULL);
 	}
 	
 	

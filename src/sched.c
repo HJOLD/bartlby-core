@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.51  2006/11/26 20:52:20  hjanuschka
+auto commit
+
 Revision 1.50  2006/11/15 22:38:17  hjanuschka
 auto commit
 
@@ -494,6 +497,8 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
        int wait_result;
        int child_pid;
        
+       int ct, expt;
+       
        
 	child_pid=fork();
 	switch(child_pid) {
@@ -517,7 +522,17 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
 					
 				svc->process.pid=getpid();
 				svc->process.start_time=time(NULL);
-									
+				
+				ct = time(NULL);			
+				expt = (svc->last_check+svc->check_interval);
+				
+				if(ct > expt && svc->service_type != SVC_TYPE_PASSIVE) {
+					// service check has delayed
+					//_log("ct: %d, e: %d", ct, expt);
+					svc->delay_time.sum += ct - expt;
+				}
+				svc->delay_time.counter++;
+								
 				bartlby_check_service(svc, shm_addr, SOHandle, cfgfile);	
 			
 			
@@ -554,6 +569,25 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
 			
 		break;
 	}
+	
+}
+static int cmpservice(const void *m1, const void *m2) {
+	struct service * s1 = (struct service *) m1;
+	struct service * s2 = (struct service *) m2;
+	int d1, d2;
+	
+	if(s1->delay_time.counter <= 0)
+		return 1;
+	if(s2->delay_time.counter <= 0)
+		return 0;
+	
+	d1 = s1->delay_time.sum / s1->delay_time.counter;
+	d2 = s2->delay_time.sum / s2->delay_time.counter;
+	
+	if(d1 < d2)
+		return 1;
+	else
+		return 0;
 	
 }
 int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
@@ -678,6 +712,10 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		//_log("@@@@@@@@@@@@@ ROUND (%d/%d/%d) @@@@@@@@@@@@@@", round_visitors, gshm_hdr->current_running, cfg_max_parallel);
 		round_start=time(NULL);
 		round_visitors=0;
+		
+		//Sort ascending on delay time so most delayed service will be checked rapidly ;)
+		qsort(services, gshm_hdr->svccount-1, sizeof(struct service), cmpservice);
+		
 		
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
 		if(i_am_a_slave == NULL) {
