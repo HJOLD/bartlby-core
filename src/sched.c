@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.51  2006/11/26 20:52:20  hjanuschka
+Revision 1.52  2006/11/26 21:26:37  hjanuschka
 auto commit
 
 Revision 1.50  2006/11/15 22:38:17  hjanuschka
@@ -714,7 +714,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		round_visitors=0;
 		
 		//Sort ascending on delay time so most delayed service will be checked rapidly ;)
-		qsort(services, gshm_hdr->svccount-1, sizeof(struct service), cmpservice);
+		//qsort(services, gshm_hdr->svccount-1, sizeof(struct service), cmpservice);
 		
 		
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
