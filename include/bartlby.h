@@ -154,6 +154,8 @@ struct server {
 	
 } xxyz;
 
+
+
 struct service {
 	int service_id;
 	int server_id;
@@ -217,6 +219,11 @@ struct service {
 	int srv_place;
 	
 };
+
+struct service_sort {
+	struct service * svc;	
+};
+
 
 struct worker {
 	char name[2048];

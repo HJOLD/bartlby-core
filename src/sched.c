@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.52  2006/11/26 21:26:37  hjanuschka
+Revision 1.53  2006/11/26 22:14:34  hjanuschka
 auto commit
 
 Revision 1.50  2006/11/15 22:38:17  hjanuschka
@@ -572,17 +572,17 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
 	
 }
 static int cmpservice(const void *m1, const void *m2) {
-	struct service * s1 = (struct service *) m1;
-	struct service * s2 = (struct service *) m2;
+	struct service_sort * s1 = (struct service_sort *) m1;
+	struct service_sort * s2 = (struct service_sort *) m2;
 	int d1, d2;
 	
-	if(s1->delay_time.counter <= 0)
+	if(s1->svc->delay_time.counter <= 0)
 		return 1;
-	if(s2->delay_time.counter <= 0)
+	if(s2->svc->delay_time.counter <= 0)
 		return 0;
 	
-	d1 = s1->delay_time.sum / s1->delay_time.counter;
-	d2 = s2->delay_time.sum / s2->delay_time.counter;
+	d1 = s1->svc->delay_time.sum / s1->svc->delay_time.counter;
+	d2 = s2->svc->delay_time.sum / s2->svc->delay_time.counter;
 	
 	if(d1 < d2)
 		return 1;
@@ -611,6 +611,8 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 
 	struct service * services;
+	struct service_sort * ssort;
+	 
 	
 	sched_pid=getpid();
 	
@@ -618,7 +620,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	gSOHandle=SOHandle;
 	gConfig=cfgfile;
 	
+	
+	
+	
 	gshm_hdr=bartlby_SHM_GetHDR(shm_addr);
+	ssort  = malloc(sizeof(struct service_sort)*gshm_hdr->svccount);
+	
 	
 	_log("Scheduler working on %d Services", gshm_hdr->svccount);
 	
@@ -654,18 +661,26 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		}
 	}
 	
+	//Make a second sortable array
+	for(x=0; x<gshm_hdr->svccount; x++) {
+			ssort[x].svc=&services[x];	
+	}
+	
+	
 	while(1) {
 		
 		if(gshm_hdr->do_reload == 1) {
 			_log("queuing Reload");	
 			sched_wait_open(1, 0);
 			signal(SIGCHLD, SIG_IGN);
+			free(ssort);
 			return -2;
 		}
 		if(do_shutdown == 1) {
 			_log("Exit recieved");	
 			sched_wait_open(1,0);
 			signal(SIGCHLD, SIG_IGN);
+			free(ssort);
 			break;
 		}
 		
@@ -681,6 +696,14 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		round_visitors=0;	
 		
 		
+		
+		
+		
+		//Sort ascending on delay time so most delayed service will be checked rapidly ;)
+		qsort(ssort, gshm_hdr->svccount-1, sizeof(struct service_sort), cmpservice);
+		
+		
+		
 		for(x=0; x<gshm_hdr->svccount; x++) {
 			
 			
@@ -689,9 +712,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			}
 			
 			if(gshm_hdr->current_running < cfg_max_parallel) { 
-				if(sched_check_waiting(shm_addr, &services[x], cfgfile, SOHandle, sched_pause) == 1) {
+				if(sched_check_waiting(shm_addr, ssort[x].svc, cfgfile, SOHandle, sched_pause) == 1) {
 					round_visitors++;
-			 		sched_run_check(&services[x], cfgfile, shm_addr, SOHandle);
+			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
 				}				
 			} else {
 				sched_wait_open(60,cfg_max_parallel-1);	
@@ -713,8 +736,6 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		round_start=time(NULL);
 		round_visitors=0;
 		
-		//Sort ascending on delay time so most delayed service will be checked rapidly ;)
-		//qsort(services, gshm_hdr->svccount-1, sizeof(struct service), cmpservice);
 		
 		
 		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
@@ -728,6 +749,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		}
 		
 	}
+	
 	return 1;
 	
 	
