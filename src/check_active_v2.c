@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/11/27 21:16:28  hjanuschka
+auto commit
+
 Revision 1.1  2006/11/25 22:04:40  hjanuschka
 *** empty log message ***
 
@@ -40,14 +43,17 @@ auto commit
 #include <arpa/inet.h>
 #include <time.h>
 #include <fcntl.h>
-#include <openssl/dh.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 
+#ifdef HAVE_SSL 
+	#include <openssl/dh.h>
+	#include <openssl/ssl.h>
+	#include <openssl/err.h>
+	#include <bartlby_v2_dh.h>
+#endif
 
 #include <bartlby.h>
-#include <bartlby_v2_dh.h>
+
 
 
 static int conn_timedout = 0;
@@ -61,17 +67,22 @@ void agent_v2_alarm_handler(int sig);
 int agent_v2_my_tcp_connect(char *host_name,int port,int *sd, struct service * svc);
 unsigned long agent_v2_calculate_crc32(char *buffer, int buffer_size);
 void agent_v2_randomize_buffer(char *buffer,int buffer_size);
+
+#ifdef HAVE_SSL 
 static int agent_v2_ssl_connect_timeout(SSL *ssl, int tmo);
 static int agent_v2_unblock_socket(int soc);
 static int agent_v2_block_socket(int soc);
+#endif
 
 void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	
 	int sd;
+	
+#ifdef HAVE_SSL 
 	SSL_METHOD *meth;
 	SSL_CTX *ctx;
 	SSL *ssl;
-     
+#endif     
 	u_int32_t packet_crc32;
 	u_int32_t calculated_crc32;
 	int16_t result;
@@ -84,17 +95,22 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	signal(SIGALRM,agent_v2_alarm_handler);
       /* generate the CRC 32 table */
 	agent_v2_generate_crc32_table();
-	SSL_library_init();
-	SSLeay_add_ssl_algorithms();
-	meth=SSLv23_client_method();
-       SSL_load_error_strings();
-	if((ctx=SSL_CTX_new(meth))==NULL){
-		sprintf(svc->new_server_text, "%s", "AgentV2: Error - could not create SSL context.");
-       	svc->current_state=STATE_CRITICAL;
-       	_log("%s", ERR_error_string(ERR_get_error(), NULL));
+	
+#ifdef HAVE_SSL
+	if(use_ssl == 1) {
+		SSL_library_init();
+		SSLeay_add_ssl_algorithms();
+		meth=SSLv23_client_method();
+       	SSL_load_error_strings();
+		if((ctx=SSL_CTX_new(meth))==NULL){
+			sprintf(svc->new_server_text, "%s", "AgentV2: Error - could not create SSL context.");
+       		svc->current_state=STATE_CRITICAL;
+       		_log("%s", ERR_error_string(ERR_get_error(), NULL));
+		}
+		/* use only TLSv1 protocol */
+		SSL_CTX_set_options(ctx,SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 	}
-	/* use only TLSv1 protocol */
-	SSL_CTX_set_options(ctx,SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+#endif
 
 	conn_timedout=0;
 	alarm(svc->service_check_timeout);
@@ -110,39 +126,44 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 		return;
 	}
 	
-	/* do SSL handshake */
-	if((ssl=SSL_new(ctx))!=NULL){
-		SSL_CTX_set_cipher_list(ctx,"ADH");
-		SSL_set_fd(ssl,sd);
-		agent_v2_unblock_socket(sd);
-		rc=agent_v2_ssl_connect_timeout(ssl, svc->service_check_timeout);
-		if(rc <= 0) {
-			sprintf(svc->new_server_text, "%s", "timed out!!, or connection error");
+#ifdef HAVE_SSL	
+	if(use_ssl == 1) {
+		/* do SSL handshake */
+		if((ssl=SSL_new(ctx))!=NULL){
+			SSL_CTX_set_cipher_list(ctx,"ADH");
+			SSL_set_fd(ssl,sd);
+			agent_v2_unblock_socket(sd);
+			rc=agent_v2_ssl_connect_timeout(ssl, svc->service_check_timeout);
+			if(rc <= 0) {
+				sprintf(svc->new_server_text, "%s", "timed out!!, or connection error");
+				svc->current_state=STATE_CRITICAL;
+				
+				return;
+			}
+			agent_v2_block_socket(sd);
+			conn_timedout=0;
+			alarm(svc->service_check_timeout);
+				
+			if(rc !=1){
+				sprintf(svc->new_server_text, "%s", "AgentV2: Error - Could not complete SSL handshake.");
+					_log("%s", ERR_error_string(ERR_get_error(), NULL));
+     		         		svc->current_state=STATE_CRITICAL;
+     		         		SSL_CTX_free(ctx);
+     		         		return;
+			}
+		} else {
+			sprintf(svc->new_server_text,"AgentV2: Error - Could not create SSL connection structure."); 
 			svc->current_state=STATE_CRITICAL;
-			
+			_log("%s", ERR_error_string(ERR_get_error(), NULL));
+			SSL_CTX_free(ctx);
+			close(sd);
 			return;
 		}
-		agent_v2_block_socket(sd);
-		conn_timedout=0;
-		alarm(svc->service_check_timeout);
-			
-		if(rc !=1){
-			sprintf(svc->new_server_text, "%s", "AgentV2: Error - Could not complete SSL handshake.");
-				_log("%s", ERR_error_string(ERR_get_error(), NULL));
-     	         		svc->current_state=STATE_CRITICAL;
-     	         		SSL_CTX_free(ctx);
-     	         		return;
-		}
-	} else {
-		sprintf(svc->new_server_text,"AgentV2: Error - Could not create SSL connection structure."); 
-		svc->current_state=STATE_CRITICAL;
-		_log("%s", ERR_error_string(ERR_get_error(), NULL));
-		SSL_CTX_free(ctx);
-		close(sd);
-		return;
-	}
-
-
+	} 
+#endif
+	
+	
+	
 	bzero(&send_packet,sizeof(send_packet));
      	
      	/* fill the packet with semi-random data */
@@ -167,7 +188,17 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 
 	conn_timedout=0;
 	alarm(svc->service_check_timeout);
-	rc=SSL_write(ssl,&send_packet,bytes_to_send);
+#ifdef HAVE_SSL
+	if(use_ssl == 1) {
+		rc=SSL_write(ssl,&send_packet,bytes_to_send);
+	} else {
+#endif
+		rc=bartlby_tcp_sendall(sd,(char *)&send_packet,&bytes_to_send);
+		
+			
+#ifdef HAVE_SSL
+	}
+#endif
 	if(conn_timedout == 1) {
 		_log("V2: timeout ok");
 		sprintf(svc->new_server_text, "%s", "V2 timed out2");
@@ -187,7 +218,19 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 
 	conn_timedout=0;
 	alarm(svc->service_check_timeout);
-	rc=SSL_read(ssl,&receive_packet,bytes_to_recv);
+	
+#ifdef HAVE_SSL
+	if(use_ssl == 1) {
+		rc=SSL_read(ssl,&receive_packet,bytes_to_recv);
+	} else {
+#endif       
+       
+       rc=bartlby_tcp_recvall(sd,(char *)&receive_packet,&bytes_to_recv,svc->service_check_timeout);
+       
+#ifdef HAVE_SSL       
+	}
+#endif
+
        if(conn_timedout == 1) {
 		_log("timeout ok");
 		sprintf(svc->new_server_text, "%s", "timed out4");
@@ -195,10 +238,16 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 		return;
 	}
 	/* reset timeout */
-	alarm(0);		
-	SSL_shutdown(ssl);
-	SSL_free(ssl);
-	SSL_CTX_free(ctx);
+	alarm(0);
+
+#ifdef HAVE_SSL 		
+	if(use_ssl == 1) {
+		SSL_shutdown(ssl);
+		SSL_free(ssl);
+		SSL_CTX_free(ctx);
+	}
+#endif
+
 	close(sd);
 
 	if(rc<0){
@@ -431,6 +480,7 @@ unsigned long agent_v2_calculate_crc32(char *buffer, int buffer_size){
  * Taken from ssltunnel, (C) Alain Thivillon and Hervé Schauer Consultants
  *
  *------------------------------------------------------------------------*/
+#ifdef HAVE_SSL 
 static int agent_v2_ssl_connect_timeout(SSL *ssl, int tmo)
 {
 
@@ -505,6 +555,9 @@ static int agent_v2_ssl_connect_timeout(SSL *ssl, int tmo)
   return -1;
 
 }     
+#endif
+
+#ifdef HAVE_SSL
 static int agent_v2_unblock_socket(int soc)
 {
   int   flags =  fcntl(soc, F_GETFL, 0);
@@ -536,3 +589,4 @@ static int agent_v2_block_socket(int soc)
     }
   return 0;
 }      
+#endif

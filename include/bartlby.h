@@ -61,6 +61,7 @@
 #define SVC_TYPE_NRPE 6
 #define SVC_TYPE_NRPE_SSL 7
 #define SVC_TYPE_V2 8
+#define SVC_TYPE_V2_NO_SSL 9
 
 
 #define SVC_THRESHOLD 10
@@ -369,6 +370,8 @@ void bartlby_check_grep_perf_line(char * l, struct service * svc, char * cfgfile
 
 extern char config_file[255];
 
+int bartlby_tcp_recvall(int s, char *buf, int *len, int timeout);
+int bartlby_tcp_sendall(int s, char *buf, int *len);
 
 void bartlby_log_usage(void);
 

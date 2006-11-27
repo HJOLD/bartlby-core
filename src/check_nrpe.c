@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2006/11/27 21:16:28  hjanuschka
+auto commit
+
 Revision 1.1  2006/11/25 01:16:00  hjanuschka
 auto commit
 
@@ -163,9 +166,12 @@ unsigned long calculate_crc32(char *buffer, int buffer_size);
 void randomize_buffer(char *buffer,int buffer_size);
 int nrperecvall(int s, char *buf, int *len, int timeout);        
 int nrpesendall(int s, char *buf, int *len);
+#ifdef HAVE_SSL
 static int ssl_connect_timeout(SSL *ssl, int tmo);
 static int unblock_socket(int soc);
 static int block_socket(int soc);
+#endif
+
 
 void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 	
@@ -787,6 +793,7 @@ void nrpe_display_license(void){
  * Taken from ssltunnel, (C) Alain Thivillon and Hervé Schauer Consultants
  *
  *------------------------------------------------------------------------*/
+#ifdef HAVE_SSL
 static int ssl_connect_timeout(SSL *ssl, int tmo)
 {
 
@@ -860,7 +867,9 @@ static int ssl_connect_timeout(SSL *ssl, int tmo)
 
   return -1;
 
-}     
+}   
+
+  
 static int unblock_socket(int soc)
 {
   int   flags =  fcntl(soc, F_GETFL, 0);
@@ -891,7 +900,8 @@ static int block_socket(int soc)
       return -1;
     }
   return 0;
-}      
+}    
+#endif  
 #endif
 
 

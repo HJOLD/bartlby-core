@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.20  2006/11/27 21:16:28  hjanuschka
+auto commit
+
 Revision 1.19  2006/11/07 14:46:58  hjanuschka
 *** empty log message ***
 
@@ -98,7 +101,9 @@ CVS Header
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 
 
@@ -290,3 +295,79 @@ void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
 	free(human_state_last);
 	free(human_state);
 }
+
+
+/* sends all data - thanks to Beej's Guide to Network Programming */
+int bartlby_tcp_sendall(int s, char *buf, int *len){
+	int total=0;
+	int bytesleft=*len;
+	int n=0;
+
+	/* send all the data */
+	while(total<*len){
+
+		/* send some data */
+		n=send(s,buf+total,bytesleft,0);
+
+		/* break on error */
+		if(n==-1)
+			break;
+
+		/* apply bytes we sent */
+		total+=n;
+		bytesleft-=n;
+	        }
+
+	/* return number of bytes actually send here */
+	*len=total;
+
+	/* return -1 on failure, 0 on success */
+	return n==-1?-1:0;
+        }
+
+
+/* receives all data - modelled after sendall() */
+int bartlby_tcp_recvall(int s, char *buf, int *len, int timeout){
+	int total=0;
+	int bytesleft=*len;
+	int n=0;
+	time_t start_time;
+	time_t current_time;
+	
+	/* clear the receive buffer */
+	bzero(buf,*len);
+
+	time(&start_time);
+
+	/* receive all data */
+	while(total<*len){
+
+		/* receive some data */
+		n=recv(s,buf+total,bytesleft,0);
+
+		/* no data has arrived yet (non-blocking socket) */
+		if(n==-1 && errno==EAGAIN){
+			time(&current_time);
+			if(current_time-start_time>timeout)
+				break;
+			sleep(1);
+			continue;
+		        }
+
+		/* receive error or client disconnect */
+		else if(n<=0)
+			break;
+
+		/* apply bytes we received */
+		total+=n;
+		bytesleft-=n;
+	        }
+
+	/* return number of bytes actually received here */
+	*len=total;
+
+	/* return <=0 on failure, bytes received on success */
+	return (n<=0)?n:total;
+        }
+        
+

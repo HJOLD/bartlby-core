@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.63  2006/11/27 21:16:28  hjanuschka
+auto commit
+
 Revision 1.62  2006/11/26 20:52:20  hjanuschka
 auto commit
 
@@ -463,6 +466,11 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 	}
 	if(svc->service_type == SVC_TYPE_V2) {
 		bartlby_check_v2(svc, cfgfile, 1);	           
+		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
+		return;	
+	}
+	if(svc->service_type == SVC_TYPE_V2_NO_SSL) {
+		bartlby_check_v2(svc, cfgfile, 0);	           
 		bartlby_fin_service(svc,SOHandle,shm_addr,cfgfile);
 		return;	
 	}
