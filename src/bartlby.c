@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.38  2006/11/28 03:30:42  hjanuschka
+auto commit
+
 Revision 1.37  2006/10/05 23:19:37  hjanuschka
 auto commit
 
@@ -172,6 +175,13 @@ CVS header ;-)
 #include <dlfcn.h>
 
 
+#ifdef HAVE_SSL 
+	#include <openssl/dh.h>
+	#include <openssl/ssl.h>
+	#include <openssl/err.h>
+	
+#endif
+
 #include <bartlby.h>
 
 
@@ -290,6 +300,10 @@ int main(int argc, char ** argv, char ** envp) {
 	#endif
 	#ifdef HAVE_SSL
 	_log("SSL support compiled in");
+	SSL_library_init();
+	SSLeay_add_ssl_algorithms();
+	SSL_load_error_strings();
+	_log("ssl lib init, ssl_algo, error_strings");	
 	#endif
 	#ifdef WITH_NRPE
 	_log("NRPE Support compiled in");

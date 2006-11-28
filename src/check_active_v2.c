@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2006/11/28 03:30:42  hjanuschka
+auto commit
+
 Revision 1.2  2006/11/27 21:16:28  hjanuschka
 auto commit
 
@@ -98,11 +101,9 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	
 #ifdef HAVE_SSL
 	if(use_ssl == 1) {
-		SSL_library_init();
-		SSLeay_add_ssl_algorithms();
+		
 		meth=SSLv23_client_method();
-       	SSL_load_error_strings();
-		if((ctx=SSL_CTX_new(meth))==NULL){
+       	if((ctx=SSL_CTX_new(meth))==NULL){
 			sprintf(svc->new_server_text, "%s", "AgentV2: Error - could not create SSL context.");
        		svc->current_state=STATE_CRITICAL;
        		_log("%s", ERR_error_string(ERR_get_error(), NULL));
@@ -132,15 +133,9 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 		if((ssl=SSL_new(ctx))!=NULL){
 			SSL_CTX_set_cipher_list(ctx,"ADH");
 			SSL_set_fd(ssl,sd);
-			agent_v2_unblock_socket(sd);
-			rc=agent_v2_ssl_connect_timeout(ssl, svc->service_check_timeout);
-			if(rc <= 0) {
-				sprintf(svc->new_server_text, "%s", "timed out!!, or connection error");
-				svc->current_state=STATE_CRITICAL;
-				
-				return;
-			}
-			agent_v2_block_socket(sd);
+			
+			rc=SSL_connect(ssl);
+			
 			conn_timedout=0;
 			alarm(svc->service_check_timeout);
 				
