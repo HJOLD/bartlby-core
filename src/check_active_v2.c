@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2006/11/28 18:51:30  hjanuschka
+auto commit
+
 Revision 1.3  2006/11/28 03:30:42  hjanuschka
 auto commit
 
@@ -71,11 +74,7 @@ int agent_v2_my_tcp_connect(char *host_name,int port,int *sd, struct service * s
 unsigned long agent_v2_calculate_crc32(char *buffer, int buffer_size);
 void agent_v2_randomize_buffer(char *buffer,int buffer_size);
 
-#ifdef HAVE_SSL 
-static int agent_v2_ssl_connect_timeout(SSL *ssl, int tmo);
-static int agent_v2_unblock_socket(int soc);
-static int agent_v2_block_socket(int soc);
-#endif
+
 
 void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	
@@ -470,118 +469,4 @@ unsigned long agent_v2_calculate_crc32(char *buffer, int buffer_size){
         
 
 
-/*-------------------------------------------------------------------------
- *
- * Taken from ssltunnel, (C) Alain Thivillon and Hervé Schauer Consultants
- *
- *------------------------------------------------------------------------*/
-#ifdef HAVE_SSL 
-static int agent_v2_ssl_connect_timeout(SSL *ssl, int tmo)
-{
 
-  int r=0;
-  int rfd, wfd;
-  int n,maxfd;
-  fd_set rfds, wfds;
-  fd_set *prfds;
-  struct timeval tv;
-  long end;
-  int t;
-  int errcode;
-
-  rfd = SSL_get_fd(ssl);
-  wfd = SSL_get_fd(ssl);
-  n = rfd + 1;
-  maxfd = (rfd > wfd ? rfd : wfd) + 1;
-
-  prfds = (fd_set *) NULL;
-  end = tmo + time( NULL );
-
-  tv.tv_sec = tmo;
-  tv.tv_usec = 0;
-
-  FD_ZERO(&wfds);
-  FD_SET(wfd,&wfds);
-
-  /* number of descriptors that changes status */
-  while (0 < (n = select(n,prfds,&wfds,(fd_set *) 0,&tv)))
-  {
-    r = SSL_connect(ssl);
-    SSL_set_mode(ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
-    if (r > 0) {
-      return r;
-    }
-
-    switch (errcode=SSL_get_error(ssl, r))
-    {
-    case SSL_ERROR_WANT_READ:
-      prfds = &rfds;
-      FD_ZERO(&rfds);
-      FD_SET(rfd,&rfds);
-      n = maxfd;
-      break;
-    case SSL_ERROR_WANT_WRITE:
-      prfds = (fd_set *) 0;
-      n = wfd + 1;
-      break;
-    default:
-      /* some other error */
-      switch (errcode) {
-        case SSL_ERROR_SSL:
-        case SSL_ERROR_SYSCALL:
-          // fprintf(stderr,"ssl_connect : %d", SSL_get_error(ssl, r));
-           break;
-        default:
-          // fprintf(stderr,"ssl_connect : %d", SSL_get_error(ssl, r));
-           break;
-      }
-      return -2;
-    }
-
-    if ((t = end - time( NULL )) < 0) break;
-
-    tv.tv_sec = t;
-    tv.tv_usec = 0;
-
-    FD_ZERO(&rfds);
-    FD_SET(rfd,&rfds);
-  }
-
-  return -1;
-
-}     
-#endif
-
-#ifdef HAVE_SSL
-static int agent_v2_unblock_socket(int soc)
-{
-  int   flags =  fcntl(soc, F_GETFL, 0);
-  if (flags < 0)
-{
-      _log("AgentV2 fcntl(F_GETFL)");
-      return -1;
-    }
-  if (fcntl(soc, F_SETFL, O_NONBLOCK | flags) < 0)
-    {
-      _log(" AgentV2 fcntl(F_SETFL,O_NONBLOCK)");
-      return -1;
-    }
-  return 0;
-}
-
-static int agent_v2_block_socket(int soc)
-{
-  int   flags =  fcntl(soc, F_GETFL, 0);
-  if (flags < 0)
-    {
-      _log(" Agent V2 fcntl(F_GETFL)");
-      return -1;
-    }
-  if (fcntl(soc, F_SETFL, (~O_NONBLOCK) & flags) < 0)
-    {
-      _log("AGENTV2 fcntl(F_SETFL,~O_NONBLOCK)");
-      return -1;
-    }
-  return 0;
-}      
-#endif

@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.54  2006/11/28 18:51:30  hjanuschka
+Revision 1.55  2006/11/28 18:54:32  hjanuschka
 auto commit
 
 Revision 1.53  2006/11/26 22:14:34  hjanuschka
@@ -509,6 +509,8 @@ void sched_optimize_intervall(struct service * svc, char * cfgfile) {
 		if(new_delay >= 5) {
 			svc->check_interval=new_delay;	
 		}
+	} else { 
+		svc->check_interval = svc->check_interval_original;	
 	}
 				  
 				  

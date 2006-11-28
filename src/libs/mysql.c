@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.50  2006/11/28 18:51:30  hjanuschka
+auto commit
+
 Revision 1.49  2006/11/26 20:52:20  hjanuschka
 auto commit
 
@@ -1199,6 +1202,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->last_check=atoi(row[9]);
       		
       		svc->check_interval=atoi(row[10]);
+      		svc->check_interval_original=atoi(row[10]);
       		      		
       		
       		svc->hour_from=atoi(row[12]);
@@ -2107,6 +2111,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].last_check=atoi(row[9]);
       				                                 
       			svcs[i].check_interval=atoi(row[10]);
+      			svcs[i].check_interval_original=atoi(row[10]);
       			
       			/*if(i > POS2_QUEUER_THREADS*POS2_QUEUER_THREADS*POS2_QUEUER_THREADS) {
       				ht += 10;

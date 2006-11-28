@@ -170,6 +170,7 @@ struct service {
 	char  plugin[2048];
 	char  plugin_arguments[2048];
 	int check_interval;
+	int check_interval_original;
 	int last_check;
 	
 	/*Time stuff*/
