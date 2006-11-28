@@ -17,7 +17,7 @@ $Source$
 
 
 $Log$
-Revision 1.4  2006/11/28 18:51:30  hjanuschka
+Revision 1.5  2006/11/28 21:37:25  hjanuschka
 auto commit
 
 Revision 1.3  2006/11/28 03:30:42  hjanuschka
@@ -140,7 +140,7 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 				
 			if(rc !=1){
 				sprintf(svc->new_server_text, "%s", "AgentV2: Error - Could not complete SSL handshake.");
-					_log("%s", ERR_error_string(ERR_get_error(), NULL));
+					_log("SSL_error: %s", ERR_error_string(ERR_get_error(), NULL));
      		         		svc->current_state=STATE_CRITICAL;
      		         		SSL_CTX_free(ctx);
      		         		return;

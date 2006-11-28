@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.56  2006/11/28 18:57:07  hjanuschka
+Revision 1.57  2006/11/28 21:37:25  hjanuschka
 auto commit
 
 Revision 1.53  2006/11/26 22:14:34  hjanuschka
@@ -503,17 +503,20 @@ void sched_optimize_intervall(struct service * svc, char * cfgfile) {
 		return;	
 	}
 	avg_delay = svc->delay_time.sum / svc->delay_time.counter;
-		// if avg_delay > 0
+	
+	//if we would run too fast back to start!
 	if((avg_delay+svc->check_interval) < svc->check_interval_original) {
 		svc->check_interval = svc->check_interval_original;
 		return;	
 	}
-	if(avg_delay > 0 && svc->check_interval >= 5) {
-		new_delay = svc->check_interval_original - (avg_delay/5);
-		if(new_delay >= 5) {
+	
+	if(avg_delay > 0 && svc->check_interval > 5) {
+		new_delay = svc->check_interval_original - (avg_delay/2);
+		if(new_delay > 0) {
 			svc->check_interval=new_delay;	
-		}
+		} 
 	} else { 
+		//if delay is zero back to start
 		svc->check_interval = svc->check_interval_original;	
 	}
 				  
@@ -559,7 +562,7 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
 					//_log("ct: %d, e: %d", ct, expt);
 					svc->delay_time.sum += ct - expt;
 					
-					sched_optimize_intervall(svc, cfgfile);
+					//sched_optimize_intervall(svc, cfgfile);
 				}
 				svc->delay_time.counter++;
 				
