@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.54  2006/11/28 18:51:30  hjanuschka
+auto commit
+
 Revision 1.53  2006/11/26 22:14:34  hjanuschka
 auto commit
 
@@ -491,7 +494,26 @@ void sched_wait_open(int timeout, int fasten) {
 
 }
 
-
+void sched_optimize_intervall(struct service * svc, char * cfgfile) {
+	//get new intervall ;)
+	int avg_delay;
+	int new_delay;
+	
+	if(svc->delay_time.counter <= 0 || svc->delay_time.sum <= 0) {
+		return;	
+	}
+	avg_delay = svc->delay_time.sum / svc->delay_time.counter;
+		// if avg_delay > 0
+	if(avg_delay > 0 && svc->check_interval >= 5) {
+		new_delay = svc->check_interval_original - (avg_delay/5);
+		if(new_delay >= 5) {
+			svc->check_interval=new_delay;	
+		}
+	}
+				  
+				  
+					
+}
 void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void * SOHandle) {
        struct timeval check_start, check_end;
        int wait_result;
@@ -530,8 +552,12 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
 					// service check has delayed
 					//_log("ct: %d, e: %d", ct, expt);
 					svc->delay_time.sum += ct - expt;
+					
+					sched_optimize_intervall(svc, cfgfile);
 				}
 				svc->delay_time.counter++;
+				
+				
 								
 				bartlby_check_service(svc, shm_addr, SOHandle, cfgfile);	
 			
