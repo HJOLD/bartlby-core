@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.58  2006/12/02 21:34:56  hjanuschka
+auto commit
+
 Revision 1.57  2006/11/28 21:37:25  hjanuschka
 auto commit
 
@@ -561,10 +564,11 @@ void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void
 					// service check has delayed
 					//_log("ct: %d, e: %d", ct, expt);
 					svc->delay_time.sum += ct - expt;
+
+					svc->delay_time.counter++;
 					
 					//sched_optimize_intervall(svc, cfgfile);
 				}
-				svc->delay_time.counter++;
 				
 				
 								

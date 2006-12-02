@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2006/12/02 21:34:56  hjanuschka
+auto commit
+
 Revision 1.8  2006/09/09 19:38:34  hjanuschka
 auto commit
 
@@ -142,7 +145,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 	
 	cfg_perf_dir=getConfigValue("performance_dir", cfgfile);
 	if(cfg_perf_dir != NULL) {
-		perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+50+strlen(svc->plugin)+return_bytes+20));
+		perf_trigger = malloc(sizeof(char) * (strlen(cfg_perf_dir)+50+strlen(svc->plugin)+return_bytes+50));
 		sprintf(perf_trigger, "%s/%s", cfg_perf_dir, svc->plugin);
 		if(stat(perf_trigger, &perf_s) < 0) {
 			_log("Performance Trigger: %s not found", perf_trigger);	
