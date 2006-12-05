@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2006/12/05 03:47:12  hjanuschka
+auto commit
+
 Revision 1.9  2006/12/02 21:34:56  hjanuschka
 auto commit
 
@@ -113,10 +116,15 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 	char * cfg_perf_dir;
 	char * perf_trigger;
 	char * perf_enabled;
-	int perf_child;
+	//int perf_child;
 	struct timeval stat_end, stat_start;
 	char my_own_handler[1024];
 	char * found_my_own;
+	
+	FILE * phandler;
+	char dummy_buffer[1024];
+			
+	
 	
 	//signal(SIGCHLD, SIG_IGN);
 	sprintf(my_own_handler, "perfhandler_enabled_%d", svc->service_id);
@@ -152,6 +160,23 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 		} else {
 			
 			sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
+			signal(SIGPIPE,SIG_DFL);
+			signal(SIGCHLD,SIG_DFL);
+			gettimeofday(&stat_start,NULL);
+			
+			
+			phandler=popen(perf_trigger, "r");
+			if(phandler != NULL) {
+				fgets(dummy_buffer, 1024, phandler);
+				pclose(phandler);	
+				
+			} else {
+				_log("Performance Trigger: %s failed popen", perf_trigger);	
+			}
+			
+			gettimeofday(&stat_end,NULL);
+			//_log("@PERF@%d|%s:%d/%s", bartlby_milli_timediff(stat_end,stat_start),svc->server_name,svc->client_port, svc->service_name);
+			/*
 			switch(perf_child=fork()) {
 				case -1:
 					_log("fork error");
@@ -170,7 +195,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 				break;
 			}
 			
-			
+			*/
 		}
 		free(perf_trigger);
 		

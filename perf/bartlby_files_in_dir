@@ -71,7 +71,7 @@ then
 
 else
 	D=$3
-	$RRDTOOL update $RRDFILE N:$D
+	nice -n19 $RRDTOOL update $RRDFILE N:$D
 fi;
 
 

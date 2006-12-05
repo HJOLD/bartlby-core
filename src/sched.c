@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.59  2006/12/05 03:47:12  hjanuschka
+auto commit
+
 Revision 1.58  2006/12/02 21:34:56  hjanuschka
 auto commit
 
@@ -652,6 +655,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	struct service * services;
 	struct service_sort * ssort;
 	 
+	 
+	int cfg_max_load;
+	double current_load[3];
+	
+	char  * cfg_load_max;
+	
 	
 	sched_pid=getpid();
 	
@@ -676,7 +685,15 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		cfg_max_parallel=atoi(cfg_mps);
 		free(cfg_mps);	
 	}
+	cfg_load_max=getConfigValue("max_load", cfgfile);
 	
+	if(cfg_load_max == NULL) {
+		cfg_max_load=0;
+		
+	} else {
+		cfg_max_load=atoi(cfg_load_max);
+		free(cfg_load_max);
+	}
 	
 	signal(SIGINT, catch_signal);
 	signal(SIGUSR1, catch_signal);
@@ -749,11 +766,15 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			if(do_shutdown == 1 || gshm_hdr->do_reload == 1) {
 				break;	
 			}
+			getloadavg(current_load, 3);
 			
-			if(gshm_hdr->current_running < cfg_max_parallel) { 
+			//_log("Current_load: %d, %e, %e (max: %e)", (int)current_load[0], current_load[1], current_load[2], cfg_max_load);
+			
+			if(gshm_hdr->current_running < cfg_max_parallel || (int)current_load[0] < cfg_max_load) { 
 				if(sched_check_waiting(shm_addr, ssort[x].svc, cfgfile, SOHandle, sched_pause) == 1) {
 					round_visitors++;
 			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
+			 		
 				}				
 			} else {
 				sched_wait_open(60,cfg_max_parallel-1);	

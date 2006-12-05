@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2006/12/05 03:47:12  hjanuschka
+auto commit
+
 Revision 1.5  2006/11/28 21:37:25  hjanuschka
 auto commit
 
@@ -280,7 +283,7 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	}
 	
 	/* get the return code from the remote plugin */
-	result=(int16_t)ntohs(receive_packet.exit_code);
+	result=(int16_t)receive_packet.exit_code;
 	
 	/* print the output returned by the daemon */
 	receive_packet.output[2048-1]='\x0';
@@ -290,11 +293,11 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 		sprintf(svc->new_server_text,"%s",receive_packet.output);
 	}
 
-	switch ((int16_t)ntohs(receive_packet.exit_code)) {
+	switch ((int16_t)receive_packet.exit_code) {
 		case STATE_OK:
 		case STATE_WARNING:
 		case STATE_CRITICAL:
-			svc->current_state=(int16_t)ntohs(receive_packet.exit_code);
+			svc->current_state=(int16_t)receive_packet.exit_code;
 		break;
 		
 		default:

@@ -129,7 +129,7 @@ then
 else
 	D=$3
 	U=$4
-	$RRDTOOL update $RRDFILE N:$D:$U
+	nice -n19 $RRDTOOL update $RRDFILE N:$D:$U
 fi;
 
 

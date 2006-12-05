@@ -258,7 +258,7 @@ then
 	#--start -604800
 else
 	nice -n19 $RRDTOOL update $RRDFILE N:$RRD_VALUE
-	echo "'${RRD_VALUE}'";
+	
 
 fi;
 
