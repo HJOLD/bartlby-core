@@ -16,8 +16,8 @@ $Source$
 
 
 $Log$
-Revision 1.64  2006/12/08 22:35:47  hjanuschka
-auto commit
+Revision 1.65  2006/12/08 23:52:20  hjanuschka
+*** empty log message ***
 
 Revision 1.63  2006/11/27 21:16:28  hjanuschka
 auto commit
@@ -435,7 +435,8 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 			
 		}
 		//_log("PASSIVE_CHECK %d->%d", svc->service_passive_timeout, svc->service_id);
-				
+		bartlby_check_grep_perf_line(svc->new_server_text, svc, cfgfile);
+		
 		bartlby_fin_service(svc, SOHandle,shm_addr,cfgfile);
 		return;	
 	}
