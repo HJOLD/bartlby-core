@@ -16,243 +16,242 @@ $Source$
 
 
 $Log$
-Revision 1.3  2006/08/09 19:47:49  hjanuschka
+Revision 1.4  2006/12/08 22:35:47  hjanuschka
 auto commit
 
-Revision 1.2  2006/08/08 00:09:58  hjanuschka
+Revision 1.6  2006/11/27 21:16:54  hjanuschka
 auto commit
 
-Revision 1.1  2006/07/22 23:03:12  hjanuschka
-remove agent from the core  for portability reasons
+Revision 1.5  2006/11/25 12:31:56  hjanuschka
+auto commit
 
-Revision 1.10  2006/04/23 18:07:43  hjanuschka
-core/ui/php: checks can now be forced
-ui: remote xml special_addon support
-core: svc perf MS
-core: round perf MS
-php: svcmap, get_service perf MS
-ui: perf MS
-
-Revision 1.9  2005/10/13 22:42:29  hjanuschka
-portier/cmd: get_services -> recieve a list of passive services
-
-Revision 1.8  2005/09/28 21:46:30  hjanuschka
-converted files to unix
-jabber.sh -> disabled core dumps -> jabblibs segfaults
-                                    will try to patch it later
-
-Revision 1.7  2005/09/18 11:28:12  hjanuschka
-replication now works :-)
-core: can run as slave and load data from a file instead of data_lib
-ui: displays a warning if in slave mode to not add/modify servers/services
-portier: recieves and writes shm dump to disk
-so hot stand by should be possible ;-)
-slave also does service checking
-
-Revision 1.6  2005/09/18 05:03:52  hjanuschka
-replication is false by default now
-need to fix the damn write()/read() -> while() sh**
-
-Revision 1.5  2005/09/18 04:04:52  hjanuschka
-replication interface (currently just a try out)
-one instance can now replicate itself to another using portier as a transport way
-FIXME: need to sort out a binary write() problem
-
-Revision 1.4  2005/09/13 22:11:52  hjanuschka
-ip_list moved to .cfg
-	allowed_ips
-load limit moved to cfg
-	agent_load_limit
-
-portier now also uses ip list to verify ip of connector
-
-portier: passive check without plg args fixed
-
-Revision 1.3  2005/09/09 19:23:37  hjanuschka
-portier: added get_passive cmd
-added a little dummy passive portier query tool (wich can set passive states and recieve passiv service info
-
-Revision 1.2  2005/09/07 22:36:56  hjanuschka
-portier: added err code -4 svc not found
-check: group check fixed , runnaway strtok :-)
-
-Revision 1.1  2005/09/07 21:52:25  hjanuschka
-portier import
-
+Revision 1.4  2006/11/25 01:16:18  hjanuschka
+auto commit
 
 
 
 */
-#include <dlfcn.h>
-#include <time.h>
+#include <malloc.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <errno.h>
+
+
+
+#ifdef HAVE_SSL
+	#include <openssl/dh.h>
+	#include <openssl/ssl.h>
+	#include <openssl/err.h>
+	#include <openssl/rand.h>
+	#include <bartlby_v2_dh.h>
+#endif
 
 #include <bartlby.h>
+             
+             
+             
+static int use_ssl=1;
+char * cfg_use_ssl;
+static unsigned long crc32_table[256];
 static int connection_timed_out=0;
 
 
-#define CMD_PASSIVE 1
-#define CMD_GET_PLG 2
-#define CMD_REPL 3
-#define CMD_SVCLIST 4
-#define CMD_GETSERVERID 5
+///SHM STUFF
+struct shm_header * shm_hdr;
+struct service * svcmap;
+void * bartlby_address;
+int shm_id;
+char * shmtok;
+int x;
+///SHM STUFF
 
-#define CONN_TIMEOUT 10
+#ifdef HAVE_SSL
+SSL_METHOD *meth;
+SSL_CTX *ctx;
+#endif
 
-ssize_t	readn(int fd, void *vptr, size_t n)
-{
-	size_t	nleft;
-	ssize_t	nread;
-	char	*ptr;
 
-	ptr = vptr;
-	nleft = n;
-	while (nleft > 0) {
-		if ( (nread = read(fd, ptr, nleft)) < 0) {
-			if (errno == EINTR)
-				nread = 0;		/* and call read() again */
-			else
-				return(-1);
-		} else if (nread == 0)
-			break;				/* EOF */
 
-		nleft -= nread;
-		ptr   += nread;
-	}
-	return(n - nleft);		/* return >= 0 */
-}
-/* end readn */
+void portier_generate_crc32_table(void);
+void portier_serve_request(int sock, char * cfgfile);
+void portier_randomize_buffer(char *buffer,int buffer_size);
+unsigned long portier_calculate_crc32(char *buffer, int buffer_size);
 
-ssize_t Readn(int fd, void *ptr, size_t nbytes)
-{
-	ssize_t		n;
 
-	if ( (n = readn(fd, ptr, nbytes)) < 0)
-		return -1;
-		
-	return(n);
-}
-
-static void agent_conn_timeout(int signo) {
+static void portier_conn_timeout(int signo) {
  	connection_timed_out = 1;
 }
-int main(int argc, char ** argv) {
+
+
+int main(int argc, char **argv){
+		
+#ifdef HAVE_SSL
+	DH *dh;
+#endif
+
+	char seedfile[FILENAME_MAX];
+	int i,c;
+	
+	
+	
+	/* open a connection to the syslog facility */
+	openlog("bartlby-portier",LOG_PID,LOG_DAEMON);
+	
+	
+	shmtok = getConfigValue("shm_key", argv[0]);
+	
+	if(shmtok == NULL) {
+		syslog(LOG_ERR, "Unset variable `shm_key' '%s'", argv[0]);
+		exit(1);
+	}
+	
+	shm_id = shmget(ftok(shmtok, 32), 0, 0777);
+	if(shm_id != -1) {
+		bartlby_address=shmat(shm_id,NULL,0);
+		shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
+		svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+		
+		
+	} else {
+		syslog(LOG_ERR, "bartlby down!?? shm error");
+		exit(1);
+	}
+	
+	
+	/* generate the CRC 32 table */
+	portier_generate_crc32_table();
+	
+	cfg_use_ssl=getConfigValue("portier_use_ssl", argv[argc-1]);
+	if(cfg_use_ssl == NULL) {
+		use_ssl = 1;	
+	} else {
+		use_ssl=atoi(cfg_use_ssl);
+		free(cfg_use_ssl);
+	}
+	
+	
+#ifdef HAVE_SSL
+	if(use_ssl == 1) {
+		SSL_library_init();
+		SSLeay_add_ssl_algorithms();
+		meth=SSLv23_server_method();
+		SSL_load_error_strings();
+		
+		/* use week random seed if necessary */
+		if((RAND_status()==0)){
+			if(RAND_file_name(seedfile,sizeof(seedfile)-1))
+				if(RAND_load_file(seedfile,-1))
+					RAND_write_file(seedfile);
+		
+			if(RAND_status()==0){
+				syslog(LOG_ERR,"Warning: SSL/TLS uses a weak random seed which is highly discouraged");
+				srand(time(NULL));
+				for(i=0;i<500 && RAND_status()==0;i++){
+					for(c=0;c<sizeof(seedfile);c+=sizeof(int)){
+						*((int *)(seedfile+c))=rand();
+					        }
+					RAND_seed(seedfile,sizeof(seedfile));
+					}
+				}
+			}
+		
+		if((ctx=SSL_CTX_new(meth))==NULL){
+			syslog(LOG_ERR,"Error: could not create SSL context.\n");
+			exit(2);
+		}
+		
+		
+		SSL_CTX_set_options(ctx,SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+		
+		/* use anonymous DH ciphers */
+		SSL_CTX_set_cipher_list(ctx,"ADH");
+		dh=get_dh512();
+		SSL_CTX_set_tmp_dh(ctx,dh);
+		DH_free(dh);
+	}
+#endif
+	
+	//as we are running under inetd!!
+	close(2);
+	open("/dev/null",O_WRONLY);
+	
+	portier_serve_request(0, argv[argc-1]);
+
+#ifdef HAVE_SSL
+	SSL_CTX_free(ctx);
+#endif
+	return 0;
+	
+
+}
+
+void portier_serve_request(int sock, char * cfgfile) {
+	u_int32_t calculated_crc32;
+	portier_packet send_packet;
+	portier_packet receive_packet;
+	int bytes_to_send;
+	int bytes_to_recv;
+	int rc;	
+	char * ts;
 	struct sigaction act1, oact1;
-	char svc_in[2048];
-	char svc_out[2048];
-	char * in_server_name;
 	
 	char * allowed_ip_list;
-	int ip_ok=-1;
-	struct sockaddr_in name;
-   	int namelen = sizeof(name);
-	
 	char * token;
+	struct sockaddr_in name;
+	int namelen = sizeof(name);
+	int ip_ok=-1;
 	
+	char str_id[4096];
 	
-	int command;
-	int svc_found=0;
-	
-	
-	
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	int passive_svcid;
-	int passive_serverid;
-	int passive_state;
-	char passive_text[2048];
-	char * passive_beauty;
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//SHM
-	char * shmtok;
-	int shm_id;
-	//int * shm_elements;
-	void * bartlby_address;
-	
-	int x;
-	
-	
-	struct shm_header * shm_hdr;
-	struct service * svcmap;
-	
-	
-	allowed_ip_list=getConfigValue("allowed_ips", argv[0]);
+	u_int32_t packet_crc32;
+
+#ifdef HAVE_SSL
+	SSL *ssl=NULL;
+#endif
+
+	allowed_ip_list=getConfigValue("allowed_ips", cfgfile);
 	if(allowed_ip_list == NULL) {
-        	printf("-No Ip Allowed");
+        	syslog(LOG_ERR,"No allowed IP");
         	exit(1);
         	
         }
-	
-	token=strtok(allowed_ip_list,",");
+        
+        
+        token=strtok(allowed_ip_list,",");
         
         if (getpeername(0,(struct sockaddr *)&name, &namelen) < 0) {
-   		//syslog(LOG_ERR, "getpeername: %m");
+   		syslog(LOG_ERR, "getpeername failed");
    		exit(1);
-   	} else {
-   		//syslog(LOG_INFO, "Connection from %s",	inet_ntoa(name.sin_addr));
    	}
         
         while(token != NULL) {
-        	//printf("CHECKING: %s against %s\n", token, inet_ntoa(name.sin_addr));
         	if(strcmp(token, inet_ntoa(name.sin_addr)) == 0) {
         		ip_ok=0;	
         	}
         	token=strtok(NULL, ",");	
         }
         free(allowed_ip_list);
+        
         if(ip_ok < 0) {
-        	printf("-IP Blocked\n");
+        	//sleep(1);
+        	syslog(LOG_ERR, "ip blocked: %s", inet_ntoa(name.sin_addr));
 		exit(1);
-        }	
-	
-	shmtok = getConfigValue("shm_key", argv[0]);
-	
-	if(shmtok == NULL) {
-		_log("Unset variable `shm_key'");
-		fflush(stdout);
-		exit(1);
-	}
-	
-	shm_id = shmget(ftok(shmtok, 32), 0, 0777);
-	if(shm_id != -1) {
-		
-		bartlby_address=shmat(shm_id,NULL,0);
-		shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
-		svcmap=bartlby_SHM_ServiceMap(bartlby_address);
-		printf("+SVCC: %d WRKC: %d V: %s\n", shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->version);
-		fflush(stdout);
-		
-	} else {
-		printf("-1 Bartlby down!!!\n");	
-		fflush(stdout);
-		exit(1);
-	}
-	
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	if(argc == 0) {
-		printf("CONFIG FILE MISSING\n");
-		exit(1);	
-	}
-	act1.sa_handler = agent_conn_timeout;
+        }
+        
+	act1.sa_handler = portier_conn_timeout;
 	sigemptyset(&act1.sa_mask);
 	act1.sa_flags=0;
 	#ifdef SA_INTERRUPT
@@ -260,228 +259,251 @@ int main(int argc, char ** argv) {
 	#endif
 	if(sigaction(SIGALRM, &act1, &oact1) < 0) {
 		
-		printf("ALARM SETUP ERROR");
+		syslog(LOG_ERR,"alarm setup error");
 		exit(1);
-				
-		return -1;
-	
 		
 	}
-	connection_timed_out=0;
-	alarm(CONN_TIMEOUT);
-	//ipmlg]ajgai]Amoowlkecvg~"/j"nmacnjmqv~
-	if(read(fileno(stdin), svc_in, 1024) < 0) {
-		printf("BAD!");
-		exit(1);
-	}
-	alarm(0);
-	
-	if(connection_timed_out == 1) {
-		printf("Timed out!!!\n");
-		exit(1);	
-	}
-	passive_svcid=-1;
-	passive_state=-1;
-	sprintf(passive_text, "failed");
-	sprintf(svc_out, "-20");
-	token=strtok(svc_in, "|");
-	if(token != NULL) {
-		command=atoi(token);
-		switch(command) {
-			/*
-			case CMD_REPL:
-				token=strtok(NULL, "|");
-				if(token != NULL) {
-					
-					repl_bdir = getConfigValue("basedir", argv[0]);
-					
-					
-					repl_SHMSize=atol(token);
-					printf("+waiting for: %ld Bytes\n", repl_SHMSize);
-					fflush(stdout);
-					
-					
-					repl_shm_addr=malloc(repl_SHMSize*2);
-					
-					connection_timed_out=0;
-					alarm(CONN_TIMEOUT+500);
-					
-					if((read_rtc=Readn(fileno(stdin), repl_shm_addr, repl_SHMSize)) < 0) {
-						printf("-BAD!");
-						exit(1);
-					}
-					alarm(0);
-					
-					if(connection_timed_out == 1) {
-						printf("-Timed out!!!\n");
-						exit(1);	
-					}
-					
-					FILE * fp;
-					char base_fname[2048];
-					sprintf(base_fname, "%s/bartlby.shm.repl", repl_bdir);
-					
-					fp=fopen(base_fname, "wb");
-					//fwrite(repl_shm_addr,sizeof(repl_shm_addr), repl_SHMSize, fp);
-					write(fileno(fp), repl_shm_addr, read_rtc);
-					fclose(fp);
-					
-					printf("+ OK %s\n", base_fname);				
-					free(repl_shm_addr);
-					free(base_fname);
-					free(repl_bdir);
-					
-					exit(1);
-					
-					
-						
-				} else {
-					sprintf(svc_out, "-7 Bytes not supplied\n");	
-				}
-			break;
-			*/
-			case CMD_GET_PLG:
-				token=strtok(NULL, "|");
-				if(token != NULL) {
-					passive_svcid=atoi(token);
-					
-					svc_found=0;
-					for(x=0; x<shm_hdr->svccount; x++) {
-						
-						if(svcmap[x].service_id == passive_svcid) {
-							svc_found = 1;
-							break;
-						}
-					}
-					if(svc_found == 1) {
-						//1|413395|2|dasdsadsadsadas|
-						if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
-							
-							sprintf(svc_out, "+PLG|%s %s|\n", svcmap[x].plugin,svcmap[x].plugin_arguments);
-							
-						} else {
-							sprintf(svc_out, "-3 Service is not of type 'PASSIVE'");	
-						}
-					} else {
-						sprintf(svc_out, "-4 Service not found\n");	
-					}
-					
-					
-					
-				} else {
-					sprintf(svc_out, "-5 SVCID missing\n");	
-					
-				}
-			break;
-			case CMD_PASSIVE:
-				//Second is SVCID
-				//Third is new status
-				//Fourth is new service_text
-				token=strtok(NULL, "|");
-				if(token != NULL) {
-					passive_svcid=atoi(token);
-					
-					token=strtok(NULL, "|");
-					if(token != NULL) {
-						
-						passive_state=atoi(token);
-						token=strtok(NULL, "|");
-						if(token != NULL) {
-							
-							sprintf(passive_text, "%s", token);
-							
-						} else {
-							sprintf(passive_text," ");
-									
-						}
-						
-					
-						
-					
-						svc_found=0;
-						for(x=0; x<shm_hdr->svccount; x++) {
-							
-							if(svcmap[x].service_id == passive_svcid) {
-								svc_found = 1;
-								break;
-							}
-						}
-						if(svc_found == 1) {
-							//2|413395
-							if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
-								svcmap[x].last_state=svcmap[x].current_state;
-								svcmap[x].current_state=passive_state;
-								sprintf(svcmap[x].new_server_text, "%s", passive_text);
-								svcmap[x].last_check=time(NULL);
-								
-								passive_beauty=bartlby_beauty_state(svcmap[x].current_state);
-								sprintf(svc_out, "+PASSIVOK (%d) %d : %s (%s)\n", x, svcmap[x].service_id, passive_beauty, svcmap[x].new_server_text);
-								free(passive_beauty);
-							} else {
-								sprintf(svc_out, "-3 Service is not of type 'PASSIVE'");	
-							}
-						} else {
-							sprintf(svc_out, "-4 Service not found\n");	
-						}
-						
-					} else {
-						sprintf(svc_out, "New state missing\n");		
-					}
-					
-				} else {
-					sprintf(svc_out, "SVCID missing\n");	
-					
-				}
-			break;
-			case CMD_GETSERVERID:
-				token=strtok(NULL, "|");
-				if(token != NULL) {
-					in_server_name=strdup(token);
-					sprintf(svc_out, " ");
-					
-					for(x=0; x<shm_hdr->svccount; x++) {
-						if(strcmp(svcmap[x].server_name, in_server_name) == 0) {
-							printf("%d", svcmap[x].server_id);
-							break;
-								
-						}
-					}
-					printf("\n");
-					fflush(stdout);
-				} else {
-					sprintf(svc_out, "-5 server_name missing");	
-				}
-			break;
-			case CMD_SVCLIST:
-				token=strtok(NULL, "|");
-				if(token != NULL) {
-					passive_serverid=atoi(token);
-					sprintf(svc_out, " ");
-					for(x=0; x<shm_hdr->svccount; x++) {
-						if(svcmap[x].server_id == passive_serverid && svcmap[x].service_type == SVC_TYPE_PASSIVE) {
-							printf("%d", svcmap[x].service_id);
-							printf(" ");	
-						}
-					}
-					printf("\n");
-					fflush(stdout);
-				} else {
-					sprintf(svc_out, "-5 server_id missing");	
-				}
-			break;
-			default:
-				printf("-2 cmd not found\n");
-				exit(1);				
+        
+       bytes_to_recv=sizeof(receive_packet);  	
+#ifdef HAVE_SSL
+	if(use_ssl == 1) {
+		if((ssl=SSL_new(ctx))==NULL){
+			syslog(LOG_ERR,"SSL init error");	
+			return;
 		}
 		
-		printf(svc_out);
+		SSL_set_fd(ssl,sock);
+		/* keep attempting the request if needed */
+		while(((rc=SSL_accept(ssl))!=1) && (SSL_get_error(ssl,rc)==SSL_ERROR_WANT_READ));
+		
+		if(rc!=1){
+			syslog(LOG_ERR,"Error: Could not complete SSL handshake. %d (%s)\n",SSL_get_error(ssl,rc), ERR_error_string(ERR_get_error(), NULL));
+			return;
+		}
+		while(((rc=SSL_read(ssl,&receive_packet,bytes_to_recv))<=0) && (SSL_get_error(ssl,rc)==SSL_ERROR_WANT_READ));
+	} else {
+#endif
+		
+		rc=bartlby_tcp_recvall(sock,(char *)&receive_packet,&bytes_to_recv,PORTIER_CONN_TIMEOUT);
+		
+#ifdef HAVE_SSL
+	}
+#endif
+	if(rc<=0){
+		/* log error to syslog facility */
+		syslog(LOG_ERR,"Could not read request from client bye bye ...");
+		
+#ifdef HAVE_SSL			
+		if(use_ssl == 1) {
+			if(ssl){
+				SSL_shutdown(ssl);
+				SSL_free(ssl);
+			}
+		}
+#endif
+		return;
 			
 	}
-	shmdt(bartlby_address);
-	//bartlby_encode(svc_out, strlen(svc_out));
-	//printf("%s", svc_out);
-	//bartlby_decode(svc_out, strlen(svc_out));
+	
+	if(bytes_to_recv!=sizeof(receive_packet)){
+
+	
+		/* log error to syslog facility */
+		syslog(LOG_ERR,"Data packet from client was too short, bye bye ...");	
+#ifdef HAVE_SSL			
+		if(use_ssl == 1) {
+			if(ssl){
+				SSL_shutdown(ssl);
+				SSL_free(ssl);
+			}
+		}
+#endif
+			
+		return;		
+			
+	}
+
+	packet_crc32=ntohl(receive_packet.crc32_value);
+	receive_packet.crc32_value=0L;
+	calculated_crc32=portier_calculate_crc32((char *)&receive_packet,sizeof(receive_packet));
+	if(packet_crc32!=calculated_crc32){
+		syslog(LOG_ERR,"Error: Request packet had invalid CRC32.");
+		return;
+	}
 	
 	
-	return 1;
+	receive_packet.cmdline[2048-1]='\0';
+	receive_packet.plugin[2048-1]='\0';
+	receive_packet.perf_handler[1024-1]='\0';
+	receive_packet.output[2048-1]='\0';
+	
+	
+	/* clear the response packet buffer */
+	bzero(&send_packet,sizeof(send_packet));
+	
+	/* fill the packet with semi-random data */
+	portier_randomize_buffer((char *)&send_packet,sizeof(send_packet));
+				
+	switch(ntohs(receive_packet.packet_type)) {
+		
+		case PORTIER_SVCLIST_PACKET:
+			
+			for(x=0; x<shm_hdr->svccount; x++) {
+				if(svcmap[x].server_id == (int)receive_packet.service_id && svcmap[x].service_type == SVC_TYPE_PASSIVE) {
+					ts=strdup(str_id);
+					sprintf(str_id, "%d %s", svcmap[x].service_id, ts);
+					free(ts);
+					
+					
+				}
+			}
+			sprintf(send_packet.output, "%s",  str_id);
+			
+			
+			
+		break;
+		
+		case PORTIER_RESULT_PACKET:
+			for(x=0; x<shm_hdr->svccount; x++) {
+				
+				if(svcmap[x].service_id == (int)receive_packet.service_id) {
+					if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
+						snprintf(svcmap[x].new_server_text, 2047, "%s", receive_packet.output);
+						svcmap[x].current_state=(int16_t)receive_packet.exit_code;
+						if(strlen(receive_packet.perf_handler) > 5) {
+							setenv("BARTLBY_CONFIG", cfgfile,1);
+							setenv("BARTLBY_CURR_PLUGIN", svcmap[x].plugin,1);
+							setenv("BARTLBY_CURR_HOST", svcmap[x].server_name,1);
+							setenv("BARTLBY_CURR_SERVICE", svcmap[x].service_name,1);
+							bartlby_perf_track(&svcmap[x],receive_packet.perf_handler, strlen(receive_packet.perf_handler), cfgfile);
+							
+						}
+					}
+				}
+			}		
+		break;
+		
+		case PORTIER_REQUEST_PACKET:
+			
+			for(x=0; x<shm_hdr->svccount; x++) {
+				
+				if(svcmap[x].service_id == (int)receive_packet.service_id) {
+					if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
+						sprintf(send_packet.plugin, "%s", svcmap[x].plugin);	
+						sprintf(send_packet.cmdline, "%s", svcmap[x].plugin_arguments);
+						
+					}
+				}
+			}																																						
+
+		break;
+		
+		default:
+			syslog(LOG_ERR, "no packet type supplied or either wrong packet type");
+			exit(1);	
+		
+	}
+	
+	
+
+	/* initialize response packet data */
+	send_packet.packet_type=receive_packet.packet_type;
+	/* calculate the crc 32 value of the packet */
+	send_packet.crc32_value=(u_int32_t)0L;
+	calculated_crc32=portier_calculate_crc32((char *)&send_packet,sizeof(send_packet));
+	send_packet.crc32_value=(u_int32_t)htonl(calculated_crc32);
+	
+	
+	
+	bytes_to_send=sizeof(send_packet);
+
+#ifdef HAVE_SSL		
+	if(use_ssl == 1) {
+		SSL_write(ssl,&send_packet,bytes_to_send);
+		if(ssl){
+			SSL_shutdown(ssl);
+			SSL_free(ssl);
+		}
+	} else {
+#endif
+		bartlby_tcp_sendall(sock,(char *)&send_packet,&bytes_to_send);
+			
+#ifdef HAVE_SSL
+	}
+#endif
+	
+	
+		
 }
+
+void portier_randomize_buffer(char *buffer,int buffer_size){
+	FILE *fp;
+	int x;
+	int seed;
+
+	/**** FILL BUFFER WITH RANDOM ALPHA-NUMERIC CHARACTERS ****/
+
+	/***************************************************************
+	   Only use alpha-numeric characters becase plugins usually
+	   only generate numbers and letters in their output.  We
+	   want the buffer to contain the same set of characters as
+	   plugins, so its harder to distinguish where the real output
+	   ends and the rest of the buffer (padded randomly) starts.
+	***************************************************************/
+
+	/* try to get seed value from /dev/urandom, as its a better source of entropy */
+	fp=fopen("/dev/urandom","r");
+	if(fp!=NULL){
+		seed=fgetc(fp);
+		fclose(fp);
+	        }
+
+	/* else fallback to using the current time as the seed */
+	else
+		seed=(int)time(NULL);
+
+	srand(seed);
+	for(x=0;x<buffer_size;x++)
+		buffer[x]=(int)'0'+(int)(72.0*rand()/(RAND_MAX+1.0));
+
+	return;
+        }
+      
+
+void portier_generate_crc32_table(void){
+	unsigned long crc, poly;
+	int i, j;
+
+	poly=0xEDB88320L;
+	for(i=0;i<256;i++){
+		crc=i;
+		for(j=8;j>0;j--){
+			if(crc & 1)
+				crc=(crc>>1)^poly;
+			else
+				crc>>=1;
+		        }
+		crc32_table[i]=crc;
+                }
+
+	return;
+}
+
+
+/* calculates the CRC 32 value for a buffer */
+unsigned long portier_calculate_crc32(char *buffer, int buffer_size){
+	register unsigned long crc;
+	int this_char;
+	int current_index;
+
+	crc=0xFFFFFFFF;
+
+	for(current_index=0;current_index<buffer_size;current_index++){
+		this_char=(int)buffer[current_index];
+		crc=((crc>>8) & 0x00FFFFFF) ^ crc32_table[(crc ^ this_char) & 0xFF];
+	        }
+
+	return (crc ^ 0xFFFFFFFF);
+        }        
+        
+        
