@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.4  2006/12/08 22:35:47  hjanuschka
+Revision 1.5  2006/12/08 22:39:34  hjanuschka
 auto commit
 
 Revision 1.6  2006/11/27 21:16:54  hjanuschka
@@ -93,6 +93,8 @@ unsigned long portier_calculate_crc32(char *buffer, int buffer_size);
 
 static void portier_conn_timeout(int signo) {
  	connection_timed_out = 1;
+ 	syslog(LOG_ERR, "TIMEOUT!!");
+ 	exit(1);
 }
 
 

@@ -1,7 +1,7 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "Ketoprofen"
-#define VERSION  "1.2.5"
+#define REL_NAME "enc.dis"
+#define VERSION  "1.2.6"
 #define EXPECTCORE 1102051 //Module V Check's
 
 #define MAX_CCACHE 1024
@@ -30,6 +30,7 @@
 
 
 
+#define PORTIER_CONN_TIMEOUT 30
 
 #define EVENT_QUEUE_MAX 128
 #define EVENT_STATUS_CHANGED 2
@@ -286,9 +287,26 @@ typedef struct v2_packet_struct{
 	 
 } agent_v2_packet;
 
+typedef struct port_packet_struct{
+
+	u_int32_t crc32_value;
+	int16_t   exit_code;
+	int16_t   packet_type;
+	char      output[2048];
+	char      cmdline[2048];
+	char      plugin[2048];
+	char 	   perf_handler[1024];
+	int32_t	   service_id;
+	
+	 
+} portier_packet;
+
 #define AGENT_V2_SENT_PACKET 1
 #define AGENT_V2_RETURN_PACKET 2
 
+#define PORTIER_SVCLIST_PACKET 1
+#define PORTIER_RESULT_PACKET 2
+#define PORTIER_REQUEST_PACKET 3
 
 
 char * getConfigValue(char *, char *);

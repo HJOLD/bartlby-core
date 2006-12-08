@@ -1,6 +1,7 @@
 data_library=@prefix@/lib/mysql.so
 max_concurent_checks=6
 max_load=0
+portier_use_ssl=0
 shm_key=@prefix@
 shm_size=10
 trigger_dir=@prefix@/trigger

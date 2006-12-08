@@ -1,7 +1,7 @@
 include ../../Makefile.conf
 
 SHMT = ../shm.o ../config.o ../global.o shmt.o
-PORTIER = ../config.o ../global.o  ../shm.o portier.o
+PORTIER = ../config.o ../global.o  ../shm.o ../perf.o  ../ext.o portier.o
 
 
 
@@ -26,7 +26,7 @@ shmt: ${SHMT}
 
 
 portier: ${PORTIER}
-	$(CC)  $(LDL) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o bartlby_portier ${PORTIER}
+	$(CC)  $(LDL) $(OPENSSL_ADDON) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o bartlby_portier ${PORTIER}
 	
 
 
