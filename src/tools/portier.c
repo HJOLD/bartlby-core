@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2006/12/09 01:25:08  hjanuschka
+auto commit
+
 Revision 1.5  2006/12/08 22:39:34  hjanuschka
 auto commit
 
@@ -370,8 +373,11 @@ void portier_serve_request(int sock, char * cfgfile) {
 				
 				if(svcmap[x].service_id == (int)receive_packet.service_id) {
 					if(svcmap[x].service_type == SVC_TYPE_PASSIVE) {
+						svcmap[x].last_state=svcmap[x].current_state;
 						snprintf(svcmap[x].new_server_text, 2047, "%s", receive_packet.output);
 						svcmap[x].current_state=(int16_t)receive_packet.exit_code;
+						svcmap[x].last_check=time(NULL);
+						
 						if(strlen(receive_packet.perf_handler) > 5) {
 							setenv("BARTLBY_CONFIG", cfgfile,1);
 							setenv("BARTLBY_CURR_PLUGIN", svcmap[x].plugin,1);

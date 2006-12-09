@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.21  2006/12/09 01:25:07  hjanuschka
+auto commit
+
 Revision 1.20  2006/11/27 21:16:28  hjanuschka
 auto commit
 
@@ -350,7 +353,7 @@ int bartlby_tcp_recvall(int s, char *buf, int *len, int timeout){
 			time(&current_time);
 			if(current_time-start_time>timeout)
 				break;
-			sleep(1);
+			usleep(100);
 			continue;
 		        }
 
