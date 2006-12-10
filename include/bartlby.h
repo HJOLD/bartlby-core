@@ -1,7 +1,7 @@
 
 #define PROGNAME "bartlby"
 #define REL_NAME "enc.dis"
-#define VERSION  "1.2.6"
+#define VERSION  "1.2.7"
 #define EXPECTCORE 1102051 //Module V Check's
 
 #define MAX_CCACHE 1024
