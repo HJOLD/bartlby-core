@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.60  2006/12/10 16:50:53  hjanuschka
+auto commit
+
 Revision 1.59  2006/12/05 03:47:12  hjanuschka
 auto commit
 
@@ -756,7 +759,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		
 		//Sort ascending on delay time so most delayed service will be checked rapidly ;)
-		qsort(ssort, gshm_hdr->svccount-1, sizeof(struct service_sort), cmpservice);
+		if(gshm_hdr->svccount>0) {
+			qsort(ssort, gshm_hdr->svccount-1, sizeof(struct service_sort), cmpservice);
+		}
 		
 		
 		
