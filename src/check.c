@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.66  2006/12/19 22:01:33  hjanuschka
+*** empty log message ***
+
 Revision 1.65  2006/12/08 23:52:20  hjanuschka
 *** empty log message ***
 
@@ -370,10 +373,6 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	
 	}
 	
-	//WTF?
-	if(svc->service_type != SVC_TYPE_PASSIVE) {
-		svc->last_check=time(NULL);
-	}
 	
 	
 	bartlby_callback(EXTENSION_CALLBACK_POST_CHECK, svc);
