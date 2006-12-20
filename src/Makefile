@@ -6,7 +6,7 @@ OBJS = bartlby.o config.o global.o sched.o shm.o check.o trigger.o daemon.o repl
 
 .c.o:
 
-	$(CC) $(EXTRAOPTIONS)  $(INCLUDE_L)   -c $<
+	$(CC)  $(EXTRAOPTIONS)  $(INCLUDE_L)   -c $<
 
 all:    bartlby
 
@@ -18,7 +18,7 @@ install: all
 	
 
 bartlby: ${OBJS}
-	$(CC)  $(EXTRAOPTIONS) $(OPENSSL_ADDON) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o bartlby ${OBJS}
+	$(CC)   $(EXTRAOPTIONS) $(OPENSSL_ADDON) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o bartlby ${OBJS}
 
 
 

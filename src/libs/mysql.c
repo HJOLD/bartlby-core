@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.52  2006/12/20 21:28:57  hjanuschka
+performance on large
+
 Revision 1.51  2006/12/05 03:47:12  hjanuschka
 auto commit
 
@@ -2111,7 +2114,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			}
       			
       			
-      			svcs[i].last_check=time(NULL);
+      			svcs[i].last_check=time(NULL)+(1+(rand() % 10));
       				                                 
       			svcs[i].check_interval=atoi(row[10]);
       			svcs[i].check_interval_original=atoi(row[10]);

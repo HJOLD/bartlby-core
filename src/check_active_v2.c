@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2006/12/20 21:28:56  hjanuschka
+performance on large
+
 Revision 1.6  2006/12/05 03:47:12  hjanuschka
 auto commit
 
@@ -187,7 +190,9 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	alarm(svc->service_check_timeout);
 #ifdef HAVE_SSL
 	if(use_ssl == 1) {
+		
 		rc=SSL_write(ssl,&send_packet,bytes_to_send);
+		
 	} else {
 #endif
 		rc=bartlby_tcp_sendall(sd,(char *)&send_packet,&bytes_to_send);
@@ -218,7 +223,9 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 	
 #ifdef HAVE_SSL
 	if(use_ssl == 1) {
-		rc=SSL_read(ssl,&receive_packet,bytes_to_recv);
+		
+		rc=SSL_read(ssl,(char *)&receive_packet,bytes_to_recv);
+		
 	} else {
 #endif       
        
