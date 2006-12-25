@@ -5,7 +5,7 @@
 #define EXPECTCORE 1102051 //Module V Check's
 
 #define MAX_CCACHE 1024
-
+#define MAX_THREADS 1024
 
 #define RECOVERY_OUTSTANDING 1
 #define RECOVERY_DONE 0
@@ -97,6 +97,9 @@
     	}
     	
 
+
+
+
 struct shm_counter {
 	int worker;
 	int services;
@@ -124,8 +127,18 @@ struct sprocess {
 		
 };
 
+struct sched_threads {
+	int pid;
+	struct service * svc;
+	int start_time;
+	int its_over;
+} astt;
+
+
+
 struct shm_header {
 	int size_of_structs;
+	int thrdcount;
 	int svccount;
 	int wrkcount;
 	int srvcount;
@@ -138,6 +151,7 @@ struct shm_header {
 	int sirene_mode;
 	struct perf_statistic pstat;
 	int cur_event_index;
+	
 	
 };
 
@@ -338,6 +352,7 @@ int replication_go(char *, void *, void *);
 
 int GetDowntimeMap(struct downtime * svcs, char * config);
 struct service * bartlby_SHM_ServiceMap(void *);
+struct sched_threads * bartlby_SHM_ThreadMap(void * shm_addr);
 struct downtime * bartlby_SHM_DowntimeMap(void * shm_addr);
 struct shm_header * bartlby_SHM_GetHDR(void *);
 struct worker * bartlby_SHM_WorkerMap(void * shm_addr);

@@ -16,8 +16,8 @@ $Source$
 
 
 $Log$
-Revision 1.62  2006/12/20 21:28:56  hjanuschka
-performance on large
+Revision 1.63  2006/12/25 02:08:10  hjanuschka
+auto commit
 
 Revision 1.60  2006/12/10 16:50:53  hjanuschka
 auto commit
@@ -270,6 +270,7 @@ pid_t sched_pid;
 
 struct shm_header * gshm_hdr;
 struct service * gservices;
+struct sched_threads * gsthreads;
 void * gSOHandle;
 void * gshm_addr;
 char * gConfig;
@@ -278,6 +279,128 @@ char * gConfig;
 int shortest_intervall;
 
 
+void sched_do_now(struct service * svc, char * cfgfile , void * shm_addr, void * SOHandle)  {
+	 struct timeval check_start, check_end;
+	
+	
+	
+	gettimeofday(&check_start, NULL);
+		
+	svc->process.pid=getpid();
+	svc->process.start_time=time(NULL);
+	
+	
+	
+	
+	
+	bartlby_check_service(svc, shm_addr, SOHandle, cfgfile);	
+	
+	
+	gettimeofday(&check_end, NULL);
+	
+	
+	bartlby_core_perf_track(gshm_hdr, svc, PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
+	
+	svc->process.pid=0;
+	svc->process.start_time=0;
+	
+	
+	if(gshm_hdr->current_running > 0) {
+		gshm_hdr->current_running--;
+	} else {
+		gshm_hdr->current_running=0;	
+	}
+	
+	
+	
+	
+	
+	
+}
+
+
+
+void sched_move_to_thread(int id, struct service * svc) {
+	gsthreads[id].svc=svc;
+	
+}
+
+int sched_thread_get_slot(void) {
+	int x;
+	
+	for(x=0; x<MAX_THREADS; x++) {
+		if(gsthreads[x].start_time > 0 && gsthreads[x].svc == NULL) {
+			return x;	
+		}	
+	}	
+	return -1;
+}
+
+void sched_kill_threads(void) {
+	int x;
+	
+	
+	for(x=0; x<MAX_THREADS; x++) {
+		if(gsthreads[x].start_time > 0) {
+			_log("killing thread: %d", gsthreads[x].pid);
+			gsthreads[x].its_over=1;
+			kill(gsthreads[x].pid, SIGKILL);
+		}
+		
+	}	
+}
+
+void sched_thread(int id) {
+	
+	while(gshm_hdr->do_reload == 0 && gsthreads[id].its_over == 0) {
+		if(gsthreads[id].svc != NULL) {
+			//_log("running check: %s/%s", gsthreads[id].svc->server_name, gsthreads[id].svc->service_name);
+			sched_do_now(gsthreads[id].svc, gConfig, gshm_addr, gSOHandle);
+			gsthreads[id].svc=NULL;	
+		}
+		usleep(1);
+	}
+	
+	
+}
+
+void sched_start_thread(int id) {
+	int child_pid;
+       
+     
+     
+       
+	child_pid=fork();
+	
+	if(child_pid == -1) {
+		_log("FORK Error %s", strerror(errno));
+		return;
+	} else if(child_pid == 0) {
+		setpgid(0,0);
+		gsthreads[id].pid=getpid();
+		gsthreads[id].its_over=0;
+		gsthreads[id].start_time=time(NULL);
+		sched_thread(id);
+		
+		//shmdt(shm_addr);
+		_exit(0);
+	}
+}
+
+void sched_init_threads(int max) {
+	int x;
+	
+	for(x=0; x<MAX_THREADS; x++) {
+		gsthreads[x].start_time=0;
+		gsthreads[x].svc=NULL;
+		
+	}	
+	for(x=0; x<max; x++) {
+		
+		sched_start_thread(x);	
+	}
+	_log("%d threads started", max);
+}
 
 
 void catch_signal(int signum) {
@@ -332,21 +455,6 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 }
 
-void sched_reaper(int sig) {
-	int childstatus;
-	int childpid;
-	if (sig != SIGCHLD && sig != SIGCLD) {
-		_log("reaper: bad signal %d\n", sig);
-   	} else {
-
-		while((childpid = waitpid(-1, &childstatus, WNOHANG | WUNTRACED)) > 0 ) {
-			_log("reaped: %d", childpid);
-		}
-		
-		
-	}
-	return;
-}
 
 
 int sched_needs_ack(struct service * svc) {
@@ -359,6 +467,8 @@ int sched_needs_ack(struct service * svc) {
 
 void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, void * SOHandle) {
 	int rtc;
+	int x;
+	
 	int rnd_intv;
 	//kill the subprocess ;)
 	//also kills the perf handlers etc :-)
@@ -399,6 +509,15 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	_log("bumped intervall: %d", rnd_intv);
 	
 	bartlby_fin_service(svc,SOHandle,shm_addr,cfg);		
+	
+	for(x=0; x<MAX_THREADS; x++) {
+		if(gsthreads[x].pid == svc->process.pid) {
+			waitpid(-1, NULL , WUNTRACED | WNOHANG);
+			_log("restarting thread: %d", x);
+			sched_start_thread(x);	
+		}
+	}
+	
 	svc->process.pid=0;
 	svc->process.start_time=0;
 	if(gshm_hdr->current_running > 0) {
@@ -406,6 +525,9 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	} else {
 		gshm_hdr->current_running=0;	
 	}
+	
+	
+	
 	
 	
 }
@@ -509,7 +631,7 @@ void sched_wait_open(int timeout, int fasten) {
 		olim=timeout*1000;	
 	}
 	while(x<olim && do_shutdown == 0) {
-		usleep(100);
+		usleep(10);
 		x++;
 		olim=gshm_hdr->current_running*timeout*1000;
 		
@@ -537,109 +659,17 @@ void sched_wait_open(int timeout, int fasten) {
 
 }
 
-void sched_optimize_intervall(struct service * svc, char * cfgfile) {
-	//get new intervall ;)
-	int avg_delay;
-	int new_delay;
-	
-	if(svc->delay_time.counter <= 0 || svc->delay_time.sum <= 0) {
-		return;	
-	}
-	avg_delay = svc->delay_time.sum / svc->delay_time.counter;
-	
-	//if we would run too fast back to start!
-	if((avg_delay+svc->check_interval) < svc->check_interval_original) {
-		svc->check_interval = svc->check_interval_original;
-		return;	
-	}
-	
-	if(avg_delay > 0 && svc->check_interval > 5) {
-		new_delay = svc->check_interval_original - (avg_delay/2);
-		if(new_delay > 0) {
-			svc->check_interval=new_delay;	
-		} 
-	} else { 
-		//if delay is zero back to start
-		svc->check_interval = svc->check_interval_original;	
-	}
-				  
-				  
-					
-}
 
 
-void sched_do_now(struct service * svc, char * cfgfile , void * shm_addr, void * SOHandle)  {
-	 struct timeval check_start, check_end;
-	
-	gshm_hdr->current_running++;
-	
-	gettimeofday(&check_start, NULL);
-		
-	svc->process.pid=getpid();
-	svc->process.start_time=time(NULL);
-	
-	
-	
-	
-	
-	bartlby_check_service(svc, shm_addr, SOHandle, cfgfile);	
-	
-	
-	gettimeofday(&check_end, NULL);
-	
-	
-	bartlby_core_perf_track(gshm_hdr, svc, PERF_TYPE_SVC_TIME, bartlby_milli_timediff(check_end,check_start));
-	
-	svc->process.pid=0;
-	svc->process.start_time=0;
-	
-	
-	if(gshm_hdr->current_running > 0) {
-		gshm_hdr->current_running--;
-	} else {
-		gshm_hdr->current_running=0;	
-	}
-	
-	
-	
-	
-	
-	
-}
 
-void sched_run_check(struct service * svc, char * cfgfile, void * shm_addr, void * SOHandle) {
-      
 
-       int child_pid;
-       
-     
-     
-       
-	child_pid=fork();
-	
-	if(child_pid == -1) {
-		_log("FORK Error %s", strerror(errno));
-		return;
-	} else if(child_pid == 0) {
-		
-		setpgid(0,0);
-		
-		
-		
-		sched_do_now(svc, cfgfile, shm_addr, SOHandle);
-		
-		shmdt(shm_addr);
-		exit(0);
-	}
-		
-	
-	
-}
+
 static int cmpservice(const void *m1, const void *m2) {
 	struct service_sort * s1 = (struct service_sort *) m1;
 	struct service_sort * s2 = (struct service_sort *) m2;
 	int d1, d2;
 	
+	/*
 	if(s1->svc->delay_time.counter <= 0)
 		return 1;
 	if(s2->svc->delay_time.counter <= 0)
@@ -647,8 +677,14 @@ static int cmpservice(const void *m1, const void *m2) {
 	
 	d1 = s1->svc->delay_time.sum / s1->svc->delay_time.counter;
 	d2 = s2->svc->delay_time.sum / s2->svc->delay_time.counter;
+	*/
+	
+	d1 = s1->svc->last_check + s1->svc->check_interval;
+	d2 = s2->svc->last_check + s2->svc->check_interval;
 	
 	if(d1 < d2)
+		return -1;
+	else if(d1 > d2) 
 		return 1;
 	else
 		return 0;
@@ -668,9 +704,9 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	int sched_pause;
 	
-	struct timeval  stat_round_start, stat_round_end;
+	struct timeval  stat_round_start, stat_round_end, run_c_start, run_c_end;
 	
-	char * i_am_a_slave;
+	
 	char * cfg_mps;
 		
 
@@ -683,9 +719,10 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	char  * cfg_load_max;
 	
-	
+	int sched_slot;
 	
 	int ct, expt;
+	int childstatus;
 	
 	sched_pid=getpid();
 	
@@ -694,12 +731,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	gConfig=cfgfile;
 	
 	
-	int childstatus;
-
 	
+
+	gsthreads=bartlby_SHM_ThreadMap(shm_addr);
 	gshm_hdr=bartlby_SHM_GetHDR(shm_addr);
 	ssort  = malloc(sizeof(struct service_sort)*gshm_hdr->svccount);
-	
+	sched_init_threads(25);	
 	
 	_log("Scheduler working on %d Services", gshm_hdr->svccount);
 	
@@ -723,6 +760,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	signal(SIGINT, catch_signal);
 	signal(SIGUSR1, catch_signal);
+	signal(SIGALRM, catch_signal);
 	//signal(SIGCHLD, sched_reaper);
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);
@@ -797,9 +835,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			getloadavg(current_load, 3);
 			
 			//_log("Current_load: %d, %e, %e (max: %e)", (int)current_load[0], current_load[1], current_load[2], cfg_max_load);
-			
-			if(gshm_hdr->current_running < cfg_max_parallel || (int)current_load[0] < cfg_max_load) { 
+			gettimeofday(&run_c_start,NULL);
+			sched_slot = sched_thread_get_slot();
+			if((sched_slot>=0) && ( (gshm_hdr->current_running < cfg_max_parallel) || ((int)current_load[0] < cfg_max_load))) { 
 				if(sched_check_waiting(shm_addr, ssort[x].svc, cfgfile, SOHandle, sched_pause) == 1) {
+					
+					gshm_hdr->current_running++;
 					round_visitors++;
 					
 					
@@ -822,12 +863,17 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 						ssort[x].svc->last_check=time(NULL);
 					}
 			 		
-			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
+//			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
+					sched_move_to_thread(sched_slot, ssort[x].svc);
+
+			 		
+			 		gettimeofday(&run_c_end,NULL);
 			 		
 			 		
 			 		
 				}				
 			} else {
+				
 				sched_wait_open(60,cfg_max_parallel-1);	
 			}
 			
@@ -849,7 +895,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			sleep(shortest_intervall-1);
 			
 		}
-		while(waitpid(-1, &childstatus, WNOHANG ) > 0 );
+		
 						
 	
 		
@@ -857,20 +903,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		//_log("@@@@@@@@@@@@@ ROUND (%d/%d/%d) @@@@@@@@@@@@@@", round_visitors, gshm_hdr->current_running, cfg_max_parallel);
 		round_start=time(NULL);
 		round_visitors=0;
+						
 		
-		
-		
-		i_am_a_slave = getConfigValue("i_am_a_slave", cfgfile);
-		if(i_am_a_slave == NULL) {
-			replication_go(cfgfile, shm_addr, SOHandle);
-			
-		} else {
-			_log("Skipped repl because me is a slave");	
-			free(i_am_a_slave);
-			return -2;
-		}
 		
 	}
+	sched_kill_threads();
+	alarm(5);
+	while(waitpid(-1, &childstatus, WUNTRACED ) > 0 );
 	
 	return 1;
 	
