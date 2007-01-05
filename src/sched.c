@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.65  2007/01/05 01:49:00  hjanuschka
+auto commit
+
 Revision 1.64  2006/12/27 19:05:33  hjanuschka
 auto commit
 
@@ -867,14 +870,14 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		gettimeofday(&stat_round_end,NULL);
 		bartlby_core_perf_track(gshm_hdr, &services[x], PERF_TYPE_ROUND_TIME, bartlby_milli_timediff(stat_round_end,stat_round_start));
 				
-		
-				
+		while(waitpid(-1, &childstatus, WNOHANG ) > 0 );
+
 		usleep(sched_pause);
 		if(shortest_intervall > 1) {
 			sleep(shortest_intervall-1);
 			
 		}
-		while(waitpid(-1, &childstatus, WNOHANG ) > 0 );
+		
 						
 	
 		

@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.7  2006/12/25 02:08:10  hjanuschka
+Revision 1.8  2007/01/05 01:49:00  hjanuschka
 auto commit
 
 Revision 1.6  2006/10/05 23:19:37  hjanuschka
@@ -81,31 +81,14 @@ void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile) {
 struct btl_event * bartlby_SHM_EventMap(void * shm_addr) {
 	//Is beyond the 3 integers :-)
 	struct shm_header * hdr;
-	struct sched_threads * threadmap;
-	
-	
-	hdr=bartlby_SHM_GetHDR(shm_addr);
-	threadmap=bartlby_SHM_ThreadMap(shm_addr);
-	
-	
-	return (struct btl_event *)(void *)&threadmap[hdr->thrdcount]+20;
-}
-
-struct sched_threads * bartlby_SHM_ThreadMap(void * shm_addr) {
-	//Is beyond the 3 integers :-)
-	struct shm_header * hdr;
 	struct server * srvmap;
-
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
-	
 	srvmap=bartlby_SHM_ServerMap(shm_addr);
-	//wrkmap=(struct worker *)(void*)&svcmap[hdr->svccount]+20;
-	//dtmap=bartlby_SHM_DowntimeMap(shm_addr);
 	
-	return (struct sched_threads *)(void *)&srvmap[hdr->srvcount]+20;
+	
+	return (struct btl_event *)(void *)&srvmap[hdr->srvcount]+20;
 }
-
 
 struct server * bartlby_SHM_ServerMap(void * shm_addr) {
 	//Is beyond the 3 integers :-)

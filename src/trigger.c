@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.25  2007/01/05 01:49:00  hjanuschka
+auto commit
+
 Revision 1.24  2006/10/23 22:29:35  hjanuschka
 *** empty log message ***
 
@@ -112,6 +115,7 @@ CVS Header
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <netdb.h>
+#include <errno.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -249,6 +253,127 @@ int bartlby_trigger_chk(struct service *svc) {
 	
 }
 
+int bartlby_worker_has_service(struct worker * w, struct service * svc, char * cfgfile) {
+
+// return 0 if worker doesnt have
+// else return 1	
+// default to false
+	char * uir;
+	char * user_dat;
+	char * visible_servers, * visible_services;
+	char * selected_servers, * selected_services;
+	char * is_super_user;
+	char * find_server;
+	char * find_service;
+	
+	int the_state;
+	
+	
+	the_state = 0; //default zero
+	
+	uir = getConfigValue("ui_right_dir", cfgfile);
+	if(uir == NULL) {
+		_log("variable 'ui_right_dir' unset wich should point to the right folder down in bartlby-ui");
+		return 1; // if any right reading problem OK -> for backcomp
+	}
+	user_dat = malloc(sizeof(char) * (strlen(uir) + 20 + strlen(".dat") + 2));
+	
+	sprintf(user_dat, "%s/%d.dat", uir, w->worker_id);
+	free(uir);
+	
+	//_log("user_right_file: %s", user_dat);
+	
+	visible_servers = getConfigValue_ex("servers", user_dat, 0);
+	
+	if(errno != 0) {
+		_log("reading bartlby-ui right file ('%s' errno: '%d' -> '%s') troubles giving whitecard!", user_dat, errno, strerror(errno));
+		return 1; // if any right reading problem OK -> for backcomp
+	}
+	
+	visible_services = getConfigValue_ex("services", user_dat, 0);
+	is_super_user = getConfigValue_ex("super_user", user_dat, 0);
+	selected_servers = getConfigValue_ex("selected_servers", user_dat, 0);
+	selected_services = getConfigValue_ex("selected_services", user_dat, 0);
+	
+	
+	
+	if(selected_services == NULL) 
+		selected_services=strdup("");
+		
+	if(selected_servers == NULL) 
+		selected_servers=strdup("");
+	
+	find_server=malloc(sizeof(char)*20);
+	find_service=malloc(sizeof(char)*20);
+	
+	sprintf(find_server, ",%d,", svc->server_id);
+	sprintf(find_service, ",%d,", svc->service_id);
+	
+	
+	
+	//_log("visible_servers: %s; visible_services:%s; super_user: %s;", visible_servers, visible_services, is_super_user);
+	
+	
+	if(strstr(visible_servers, find_server) == NULL && strcmp(is_super_user, "true") != 0) {
+		the_state=0;	
+		//_log("doesnt have server: %s", visible_servers);
+	} else {
+		the_state=1; //temp its ok	
+	}
+	
+	if(the_state == 0 && strstr(visible_services, find_service) == NULL && strcmp(is_super_user, "true") != 0) {
+		the_state = 0;
+		//_log("doesnt have service: %s", visible_services);	
+	} else {
+		
+		the_state = 2;	//Temp ok
+	}
+	
+	
+	if(the_state > 0) {
+		//server,service is visible now check if its selected ;)
+		if(strlen(selected_servers) == 0 && strlen(selected_services) == 0) {
+			the_state=3;	
+		} else {
+			if(strstr(selected_servers, find_server) != NULL || strstr(selected_services, find_service) != NULL) {
+				the_state=4;	
+			} else {
+				//_log("not selected: %s/%s %s/%s", selected_servers, find_server, selected_services, find_service);
+				the_state=0;	
+			}
+		}
+		
+			
+	}	
+	
+	
+	
+
+	//read in ui_right_dir cfg var
+	//compare if server is visible -> if empty string -> yes -> else check if selected -> yes
+	//compare if service is visible -> if empty string -> yes ->  else check if selected -> yes
+	
+	
+
+	free(user_dat);
+	if(visible_servers != NULL)
+		free(visible_servers);
+	if(visible_services != NULL)
+		free(visible_services);
+	if(is_super_user != NULL)
+		free(is_super_user);
+	if(selected_servers != NULL)
+		free(selected_servers);
+	if(selected_services != NULL)
+		free(selected_services);
+	if(find_server != NULL)
+		free(find_server);
+	if(find_service != NULL)
+		free(find_service);
+		
+	
+	return the_state;
+}
 
 void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check) {
 	char * trigger_dir;
@@ -350,7 +475,7 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 		if(S_ISREG(finfo.st_mode)) {
 			
 			for(x=0; x<hdr->wrkcount; x++) {
-				if(strstr(wrkmap[x].services, find_str) != NULL || strlen(wrkmap[x].services) == 0 || do_check == 0) {
+				if(bartlby_worker_has_service(&wrkmap[x], svc, cfgfile) != 0 || do_check == 0) {
 					if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
 						
 						

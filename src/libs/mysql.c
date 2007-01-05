@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.54  2007/01/05 01:49:00  hjanuschka
+auto commit
+
 Revision 1.53  2006/12/25 02:08:10  hjanuschka
 auto commit
 
@@ -261,7 +264,7 @@ CVS Header
 #define SERVER_MAP_SELECTOR "select server_id, server_ip, server_name, server_ico, server_enabled, server_port, server_dead, server_flap_seconds, server_notify from servers"
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, svc.flap_seconds  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY RAND()"
-#define WORKER_SELECTOR "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes from workers"
+#define WORKER_SELECTOR "select worker_mail, worker_icq, 'removed' ,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
 
@@ -287,9 +290,9 @@ CVS Header
 
 
 
-#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, enabled_services, notify_levels, worker_active, worker_name, password,enabled_triggers, escalation_limit, escalation_minutes) VALUES('%s', '%s', '%s','%s', %d, '%s', '%s', '%s', '%d', '%d')"
+#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, notify_levels, worker_active, worker_name, password,enabled_triggers, escalation_limit, escalation_minutes) VALUES('%s', '%s', '%s', %d, '%s', '%s', '%s', '%d', '%d')"
 #define DELETE_WORKER "delete from workers where worker_id=%d"
-#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', enabled_services='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s', enabled_triggers='%s', escalation_limit='%d', escalation_minutes='%d' WHERE worker_id=%d"
+#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s', enabled_triggers='%s', escalation_limit='%d', escalation_minutes='%d' WHERE worker_id=%d"
 #define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes from workers where worker_id=%d"
 #define WORKER_CHANGE_ID "update workers set worker_id=%d where worker_id=%d"
 
@@ -982,7 +985,7 @@ int UpdateWorker(struct worker * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_WORKER)+sizeof(struct worker)+200));
-	sprintf(sqlupd, UPDATE_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name,svc->password,svc->enabled_triggers,svc->escalation_limit, svc->escalation_minutes, svc->worker_id);
+	sprintf(sqlupd, UPDATE_WORKER, svc->mail, svc->icq, svc->notify_levels, svc->active, svc->name,svc->password,svc->enabled_triggers,svc->escalation_limit, svc->escalation_minutes, svc->worker_id);
 	
 	
 	
@@ -1080,7 +1083,7 @@ int AddWorker(struct worker * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(ADD_WORKER)+sizeof(struct worker)+40));
-	sprintf(sqlupd, ADD_WORKER, svc->mail, svc->icq, svc->services, svc->notify_levels, svc->active, svc->name, svc->password, svc->enabled_triggers, svc->escalation_limit, svc->escalation_minutes);
+	sprintf(sqlupd, ADD_WORKER, svc->mail, svc->icq, svc->notify_levels, svc->active, svc->name, svc->password, svc->enabled_triggers, svc->escalation_limit, svc->escalation_minutes);
 	
 	
 	
@@ -1939,13 +1942,7 @@ int GetWorkerMap(struct worker * svcs, char * config) {
       				sprintf(svcs[i].icq, "(null)");     				
       			}
       			
-      			if(row[2] != NULL) {
-      				//svcs[i].services=malloc(strlen(row[2])*sizeof(char)+2);
-      				sprintf(svcs[i].services, "%s", row[2]);
-      			} else {
-      				//svcs[i].services=NULL;   
-      				sprintf(svcs[i].services, "(null)");     				  				
-      			}
+      			
       			if(row[3] != NULL) {
       				sprintf(svcs[i].notify_levels, "%s", row[3]);
       					

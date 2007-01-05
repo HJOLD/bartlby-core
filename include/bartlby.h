@@ -1,11 +1,11 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "enc.dis"
+#define REL_NAME "b12"
 #define VERSION  "1.2.7"
 #define EXPECTCORE 1102051 //Module V Check's
 
 #define MAX_CCACHE 1024
-#define MAX_THREADS 1024
+
 
 #define RECOVERY_OUTSTANDING 1
 #define RECOVERY_DONE 0
@@ -323,6 +323,7 @@ typedef struct port_packet_struct{
 #define PORTIER_REQUEST_PACKET 3
 
 
+char * getConfigValue_ex(char * key, char * fname, int cache);
 char * getConfigValue(char *, char *);
 int clear_serviceMap(struct service **);
 int clear_workerMap(struct worker ** m);

@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.39  2006/12/25 02:08:10  hjanuschka
+Revision 1.40  2007/01/05 01:49:00  hjanuschka
 auto commit
 
 Revision 1.38  2006/11/28 03:30:42  hjanuschka
@@ -243,7 +243,6 @@ int main(int argc, char ** argv, char ** envp) {
 	int shm_dt_cnt;
 	int shm_srv_cnt;
 	
-	
 	struct shmid_ds shm_desc;
 	long SHMSize;
 	struct shm_header * shm_hdr;
@@ -252,7 +251,6 @@ int main(int argc, char ** argv, char ** envp) {
 	struct worker * wrkmap;
 	struct downtime * dtmap;
 	struct server * srvmap;
-	struct sched_threads * threadmap;
 	
 		
 	/*
@@ -432,16 +430,8 @@ int main(int argc, char ** argv, char ** envp) {
 				
 			srvmap=(struct server *)(void *)&dtmap[shm_dt_cnt]+20;
 			shm_srv_cnt=GetServerMap(srvmap, argv[1]);
+			
 			shm_hdr->srvcount=shm_srv_cnt;
-			
-			threadmap=(struct sched_threads *)(void *)&srvmap[shm_srv_cnt]+20;
-			shm_hdr->thrdcount=MAX_THREADS;
-			_log("MAX threads compiled in: %d", MAX_THREADS);
-					
-			
-			
-			
-			
 				
 			//06.04.24 Init EVENT QUEUE
 			bartlby_event_init(bartlby_address);

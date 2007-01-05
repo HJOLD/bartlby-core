@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2007/01/05 01:49:00  hjanuschka
+auto commit
+
 Revision 1.9  2006/06/05 21:06:06  hjanuschka
 *** empty log message ***
 
@@ -106,8 +109,11 @@ char * cfg_cache_find(char *k) {
 	return NULL;
 }
 
-
 char * getConfigValue(char * key, char * fname) {
+	return getConfigValue_ex(key, fname, 1);
+}
+
+char * getConfigValue_ex(char * key, char * fname, int cache) {
 	FILE * fp;
 	char  str[1024];
 	char * val;
@@ -116,15 +122,23 @@ char * getConfigValue(char * key, char * fname) {
 	
 	char * cache_value;
 	
-	cache_value=cfg_cache_find(key);
-	if(cache_value != NULL) {
-		return cache_value;	
+	if(cache == 1) {
+		cache_value=cfg_cache_find(key);
+		if(cache_value != NULL) {
+			return cache_value;	
+		}
 	}
 	
 	fp=fopen(fname, "r");
 	if(!fp)  {
-		printf("config fopen %s failed", fname);
-		exit(0);
+		if(cache == 1) {
+			//keep old known way
+			printf("config fopen %s failed", fname);
+			exit(0);
+		} else {
+			_log("file: '%s' cant be read", fname);
+			return NULL;	
+		}
 		
 	}
 	
@@ -146,7 +160,9 @@ char * getConfigValue(char * key, char * fname) {
 						
 						fclose(fp);
 						val=strdup(tok);
-						cfg_add_to_cache(key, val);
+						if(cache == 1) {
+							cfg_add_to_cache(key, val);
+						}
 						return val;
 						
 				} else {
