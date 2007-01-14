@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.27  2007/01/14 21:43:38  hjanuschka
+auto commit
+
 Revision 1.26  2007/01/14 13:03:09  hjanuschka
 auto commit
 
@@ -287,17 +290,20 @@ int bartlby_worker_has_service(struct worker * w, struct service * svc, char * c
 	//_log("user_right_file: %s", user_dat);
 	
 	visible_servers = getConfigValue_ex("servers", user_dat, 0);
-	
-	if(errno == EACCES || errno ==  ENOENT) {
-		_log("reading bartlby-ui right file ('%s' errno: '%d' -> '%s') troubles giving whitecard!", user_dat, errno, strerror(errno));
-		return 1; // if any right reading problem OK -> for backcomp
-	}
-	
 	visible_services = getConfigValue_ex("services", user_dat, 0);
 	is_super_user = getConfigValue_ex("super_user", user_dat, 0);
 	selected_servers = getConfigValue_ex("selected_servers", user_dat, 0);
 	selected_services = getConfigValue_ex("selected_services", user_dat, 0);
 	
+	
+	if(visible_servers == NULL) 
+		visible_servers=strdup("");
+	
+	if(visible_services == NULL) 
+		visible_services=strdup("");
+	
+	if(is_super_user == NULL) 
+		is_super_user=strdup("true");
 	
 	
 	if(selected_services == NULL) 
