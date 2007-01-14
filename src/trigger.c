@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.26  2007/01/14 13:03:09  hjanuschka
+auto commit
+
 Revision 1.25  2007/01/05 01:49:00  hjanuschka
 auto commit
 
@@ -285,7 +288,7 @@ int bartlby_worker_has_service(struct worker * w, struct service * svc, char * c
 	
 	visible_servers = getConfigValue_ex("servers", user_dat, 0);
 	
-	if(errno != 0) {
+	if(errno == EACCES || errno ==  ENOENT) {
 		_log("reading bartlby-ui right file ('%s' errno: '%d' -> '%s') troubles giving whitecard!", user_dat, errno, strerror(errno));
 		return 1; // if any right reading problem OK -> for backcomp
 	}
