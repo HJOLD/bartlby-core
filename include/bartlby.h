@@ -1,7 +1,7 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "b12"
-#define VERSION  "1.2.7"
+#define REL_NAME "neuron"
+#define VERSION  "1.2.8"
 #define EXPECTCORE 1102051 //Module V Check's
 
 #define MAX_CCACHE 1024
