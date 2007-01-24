@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.66  2007/01/24 10:33:44  hjanuschka
+*** empty log message ***
+
 Revision 1.65  2007/01/05 01:49:00  hjanuschka
 auto commit
 
@@ -298,6 +301,13 @@ void catch_signal(int signum) {
 		//signal(SIGINT, catch_signal);
 		
 	}
+
+	 if(signum == SIGUSR2) {
+		if(sig_pid != sched_pid) {
+			kill(sched_pid, SIGUSR2); //notify scheduler
+		}
+	 }
+	
 }
 
 void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
@@ -742,6 +752,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	signal(SIGINT, catch_signal);
 	signal(SIGUSR1, catch_signal);
+	signal(SIGUSR2, catch_signal);
 	//signal(SIGCHLD, sched_reaper);
 	
 	services=bartlby_SHM_ServiceMap(shm_addr);
