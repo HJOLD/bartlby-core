@@ -190,10 +190,7 @@ struct service {
 	
 	/*Time stuff*/
 	
-	int hour_from;
-	int min_from;
-	int hour_to;
-	int min_to;
+	char service_exec_plan[2048];
 	
 	/*Notify things*/
 	int notify_enabled;

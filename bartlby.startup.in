@@ -100,6 +100,20 @@ function start_bartlby  {
 	
 
 }
+function reload_bartlby {
+        echo "reloading bartlby";
+        if [ ! -f $1 ];  then
+                if [ "${2}x" = "x" ];
+                then
+                        echo "PIDFILE $1 does not exists";
+                        exit 4;
+                fi;
+        fi;
+        BART_PID=`cat $1`;
+        kill -USR2 $BART_PID
+
+}
+
 
 function stop_bartlby {
 	echo "stopping bartlby";
@@ -140,6 +154,8 @@ case $1 in
 		start_bartlby $PIDNAME;;
 	startwithout)
 		start_bartlby $PIDNAME no;;
+	reload)
+		reload_bartlby $PIDNAME;;
 	stop)
 		
 		stop_bartlby $PIDNAME;;

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.55  2007/01/26 23:20:13  hjanuschka
+auto commit
+
 Revision 1.54  2007/01/05 01:49:00  hjanuschka
 auto commit
 
@@ -263,7 +266,7 @@ CVS Header
 
 #define SERVER_MAP_SELECTOR "select server_id, server_ip, server_name, server_ico, server_enabled, server_port, server_dead, server_flap_seconds, server_notify from servers"
 
-#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, svc.flap_seconds  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY RAND()"
+#define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, 'a', 'a', 'a','a', svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, svc.flap_seconds, svc.service_exec_plan  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY RAND()"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, 'removed' ,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes from workers"
 #define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
 
@@ -280,12 +283,12 @@ CVS Header
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
-#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active,service_time_from,service_time_to, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain, service_snmp_community, service_snmp_objid, service_snmp_version, service_snmp_warning, service_snmp_critical, service_snmp_type, flap_seconds) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,'%s','%s',%d,%d,'%s',%d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)"
+#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain, service_snmp_community, service_snmp_objid, service_snmp_version, service_snmp_warning, service_snmp_critical, service_snmp_type, flap_seconds, service_exec_plan) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,%d,%d,'%s',%d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d, '%s')"
 #define DELETE_SERVICE "delete from services where service_id=%d"
 #define SERVICE_CHANGE_ID "update services set service_id=%d where service_id=%d"
 
-#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_time_from='%s',service_time_to='%s',service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d', service_notify='%d', service_active='%d', flap_seconds='%d'  where service_id=%d"
-#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, HOUR(svc.service_time_from), MINUTE(svc.service_time_from), HOUR(svc.service_time_to), MINUTE(svc.service_time_to), svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, srv.server_ico, svc.flap_seconds from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d', service_notify='%d', service_active='%d', flap_seconds='%d', service_exec_plan='%s'  where service_id=%d"
+#define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, 'a', 'a','a', 'a', svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, srv.server_ico, svc.flap_seconds, svc.service_exec_plan from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 
@@ -1214,11 +1217,11 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->check_interval_original=atoi(row[10]);
       		      		
       		
-      		svc->hour_from=atoi(row[12]);
-      		svc->min_from=atoi(row[13]);
+      		//svc->hour_from=atoi(row[12]);
+      		//svc->min_from=atoi(row[13]);
       		
-      		svc->hour_to=atoi(row[14]);
-      		svc->min_to=atoi(row[15]);
+      		//svc->hour_to=atoi(row[14]);
+      		//svc->min_to=atoi(row[15]);
       		
       		svc->notify_enabled=atoi(row[16]);
       		//svc->last_notify_send=time(NULL);
@@ -1271,6 +1274,13 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		}		
       		svc->flap_seconds = atoi(row[31]);
       		
+      		if(row[32] != NULL) {
+      			snprintf(svc->service_exec_plan, 2047, "%s", row[32]);
+      		} else {
+      			sprintf(svc->service_exec_plan, "(null)");	
+      		}
+      		
+      		
       		tmprc=0;
       	} else {
 		tmprc=-1;
@@ -1301,14 +1311,7 @@ int UpdateService(struct service * svc, char *config) {
 	
 	char * sqlupd;
 	
-	char * SVC_TIME_FROM, * SVC_TIME_TO;
-	
-	
-	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00            "));
-	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00            "));
-	sprintf(SVC_TIME_FROM,"%02d:%02d:00", svc->hour_from, svc->min_from);
-	sprintf(SVC_TIME_TO,"%02d:%02d:00", svc->hour_to, svc->min_to);
-	
+		
 	char * mysql_host = getConfigValue("mysql_host", config);
 	char * mysql_user = getConfigValue("mysql_user", config);
 	char * mysql_pw = getConfigValue("mysql_pw", config);
@@ -1345,8 +1348,6 @@ int UpdateService(struct service * svc, char *config) {
 	svc->service_type, 
 	svc->service_name, 
 	svc->server_id,
-	SVC_TIME_FROM,
-	SVC_TIME_TO,
 	svc->check_interval,
 	svc->plugin,
 	svc->plugin_arguments,
@@ -1364,6 +1365,7 @@ int UpdateService(struct service * svc, char *config) {
 	svc->notify_enabled,
 	svc->service_active,	
 	svc->flap_seconds,
+	svc->service_exec_plan,
 	svc->service_id
 	
 	);
@@ -1382,8 +1384,7 @@ int UpdateService(struct service * svc, char *config) {
 	free(mysql_user);
 	free(mysql_pw);
 	free(mysql_db);
-	free(SVC_TIME_FROM);
-	free(SVC_TIME_TO);
+	
 	
 	return rtc;	
 }
@@ -1449,7 +1450,7 @@ int AddService(struct service * svc, char *config) {
 	int rtc;
 	
 	char * sqlupd;
-	char * SVC_TIME_FROM, * SVC_TIME_TO;
+	
 	
 	
 	char * mysql_host = getConfigValue("mysql_host", config);
@@ -1460,12 +1461,6 @@ int AddService(struct service * svc, char *config) {
 	service_mysql_safe(svc);
 	
 	
-	SVC_TIME_FROM=malloc(sizeof(char)*strlen("00:00:00                      "));
-	SVC_TIME_TO=malloc(sizeof(char)*strlen("00:00:00                      "));
-	sprintf(SVC_TIME_FROM,"%d:%d:00", svc->hour_from, svc->min_from);
-	sprintf(SVC_TIME_TO,"%d:%d:00", svc->hour_to, svc->min_to);
-	
-
 	mysql=mysql_init(NULL);
 		CHK_ERR(mysql);
 	mysql=mysql_real_connect(mysql, mysql_host, mysql_user, mysql_pw, NULL, 0, NULL, 0);
@@ -1510,8 +1505,6 @@ int AddService(struct service * svc, char *config) {
 	svc->plugin_arguments,
 	svc->notify_enabled,
 	svc->service_active,
-	SVC_TIME_FROM,
-	SVC_TIME_TO,
 	svc->check_interval,
 	svc->service_type,
 	svc->service_var,
@@ -1525,7 +1518,8 @@ int AddService(struct service * svc, char *config) {
 	svc->snmp_info.warn,
 	svc->snmp_info.crit,
 	svc->snmp_info.type,
-	svc->flap_seconds
+	svc->flap_seconds,
+	svc->service_exec_plan
 	);
 	
 	//Log("dbg", sqlupd);
@@ -1545,8 +1539,7 @@ int AddService(struct service * svc, char *config) {
 	free(mysql_user);
 	free(mysql_pw);
 	free(mysql_db);
-	free(SVC_TIME_FROM);
-	free(SVC_TIME_TO);
+	
 	
 	return rtc;	
 }
@@ -2125,11 +2118,11 @@ int GetServiceMap(struct service * svcs, char * config) {
       			}*/
       			
       			
-      			svcs[i].hour_from=atoi(row[12]);
-      			svcs[i].min_from=atoi(row[13]);
+      			//svcs[i].hour_from=atoi(row[12]);
+      			//svcs[i].min_from=atoi(row[13]);
       			
-      			svcs[i].hour_to=atoi(row[14]);
-      			svcs[i].min_to=atoi(row[15]);
+      			//svcs[i].hour_to=atoi(row[14]);
+      			//svcs[i].min_to=atoi(row[15]);
       			
       			svcs[i].notify_enabled=atoi(row[16]);
       			svcs[i].last_notify_send=time(NULL);
@@ -2208,6 +2201,12 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].snmp_info.type = atoi(row[30]);
       			
       			svcs[i].flap_seconds=atoi(row[31]);
+      			
+      			if(row[32] != NULL) {
+      				snprintf(svcs[i].service_exec_plan, 2047, "%s", row[32]);
+      			} else {
+      				sprintf(svcs[i].service_exec_plan, "(null)");	
+      			}
       			
       			
       			bartlby_replace_svc_in_str(svcs[i].plugin_arguments, &svcs[i], 2048);
