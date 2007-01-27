@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.22  2007/01/27 00:37:53  hjanuschka
+Revision 1.23  2007/01/27 02:33:32  hjanuschka
 auto commit
 
 Revision 1.21  2006/12/09 01:25:07  hjanuschka
@@ -142,7 +142,7 @@ int service_is_in_time(struct service * svc) {
 	
 	rt = -1;
 	
-	if(strlen(svc->service_exec_plan) == 0) {
+	if(strlen(svc->service_exec_plan) < 5) {
 		return 1; //if no plan?! always check ;)
 	}
 	

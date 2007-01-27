@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.56  2007/01/27 00:37:53  hjanuschka
+Revision 1.57  2007/01/27 02:33:32  hjanuschka
 auto commit
 
 Revision 1.55  2007/01/26 23:20:13  hjanuschka
@@ -1280,7 +1280,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		if(row[32] != NULL) {
       			snprintf(svc->service_exec_plan, 2047, "%s", row[32]);
       		} else {
-      			sprintf(svc->service_exec_plan, "0=00:00-23:59|1=00:00-23:59|2=00:00-23:59|3=00:00-23:59|4=00:00-23:59|5=00:00-23:59|6=00:00-23:59");	
+      			sprintf(svc->service_exec_plan, " ");	
       		}
       		
       		
@@ -2208,7 +2208,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			if(row[32] != NULL) {
       				snprintf(svcs[i].service_exec_plan, 2047, "%s", row[32]);
       			} else {
-      				sprintf(svcs[i].service_exec_plan, "0=00:00-23:59|1=00:00-23:59|2=00:00-23:59|3=00:00-23:59|4=00:00-23:59|5=00:00-23:59|6=00:00-23:59");	
+      				sprintf(svcs[i].service_exec_plan, " ");	
       			}
       			
       			

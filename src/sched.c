@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.68  2007/01/27 00:37:53  hjanuschka
+Revision 1.69  2007/01/27 02:33:32  hjanuschka
 auto commit
 
 Revision 1.67  2007/01/26 23:20:13  hjanuschka
@@ -866,6 +866,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					}
 			 		
 			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
+			 		usleep(100);
 			 		
 			 		gettimeofday(&run_c_end,NULL);
 			 		//_log("took: %d ms", bartlby_milli_timediff(run_c_end,run_c_start));
