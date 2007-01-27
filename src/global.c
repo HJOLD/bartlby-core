@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.24  2007/01/27 19:52:13  hjanuschka
+auto commit
+
 Revision 1.23  2007/01/27 02:33:32  hjanuschka
 auto commit
 
@@ -124,7 +127,7 @@ void set_cfg(char * cfg) {
 }
 
 
-int service_is_in_time(struct service * svc) {
+int service_is_in_time(char * time_plan) {
 	char * tmp;	
 	char * tmp1;
 	char * token, *token1;
@@ -142,14 +145,14 @@ int service_is_in_time(struct service * svc) {
 	
 	rt = -1;
 	
-	if(strlen(svc->service_exec_plan) < 5) {
+	if(strlen(time_plan) < 5) {
 		return 1; //if no plan?! always check ;)
 	}
 	
 	cur_ts = time(&tnow);
 	tmnow = localtime(&tnow);
 	
-	tmp = strdup(svc->service_exec_plan);
+	tmp = strdup(time_plan);
 	token = strtok(tmp, "|");
 	while(token != NULL) {
 		sprintf(idx, "%c", *token);
@@ -208,6 +211,7 @@ int service_is_in_time(struct service * svc) {
 	}
 	
 	free(tmp);	
+	
 	
 	
 	return rt;	

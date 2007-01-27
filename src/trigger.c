@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.28  2007/01/27 19:52:13  hjanuschka
+auto commit
+
 Revision 1.27  2007/01/14 21:43:38  hjanuschka
 auto commit
 
@@ -484,53 +487,55 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 		if(S_ISREG(finfo.st_mode)) {
 			
 			for(x=0; x<hdr->wrkcount; x++) {
-				if(bartlby_worker_has_service(&wrkmap[x], svc, cfgfile) != 0 || do_check == 0) {
-					if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
-						
-						
-						if((bartlby_trigger_escalation(&wrkmap[x], svc)) == FL) continue;
-						if((bartlby_trigger_worker_level(&wrkmap[x], svc)) == FL) continue;
-						
-						
-						en.trigger = entry->d_name;
-						en.svc = svc;
-						en.wrk = &wrkmap[x];
-						bartlby_callback(EXTENSION_CALLBACK_TRIGGER_FIRED, &en);
-						
-						//_log("EXEC trigger: %s", full_path);
-						_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
-						
-						svc->last_notify_send=time(NULL);
-						svc->srv->last_notify_send=time(NULL);
-						wrkmap[x].escalation_time=time(NULL);
-						exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"                         ")+strlen(wrkmap[x].icq)+strlen(wrkmap[x].name)+strlen(notify_msg)+strlen(wrkmap[x].mail)));
-						sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);
-						ptrigger=popen(exec_str, "r");
-						if(ptrigger != NULL) {
-							connection_timed_out=0;
-							alarm(CONN_TIMEOUT);
-							if(fgets(trigger_return, 1024, ptrigger) != NULL) {
-								trigger_return[strlen(trigger_return)-1]='\0';
-								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'%s'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name, trigger_return);
-								
-      							} else {
-      								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(empty output)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
-      							}
-      							
-      							if(connection_timed_out == 1) {
-      								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(timed out)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
-      							}
-      							connection_timed_out=0;
-							alarm(0);
+				if(service_is_in_time(wrkmap[x].notify_plan) > 0) {
+					if(bartlby_worker_has_service(&wrkmap[x], svc, cfgfile) != 0 || do_check == 0) {
+						if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
+							
+							
+							if((bartlby_trigger_escalation(&wrkmap[x], svc)) == FL) continue;
+							if((bartlby_trigger_worker_level(&wrkmap[x], svc)) == FL) continue;
+							
+							
+							en.trigger = entry->d_name;
+							en.svc = svc;
+							en.wrk = &wrkmap[x];
+							bartlby_callback(EXTENSION_CALLBACK_TRIGGER_FIRED, &en);
+							
+							//_log("EXEC trigger: %s", full_path);
+							_log("@NOT@%d|%d|%d|%s|%s|%s:%d/%s", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
+							
+							svc->last_notify_send=time(NULL);
+							svc->srv->last_notify_send=time(NULL);
+							wrkmap[x].escalation_time=time(NULL);
+							exec_str=malloc(sizeof(char)*(strlen(full_path)+strlen("\"\"\"\"                         ")+strlen(wrkmap[x].icq)+strlen(wrkmap[x].name)+strlen(notify_msg)+strlen(wrkmap[x].mail)));
+							sprintf(exec_str, "%s \"%s\" \"%s\" \"%s\" \"%s\"", full_path, wrkmap[x].mail,wrkmap[x].icq,wrkmap[x].name, notify_msg);
+							ptrigger=popen(exec_str, "r");
 							if(ptrigger != NULL) {
-      								pclose(ptrigger);
+								connection_timed_out=0;
+								alarm(CONN_TIMEOUT);
+								if(fgets(trigger_return, 1024, ptrigger) != NULL) {
+									trigger_return[strlen(trigger_return)-1]='\0';
+									_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'%s'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name, trigger_return);
+									
+      								} else {
+      									_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(empty output)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
+      								}
+      								
+      								if(connection_timed_out == 1) {
+      									_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(timed out)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name);
+      								}
+      								connection_timed_out=0;
+								alarm(0);
+								if(ptrigger != NULL) {
+      									pclose(ptrigger);
+      								}
+      							} else {
+      								_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(failed %s)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name, full_path);	
       							}
-      						} else {
-      							_log("@NOT-EXT@%d|%d|%d|%s|%s|%s:%d/%s|'(failed %s)'", svc->service_id, svc->last_state ,svc->current_state,entry->d_name,wrkmap[x].name, svc->server_name, svc->client_port, svc->service_name, full_path);	
-      						}
-						free(exec_str);
-					} else {
-						//_log("Worker: %s does not have trigger: %s", wrkmap[x].name, entry->d_name);
+							free(exec_str);
+						} else {
+							//_log("Worker: %s does not have trigger: %s", wrkmap[x].name, entry->d_name);
+						}
 					}
 				}
 			}	

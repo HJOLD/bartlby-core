@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.69  2007/01/27 02:33:32  hjanuschka
+Revision 1.70  2007/01/27 19:52:13  hjanuschka
 auto commit
 
 Revision 1.67  2007/01/26 23:20:13  hjanuschka
@@ -473,7 +473,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	}
 	
 	if(svc->service_active == 1) {
-		if(service_is_in_time(svc) > 0) {
+		if(service_is_in_time(svc->service_exec_plan) > 0) {
 			//Time Range matched ;)	
 			if(my_diff >= svc->check_interval) {
 				//diff is higher
@@ -866,7 +866,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					}
 			 		
 			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
-			 		usleep(100);
+			 		usleep(1000);
 			 		
 			 		gettimeofday(&run_c_end,NULL);
 			 		//_log("took: %d ms", bartlby_milli_timediff(run_c_end,run_c_start));

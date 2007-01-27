@@ -247,7 +247,7 @@ struct worker {
 	
 	int worker_id;
 	int active;
-	
+	char notify_plan[2048];
 	char password[2048];
 	
 	int escalation_count;
@@ -329,7 +329,7 @@ int schedule_loop(char *, void *, void *);
 void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle);
 
 void sched_reschedule(struct service * svc);
-int service_is_in_time(struct service * svc);
+int service_is_in_time(char * time_plan);
 void bartlby_check_service(struct service * svc, void *, void *, char *);
 void bartlby_check_active(struct service * svc, char * cfgfile);
 void bartlby_check_local(struct service * svc, char * cfgfile);

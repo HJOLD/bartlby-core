@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2007/01/27 19:52:13  hjanuschka
+auto commit
+
 Revision 1.1  2006/11/25 01:16:00  hjanuschka
 auto commit
 
@@ -162,6 +165,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 		return_buffer[return_bytes] = '\0';
 		strcat(rmessage, return_buffer);		
 		sum_rmessage += return_bytes;
+		
 	}
 	
 	//_log("ALL: '%s'", rmessage);

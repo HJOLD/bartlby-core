@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2007/01/27 19:52:13  hjanuschka
+auto commit
+
 Revision 1.8  2007/01/27 00:37:53  hjanuschka
 auto commit
 
@@ -461,7 +464,7 @@ int main(int argc, char ** argv) {
 					sprintf(svc_out, " ");
 					for(x=0; x<shm_hdr->svccount; x++) {
 						if(svcmap[x].server_id == passive_serverid && svcmap[x].service_type == SVC_TYPE_PASSIVE) {
-							if(service_is_in_time(&svcmap[x])) {
+							if(service_is_in_time(svcmap[x].service_exec_plan)) {
 								printf("%d", svcmap[x].service_id);
 								printf(" ");	
 							}
