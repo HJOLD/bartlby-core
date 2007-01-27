@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.68  2007/01/27 00:37:53  hjanuschka
+auto commit
+
 Revision 1.67  2007/01/26 23:20:13  hjanuschka
 auto commit
 
@@ -428,94 +431,7 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	
 	
 }
-int sched_is_in_time(struct service * svc) {
-	char * tmp;	
-	char * tmp1;
-	char * token, *token1;
-	int rt;
-	char idx[3];
-	char * ttok;
-	time_t tnow;
-	struct tm *tmnow;
-	struct tm fromcheck, tocheck;       
-	int fromts, tots;
-	
-	int min,hour, min1,hour1;
-	int cur_ts;
-	
-	
-	rt = -1;
-	
-	if(strlen(svc->service_exec_plan) == 0) {
-		return 1; //if no plan?! always check ;)
-	}
-	
-	cur_ts = time(&tnow);
-	tmnow = localtime(&tnow);
-	
-	tmp = strdup(svc->service_exec_plan);
-	token = strtok(tmp, "|");
-	while(token != NULL) {
-		sprintf(idx, "%c", *token);
-		if(atoi(idx) == tmnow->tm_wday) {
-			ttok = token+2;
-			//now check threw the timeranges
-			tmp1 = strdup(ttok);
-			token1=strtok(tmp1, ",");
-			while(token1 != NULL) {
-				if(sscanf(token1, "%d:%d-%d:%d", &hour,&min, &hour1, &min1) == 4) {
-					
-					fromcheck.tm_sec = 0;
-					fromcheck.tm_min = min;
-					fromcheck.tm_hour = hour;
-					fromcheck.tm_mday = tmnow->tm_mday;
-					fromcheck.tm_mon = tmnow->tm_mon;
-					fromcheck.tm_year = tmnow->tm_year;
-					fromcheck.tm_wday = tmnow->tm_wday;
-					fromts = mktime(&fromcheck);
-					
-					tocheck.tm_sec = 0;
-					tocheck.tm_min = min1;
-					tocheck.tm_hour = hour1;
-					tocheck.tm_mday = tmnow->tm_mday;
-					tocheck.tm_mon = tmnow->tm_mon;
-					tocheck.tm_year = tmnow->tm_year;
-					tocheck.tm_wday = tmnow->tm_wday;
-					tots = mktime(&tocheck);
-					
-					
-					if(cur_ts >= fromts && cur_ts <= tots) {
-						rt = 1;
-						break;	
-					}
-						
-				
-				
-				}
-				
-				
-				
-				token1 = strtok(NULL, ",");	
-			}
-			
-			free(tmp1);
-			
-			
-		}
-		if(rt > 0) {
-			//Someone found;)
-			break;	
-		}
-		
-		token = strtok(NULL, "|");
-		
-	}
-	
-	free(tmp);	
-	
-	
-	return rt;	
-}
+
 int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void * SOHandle, int sched_pause) {
 	int cur_time;
 	int my_diff;
@@ -557,7 +473,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	}
 	
 	if(svc->service_active == 1) {
-		if(sched_is_in_time(svc) > 0) {
+		if(service_is_in_time(svc) > 0) {
 			//Time Range matched ;)	
 			if(my_diff >= svc->check_interval) {
 				//diff is higher
