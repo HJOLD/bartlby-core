@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.71  2007/01/29 04:04:04  hjanuschka
+Revision 1.72  2007/01/29 15:50:53  hjanuschka
 auto commit
 
 Revision 1.70  2007/01/27 19:52:13  hjanuschka
@@ -512,7 +512,8 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 		return -1; //Dont sched this	
 	}
 	
-	if(sched_is_server_dead(svc) < 0) {
+	svc->is_server_dead=sched_is_server_dead(svc);
+	if(svc->is_server_dead < 0) {
 		return -1;	
 	}
 	
