@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.71  2007/01/29 04:04:04  hjanuschka
+auto commit
+
 Revision 1.70  2007/01/27 19:52:13  hjanuschka
 auto commit
 
@@ -431,6 +434,47 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	
 	
 }
+int sched_is_server_dead(struct service * svc) {
+	int rt;
+	rt = 1;
+	struct service * dm, * d1;
+	int rr;
+	
+	if(svc->srv->server_dead != 0) {
+		dm = svc->srv->dead_marker;
+		rr = 0;
+		while(dm != NULL) {
+			
+			//if the alive indicator is the service it self break out!! in recursion 1 this means it will be checked
+			if(dm->service_id == svc->service_id) {
+					break;	
+			}
+			
+			
+			
+			//if the current alive-indicator is critical mark as dead and break out
+			if(dm->current_state == STATE_CRITICAL && dm->service_retain_current >= dm->service_retain) {
+				//_log("            IS BROKEN");
+				rt = -1;	
+				break;
+			}
+						
+			//if the next server has a dead marker and is not itself, fetch next
+			if(dm->srv->server_dead != 0 && dm->service_id != dm->srv->server_dead) {
+				d1 = dm->srv->dead_marker;
+			
+			} else {
+				d1 = NULL;	
+			}
+			
+			dm=d1;
+			rr++;
+			
+		}
+	}
+	
+	return rt;	
+}
 
 int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void * SOHandle, int sched_pause) {
 	int cur_time;
@@ -468,7 +512,11 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 		return -1; //Dont sched this	
 	}
 	
-	if(svc->srv->server_enabled == 0 || svc->srv->server_dead == 1) {
+	if(sched_is_server_dead(svc) < 0) {
+		return -1;	
+	}
+	
+	if(svc->srv->server_enabled == 0) {
 		return -1;	
 	}
 	

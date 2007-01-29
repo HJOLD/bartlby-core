@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2007/01/29 04:04:04  hjanuschka
+auto commit
+
 Revision 1.8  2007/01/05 01:49:00  hjanuschka
 auto commit
 
@@ -58,6 +61,7 @@ void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile) {
 	struct service * svcmap;
 	int x;
 	int y;
+	int marker_found;
 	
 	
 	hdr=bartlby_SHM_GetHDR(shm_addr);
@@ -71,9 +75,31 @@ void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile) {
 				svcmap[x].srv=&srvmap[y];
 				svcmap[x].srv_place=y;
 				
-			}	
+			}
+				
 		}	
 	}
+	for(y=0; y<hdr->srvcount; y++) {
+		marker_found = 0;
+		srvmap[y].dead_marker = NULL;
+		if(srvmap[y].server_dead != 0) {
+			
+			for(x=0; x<hdr->svccount; x++) {
+				if(svcmap[x].service_id == srvmap[y].server_dead) {
+					srvmap[y].dead_marker = &svcmap[x];
+					marker_found = 1;	
+				}
+			}
+			
+		}
+		if(marker_found == 0) {
+			
+			if(srvmap[y].server_dead != 0) {
+				_log("Service assigned as a alive-marker not found service_id: %d", srvmap[y].server_dead);	
+			}
+		}
+	}
+	
 	_log("linked services with servers!");
 	
 }

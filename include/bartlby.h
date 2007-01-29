@@ -167,6 +167,7 @@ struct server {
 	int server_flap_seconds;
 	int flap_count;
 	int last_notify_send;
+	struct service * dead_marker;
 	
 } xxyz;
 

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.59  2007/01/29 04:04:04  hjanuschka
+auto commit
+
 Revision 1.58  2007/01/27 19:52:13  hjanuschka
 auto commit
 
@@ -278,10 +281,10 @@ CVS Header
 
 
 
-#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico, server_enabled, server_notify, server_flap_seconds) VALUES('%s','%s', '%d', '%s', '%d', '%d', '%d')"
+#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico, server_enabled, server_notify, server_flap_seconds, server_dead) VALUES('%s','%s', '%d', '%s', '%d', '%d', '%d', '%d')"
 #define DELETE_SERVER "delete from servers where server_id=%d"
-#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s', server_enabled='%d', server_notify='%d', server_flap_seconds='%d' where server_id=%d"
-#define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico, server_enabled, server_notify, server_flap_seconds from servers where server_id=%d"
+#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s', server_enabled='%d', server_notify='%d', server_flap_seconds='%d', server_dead='%d' where server_id=%d"
+#define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico, server_enabled, server_notify, server_flap_seconds, server_dead from servers where server_id=%d"
 #define SERVER_CHANGE_ID "update servers set server_id=%d where server_id=%d"
 #define SERVER_CHANGE_SERVICES "update services set server_id=%d where server_id=%d"
 
@@ -1616,6 +1619,7 @@ int GetServerById(int server_id, struct server * svc, char * config) {
       		svc->server_enabled=atoi(row[4]);
       		svc->server_notify=atoi(row[5]);
       		svc->server_flap_seconds=atoi(row[6]);
+      		svc->server_dead=atoi(row[7]);
       		
       		tmprc=0;
       	} else {
@@ -1664,7 +1668,7 @@ int ModifyServer(struct server * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(UPDATE_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20+strlen(svc->server_icon)));
-	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_icon,svc->server_enabled, svc->server_notify, svc->server_flap_seconds, svc->server_id);
+	sprintf(sqlupd, UPDATE_SERVER, svc->server_name, svc->client_ip, svc->client_port,svc->server_icon,svc->server_enabled, svc->server_notify, svc->server_flap_seconds,svc->server_dead, svc->server_id);
 	
 	//Log("dbg", sqlupd);
 	
@@ -1770,7 +1774,7 @@ int AddServer(struct server * svc, char *config) {
 	
 	
 	sqlupd=malloc(sizeof(char)*(strlen(ADD_SERVER)+strlen(svc->server_name)+strlen(svc->client_ip)+20+strlen(svc->server_icon)));
-	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port, svc->server_icon, svc->server_enabled, svc->server_notify, svc->server_flap_seconds);
+	sprintf(sqlupd, ADD_SERVER, svc->server_name, svc->client_ip, svc->client_port, svc->server_icon, svc->server_enabled, svc->server_notify, svc->server_flap_seconds, svc->server_dead);
 	
 	//Log("dbg", sqlupd);
 	
