@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.72  2007/01/29 15:50:53  hjanuschka
+Revision 1.73  2007/01/29 16:11:09  hjanuschka
 auto commit
 
 Revision 1.70  2007/01/27 19:52:13  hjanuschka
@@ -876,7 +876,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		shortest_intervall=3600;
 		for(x=0; x<gshm_hdr->svccount; x++) {
 			
-			
+			usleep(1000);
 			if(do_shutdown == 1 || gshm_hdr->do_reload == 1) {
 				break;	
 			}
@@ -915,7 +915,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					}
 			 		
 			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
-			 		usleep(1000);
+			 		
 			 		
 			 		gettimeofday(&run_c_end,NULL);
 			 		//_log("took: %d ms", bartlby_milli_timediff(run_c_end,run_c_start));
