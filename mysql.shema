@@ -104,6 +104,8 @@ CREATE TABLE `workers` (
   `enabled_triggers` varchar(255) NOT NULL default '|mail.sh|',
   `escalation_minutes` int(11) NOT NULL default '2',
   `escalation_limit` int(11) NOT NULL default '50',
+  `notify_plan` text default '',
+
   PRIMARY KEY  (`worker_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=15 ;
 
