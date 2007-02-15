@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2007/02/15 20:46:38  hjanuschka
+auto commit
+
 Revision 1.9  2007/01/29 04:04:04  hjanuschka
 auto commit
 
@@ -74,6 +77,8 @@ void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile) {
 				//_log("linking: %s -> %s", svcmap[x].service_name, srvmap[y].server_name);
 				svcmap[x].srv=&srvmap[y];
 				svcmap[x].srv_place=y;
+				svcmap[x].check_interval_original += 1+(int) (500.0*rand()/(RAND_MAX+1.0));
+				
 				
 			}
 				

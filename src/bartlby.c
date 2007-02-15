@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.42  2007/02/15 20:46:38  hjanuschka
+auto commit
+
 Revision 1.41  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -588,7 +591,7 @@ int main(int argc, char ** argv) {
 	
 	
 		
-	bartlby_pre_init(gCfgfile);
+	
 	
 	
 		
@@ -601,8 +604,9 @@ int main(int argc, char ** argv) {
 	if(strcmp(daemon_mode,"true") == 0) {	
 		
 		bartlby_get_daemon(gCfgfile);
-	} 		
+	} 	
 		
+	bartlby_pre_init(gCfgfile);	
 	//populate shm
 	
 	bartlby_load_shm_stuff(gCfgfile);

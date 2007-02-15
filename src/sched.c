@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.76  2007/02/15 20:46:38  hjanuschka
+auto commit
+
 Revision 1.75  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -426,7 +429,7 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	svc->current_state=STATE_CRITICAL;
 	
 	rnd_intv=1+(rand() % 10);
-	svc->check_interval += rnd_intv;
+	svc->check_interval_original += rnd_intv;
 	_log("bumped intervall: %d", rnd_intv);
 	
 	bartlby_fin_service(svc,SOHandle,shm_addr,cfg);		
@@ -487,19 +490,22 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	int my_diff;
 	int kill_diff;
 	
-	
+	struct timeval cur_tv;
 	
 	//just to be sure
 	
 	
 	cur_time=time(NULL);
-				
+	gettimeofday(&cur_tv, NULL);
 	
-	my_diff=cur_time - svc->last_check;
 	
-	//_log("intervall: %d, my_diff: %d",svc->check_interval, my_diff);
-	if((svc->check_interval-my_diff) < shortest_intervall && svc->service_active == 1 && svc->service_type != SVC_TYPE_PASSIVE && svc->srv->server_enabled != 0) {
-		shortest_intervall=(svc->check_interval-my_diff);
+	my_diff=bartlby_milli_timediff(cur_tv, svc->lcheck);
+	
+	
+	 
+	//_log("intervall: %d, my_diff: %d",svc->check_interval_original, my_diff);
+	if((svc->check_interval_original-my_diff) < shortest_intervall && svc->service_active == 1 && svc->service_type != SVC_TYPE_PASSIVE && svc->srv->server_enabled != 0) {
+		shortest_intervall=(svc->check_interval_original-my_diff);
 		 
 	}
 	
@@ -530,7 +536,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	if(svc->service_active == 1) {
 		if(service_is_in_time(svc->service_exec_plan) > 0) {
 			//Time Range matched ;)	
-			if(my_diff >= svc->check_interval) {
+			if(my_diff >= svc->check_interval_original) {
 				//diff is higher
 				if(bartlby_is_in_downtime(shm_addr, svc) > 0) {
 					//not downtime'd
@@ -624,32 +630,7 @@ void sched_wait_open(int timeout, int fasten) {
 
 }
 
-void sched_optimize_intervall(struct service * svc, char * cfgfile) {
-	//get new intervall ;)
-	int avg_delay;
-	int new_delay;
-	
-	if(svc->delay_time.counter <= 0 || svc->delay_time.sum <= 0) {
-		return;	
-	}
-	avg_delay = svc->delay_time.sum / svc->delay_time.counter;
-	
-	//if we would run too fast back to start!
-	
-	
-	if(avg_delay > 0) {
-		new_delay = svc->check_interval_original + (avg_delay/2);
-		if(new_delay > 0) {
-			svc->check_interval=new_delay;	
-		} 
-	} else { 
-		//if delay is zero back to start
-		svc->check_interval = svc->check_interval_original;	
-	}
-				  
-				  
-					
-}
+
 
 
 void sched_do_now(struct service * svc, char * cfgfile , void * shm_addr, void * SOHandle)  {
@@ -734,8 +715,8 @@ static int cmpservice(const void *m1, const void *m2) {
 	d2 = s2->svc->delay_time.sum / s2->svc->delay_time.counter;
 	*/
 	
-	d1 = s1->svc->last_check + s1->svc->check_interval;
-	d2 = s2->svc->last_check + s2->svc->check_interval;
+	d1 = s1->svc->last_check + s1->svc->check_interval_original/1000;
+	d2 = s2->svc->last_check + s2->svc->check_interval_original/1000;
 	
 	if(d1 < d2)
 		return -1;
@@ -879,7 +860,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		}
 		
 		
-		shortest_intervall=3600;
+		shortest_intervall=50000;
 		for(x=0; x<gshm_hdr->svccount; x++) {
 			
 			
@@ -900,15 +881,12 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					
 					
 					ct = time(NULL);			
-					expt = (ssort[x].svc->last_check+ssort[x].svc->check_interval);
+					expt = (ssort[x].svc->last_check+ssort[x].svc->check_interval_original);
 					
 					if(ct > expt && ssort[x].svc->service_type != SVC_TYPE_PASSIVE) {
 						// service check has delayed
 						//_log("ct: %d, e: %d", ct, expt);
 						ssort[x].svc->delay_time.sum += ct - expt;
-                            	
-						
-						
 						//sched_optimize_intervall(ssort[x].svc, cfgfile);
 					}
 
@@ -918,6 +896,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					//WTF?
 					if(ssort[x].svc->service_type != SVC_TYPE_PASSIVE) {
 						ssort[x].svc->last_check=time(NULL);
+						gettimeofday(&ssort[x].svc->lcheck, NULL);
 					}
 			 		
 			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
@@ -949,7 +928,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 
 		usleep(sched_pause);
 		if(shortest_intervall > 1) {
-			sleep(shortest_intervall-1);
+			usleep(shortest_intervall-1);
 			
 		}
 		

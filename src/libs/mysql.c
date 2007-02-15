@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.61  2007/02/15 20:46:38  hjanuschka
+auto commit
+
 Revision 1.60  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -1237,11 +1240,13 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       			sprintf(svc->plugin_arguments, "(null)");      				
       		}
       		
-      		
+      		svc->lcheck.tv_usec=0;
+      		svc->lcheck.tv_sec=atoi(row[9]);
       		svc->last_check=atoi(row[9]);
       		
       		svc->check_interval=atoi(row[10]);
-      		svc->check_interval_original=atoi(row[10]);
+      		
+      		svc->check_interval_original=atoi(row[10])*1000;
       		      		
       		
       		//svc->hour_from=atoi(row[12]);
@@ -2114,11 +2119,13 @@ int GetServiceMap(struct service * svcs, char * config) {
       			
       			
       			//svcs[i].last_check=time(NULL)+(i*2);
-      				                            
+      				      
+      			svcs[i].lcheck.tv_usec=0;
+      			svcs[i].lcheck.tv_sec=atoi(row[9]);                      
 			svcs[i].last_check=atoi(row[9]);    				                            
       				                                 
       			svcs[i].check_interval=atoi(row[10]);
-      			svcs[i].check_interval_original=atoi(row[10]);
+      			svcs[i].check_interval_original=atoi(row[10])*1000;
       			
       			/*if(i > POS2_QUEUER_THREADS*POS2_QUEUER_THREADS*POS2_QUEUER_THREADS) {
       				ht += 10;
