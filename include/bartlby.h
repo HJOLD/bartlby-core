@@ -178,11 +178,10 @@ struct service {
 	int server_id;
 	int last_state;
 	int current_state;
-	int client_port;
+	
 	char  new_server_text[2048];
 	char  service_name[2048];
-	char  server_name[2048];
-	char  client_ip[2048];
+	
 	char  plugin[2048];
 	char  plugin_arguments[2048];
 	int check_interval;
@@ -208,7 +207,7 @@ struct service {
 	int notify_last_time;
 	int service_check_timeout;
 	
-	char server_icon[1024];
+	
 	
 	int service_ack;
 	
@@ -393,7 +392,9 @@ int bartlby_push_event(int event_id, char * str,  ...);
 void bartlby_pre_init(char * cfgfile);
 
 void cfg_init_cache(void);
-
+char * cfg_add_to_cache(char * k, char * v);
+void cfg_fill_with_file(char * f);
+void cfg_update_cache(char * k, char * v);
 void bartlby_ext_init(void * shm_addr, void * data_loader, char * cfg);
 void bartlby_ext_shutdown(int sched_exit_code);
 int bartlby_ext_register_callback(int type, void * fcn);

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.4  2006/05/24 13:07:39  hjanuschka
 NRPE support (--enable-nrpe)
 
@@ -54,7 +57,7 @@ void bartlby_check_snmp(struct service * svc, char * cfgfile) {
 	
 	init_snmp("snmpapp");
 	snmp_sess_init( &session );                   
-	session.peername = strdup(svc->client_ip);	
+	session.peername = strdup(svc->srv->client_ip);	
 	if(svc->snmp_info.version == 1) {
 		session.version = SNMP_VERSION_1;
 	} else if(svc->snmp_info.version == 2) {

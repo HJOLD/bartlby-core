@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.68  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.67  2006/12/20 21:28:56  hjanuschka
 performance on large
 
@@ -345,13 +348,13 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		svc->service_retain_current=0;
 		svc->last_state=svc->current_state;
 		
-		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->new_server_text);
-		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
+		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->new_server_text);
+		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->current_state, svc->new_server_text);
 		bartlby_callback(EXTENSION_CALLBACK_STATE_CHANGED, svc);
 	}	
 	if(svc->service_retain_current == svc->service_retain && svc->current_state != svc->notify_last_state) {
 	
-		bartlby_push_event(EVENT_TRIGGER_PUSHED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->server_name, svc->client_port, svc->service_name, svc->current_state, svc->new_server_text);
+		bartlby_push_event(EVENT_TRIGGER_PUSHED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->current_state, svc->new_server_text);
 				
 		if(svc->current_state == STATE_CRITICAL && svc->recovery_outstanding == RECOVERY_DONE) {
 			svc->recovery_outstanding = RECOVERY_OUTSTANDING;	
@@ -404,7 +407,7 @@ void bartlby_check_service(struct service * svc, void * shm_addr, void * SOHandl
 	
 	setenv("BARTLBY_CONFIG", cfgfile,1);
 	setenv("BARTLBY_CURR_PLUGIN", svc->plugin,1);
-	setenv("BARTLBY_CURR_HOST", svc->server_name,1);
+	setenv("BARTLBY_CURR_HOST", svc->srv->server_name,1);
 	setenv("BARTLBY_CURR_SERVICE", svc->service_name,1);
 	
 	if(bartlby_callback(EXTENSION_CALLBACK_PRE_CHECK, svc) != EXTENSION_OK) {

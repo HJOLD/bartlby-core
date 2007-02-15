@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.25  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.24  2007/01/27 19:52:13  hjanuschka
 auto commit
 
@@ -113,7 +116,7 @@ CVS Header
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
-
+#include <sys/stat.h>
 
 
 #include <bartlby.h>
@@ -123,6 +126,12 @@ char config_file[255];
 
 
 void set_cfg(char * cfg) {
+	struct stat cStat;
+	
+	if(stat(cfg, &cStat) < 0) {
+		fprintf(stderr, "Configfile '%s' does not exist\n", cfg);
+		exit(1);	
+	}
 	sprintf(config_file, "%s", cfg);	
 }
 
@@ -260,12 +269,12 @@ void str_mysql_safe(char * str) {
 void service_mysql_safe(struct service * svc) {
 	str_mysql_safe(svc->new_server_text);	
 	str_mysql_safe(svc->service_name);
-	str_mysql_safe(svc->server_name);
-	str_mysql_safe(svc->client_ip);
+	str_mysql_safe(svc->srv->server_name);
+	str_mysql_safe(svc->srv->client_ip);
 	str_mysql_safe(svc->plugin);
 	str_mysql_safe(svc->plugin_arguments);
 	str_mysql_safe(svc->service_var);
-	str_mysql_safe(svc->server_icon);
+	
 	str_mysql_safe(svc->snmp_info.community);
 	str_mysql_safe(svc->snmp_info.objid);
 	
@@ -360,12 +369,12 @@ void str_replace(char *str, const char *from, const char *to, int maxlen)
 }
 
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
-	char * human_state, * human_state_last, * clport;
+	char * human_state, * human_state_last;
 	
-	clport=malloc(sizeof(char) * 30);
+	
 	human_state=bartlby_beauty_state(svc->current_state);
 	human_state_last=bartlby_beauty_state(svc->last_state);
-	sprintf(clport, "%d", svc->client_port);
+	
 	
 	str_replace(str,"$READABLE_STATE", human_state, max); 
 	setenv("READABLE_STATE", human_state, 1);
@@ -375,20 +384,15 @@ void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
 	str_replace(str,"$PROGNAME", PROGNAME, max); 
 	setenv("VERSION", VERSION, 1);
 	str_replace(str,"$VERSION", VERSION, max); 
-	setenv("SERVER", svc->server_name, 1);
-	str_replace(str,"$SERVER", svc->server_name, max); 
+	
+	
 	setenv("SERVICE", svc->service_name, 1);
 	str_replace(str,"$SERVICE", svc->service_name, max); 
 	setenv("MESSAGE",  svc->new_server_text, 1);
 	str_replace(str,"$MESSAGE", svc->new_server_text, max); 
-	setenv("CLIENT_IP", svc->client_ip, 1);
-	str_replace(str,"$CLIENT_IP", svc->client_ip, max); 
-	setenv("CLIENT_PORT", clport, 1);
-	str_replace(str,"$CLIENT_PORT", clport, max); 
 	
+		
 	
-	
-	free(clport);
 	free(human_state_last);
 	free(human_state);
 }

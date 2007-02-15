@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.41  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.40  2007/01/05 01:49:00  hjanuschka
 auto commit
 
@@ -174,6 +177,7 @@ CVS header ;-)
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <getopt.h>
 
 #include <dlfcn.h>
 
@@ -187,115 +191,172 @@ CVS header ;-)
 
 #include <bartlby.h>
 
+char * gCfgfile;
+int gDebug=0;
+char * gSOName; //Shared library name
+void * gSOHandle;
+const char * dlmsg;
+
+char * gGetAutorStr;
+char * gGetVersionStr;
+char * gGetNameStr;
+char * (*gGetAutor)();
+char * (*gGetVersion)();
+char * (*gGetName)();
+long   (*gExpectVersion)();
+int (*gGetServiceMap)(struct service *, char *);
+int (*gGetServerMap)(struct server *, char *);
+int (*gGetWorkerMap)(struct worker *,char *);
+int (*gGetDowntimeMap)(struct downtime *, char *);
+struct  shm_counter  * (*gGetCounter)(char *);
+char * gShmtok;
+struct service * gsvcmap;
+struct worker * gwrkmap;
+struct downtime * gdtmap;
+struct server * gsrvmap;
+int global_startup_time;
+
+int gshm_id;
+void * gBartlby_address;
+int gshm_svc_cnt;
+int gshm_wrk_cnt;
+int gshm_dt_cnt;
+int gshm_srv_cnt;
+long gSHMSize;
+
+struct shmid_ds gshm_desc;
+
+struct shm_header * gshm_hdr;
+
+
+int gReuseSHM=0;
 
 
 
-int main(int argc, char ** argv, char ** envp) {
+
+
+void dispHelp(void) {
+	printf("\n");
+	printf("	Bartlby\n");
+	printf("          %s Version %s (%s) started. compiled %s/%s\n", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
+	printf("	Next generation sys monitoring\n");
+	printf("	bartlby.org\n");
+	printf("\n");
+	printf("	Usage: bartlby [OPTIONS] [CONFIGFILE]\n");
+	printf("	\n");
+	printf("	   -d, --debug          Runs bartlby in foreground with stdout logging\n");
+	printf("	   -r, --reuse          if SHM is already here reuse it (could be dangorous, handle with care)\n");
+	printf("	\n");
+	printf("	   -h, --help           show this help\n");
+	printf("	   -v, --version        version\n");
+	printf("	--------------------------------------------------------------------------\n");
+	printf("               \n");
+	exit(1);
+}
+
+
+void bartlby_parse_argv(int argc, char ** argv){
+	static struct option longopts[] = {
+		{ "help",	0, NULL, 'h'},
+		{ "debug",	0, NULL, 'd'},
+		{ "reuse",	0, NULL, 'r'},
+		{ "version",	0, NULL, 'v'},
+		
+		{ NULL,		0, NULL, 0}
+	};
+	int c;
+
+	if(argc == 1) {
+		dispHelp();		
+	}
+	
+	for (;;) {
+		c = getopt_long(argc, argv, "hdrv", longopts, (int *) 0);
+		if (c == -1)
+			break;
+		switch (c) {
+		case 'h':  /* --help */
+			dispHelp();
+		break;
+		case 'd':
+			gDebug=1;
+			
+		break;
+		case 'r':
+			gReuseSHM=1;
+		break;
+		case 'v':
+			printf("%s\n", VERSION);
+			exit(0);
+		break;
+		
+		default:
+			dispHelp();
+		}
+	}
+	
+	gCfgfile=argv[optind];
 	
 	
-	/*
-		DLStuff
-	*/
-	char * GetAutorStr;
-	char * GetVersionStr;
-	char * GetNameStr;
-	
-	char * daemon_mode;
-	
-	char * SOName; //Shared library name
-	void * SOHandle;
-	const char * dlmsg;
-	
-	
-	char * (*GetAutor)();
-	char * (*GetVersion)();
-	char * (*GetName)();
-	long   (*ExpectVersion)();
-	
-	int global_startup_time;
-	
-	int (*GetServiceMap)(struct service *, char *);
-	int (*GetServerMap)(struct server *, char *);
-	int (*GetWorkerMap)(struct worker *,char *);
-	int (*GetDowntimeMap)(struct downtime *, char *);
-	
-	
-	struct  shm_counter  * (*GetCounter)(char *);
-	struct shm_counter * shmc;
-	int suggested_minimum;
-	
-	long cfg_shm_size_bytes;
-	char *  cfg_shm_size;
-	/*
-		End DL STUFF
-	
-	*/
-	
-	/* 
-		SHM Stuff
-	*/
-	char * shmtok;
-	int shm_id;
-	//int * shm_elements;
-	void * bartlby_address;
-	int shm_svc_cnt;
-	int shm_wrk_cnt;
-	int shm_dt_cnt;
-	int shm_srv_cnt;
-	
-	struct shmid_ds shm_desc;
-	long SHMSize;
-	struct shm_header * shm_hdr;
-	
-	struct service * svcmap;
-	struct worker * wrkmap;
-	struct downtime * dtmap;
-	struct server * srvmap;
 	
 		
-	/*
-		END SHM stuff
-	*/
 	
-	
+}
 
-	char * cfg_user;
-	struct passwd * ui;
+void bartlby_load_shm_stuff(char * cfgfile) {
 	
-	int exi_code;
+	gSOName = getConfigValue("data_library", cfgfile);
+	if(gSOName == NULL) {
+		_log("No data_library specified in `%s' config file", cfgfile);
+		exit(1);
+	}
+	_log("using data lib: `%s'", gSOName);
+	gSOHandle=dlopen(gSOName, RTLD_LAZY);
+		
+    	if((dlmsg=dlerror()) != NULL) {
+        	_log("Error: %s", dlmsg);
+        	exit(1);
+    	}
+    	LOAD_SYMBOL(gGetAutor,gSOHandle, "GetAutor");
+    	LOAD_SYMBOL(gGetVersion,gSOHandle, "GetVersion");
+    	LOAD_SYMBOL(gGetServiceMap,gSOHandle, "GetServiceMap");
+    	LOAD_SYMBOL(gGetServerMap,gSOHandle, "GetServerMap");
+    	LOAD_SYMBOL(gGetWorkerMap,gSOHandle, "GetWorkerMap");
+    	LOAD_SYMBOL(gGetDowntimeMap,gSOHandle, "GetDowntimeMap");
+    	LOAD_SYMBOL(gGetName,gSOHandle, "GetName");
+    	LOAD_SYMBOL(gExpectVersion,gSOHandle, "ExpectVersion");
+    	LOAD_SYMBOL(gGetCounter,gSOHandle, "GetCounter");
+    	    	
+    	gGetAutorStr=gGetAutor();
+    	gGetVersionStr=gGetVersion();
+    	gGetNameStr=gGetName();
+    	
+    	if(gExpectVersion() > EXPECTCORE || EXPECTCORE < gExpectVersion() || EXPECTCORE != gExpectVersion()) {
+    		_log("*****Version check failed Module is compiled for version '%d' of %s", gExpectVersion(), PROGNAME);	
+    		_log("*****The Module is compiled under '%d' Version of %s", EXPECTCORE, PROGNAME);
+    		exit(1);
+    	} 
+    	
+    	_log("Data Lib (%s) by: '%s' Version: %s", gGetNameStr, gGetAutorStr, gGetVersionStr);
+    		
+	free(gGetAutorStr);
+	free(gGetVersionStr);
+	free(gGetNameStr);
 	
-	if(argc >= 2) {
-		set_cfg(argv[1]);
-	} else {
-		printf("config file missing\n");	
+	gShmtok = getConfigValue("shm_key", cfgfile);
+	if(gShmtok == NULL) {
+		_log("Unset variable `shm_key'");
 		exit(1);
 	}
 	
-	cfg_user = getConfigValue("user", argv[1]);
-	if(cfg_user == NULL) {
-		_log("user not set in config file");
-		exit(2);			
-	}
-	ui=getpwnam(cfg_user);
-	if(ui == NULL) {
-		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
-	} else {
-		setuid(ui->pw_uid);
-		setgid(ui->pw_gid);
-		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
-	}
+	
+    	
 	
 	
-	global_startup_time=time(NULL);
 	
-	// Parse Config
-	
-	SOName = getConfigValue("data_library", argv[1]);
-	if(SOName == NULL) {
-		_log("No data_library specified in `%s' config file", argv[1]);
-		exit(1);
-	}
 		
+}
+void bartlby_init(void) {
 	
 	_log("%s Version %s (%s) started. compiled %s/%s", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
 	#ifdef SNMP_ADDON
@@ -312,70 +373,40 @@ int main(int argc, char ** argv, char ** envp) {
 	_log("NRPE Support compiled in");
 	#endif
 	
+}
+void bartlby_setuid(void) {
+	char * cfg_user;
+	struct passwd * ui;
 	
-	daemon_mode=getConfigValue("daemon", argv[1]);
-	if(daemon_mode == NULL) {
-		daemon_mode=strdup("false");	
+	
+	cfg_user = getConfigValue("user", gCfgfile);
+	if(cfg_user == NULL) {
+		_log("user not set in config file");
+		exit(2);			
 	}
-	if(strcmp(daemon_mode,"true") == 0) {	
-		
-		bartlby_get_daemon(argv[1]);
-	} 	
-	
-	bartlby_pre_init(argv[1]);
-	_log("using data lib: `%s'", SOName);
-	SOHandle=dlopen(SOName, RTLD_LAZY);
-		
-    	if((dlmsg=dlerror()) != NULL) {
-        	_log("Error: %s", dlmsg);
-        	exit(1);
-    	}
-	LOAD_SYMBOL(GetAutor,SOHandle, "GetAutor");
-    	LOAD_SYMBOL(GetVersion,SOHandle, "GetVersion");
-    	LOAD_SYMBOL(GetServiceMap,SOHandle, "GetServiceMap");
-    	LOAD_SYMBOL(GetServerMap,SOHandle, "GetServerMap");
-    	LOAD_SYMBOL(GetWorkerMap,SOHandle, "GetWorkerMap");
-    	LOAD_SYMBOL(GetDowntimeMap,SOHandle, "GetDowntimeMap");
-    	LOAD_SYMBOL(GetName,SOHandle, "GetName");
-    	LOAD_SYMBOL(ExpectVersion,SOHandle, "ExpectVersion");
-    	LOAD_SYMBOL(GetCounter,SOHandle, "GetCounter");
-    	
-    	
-    	 	
-    	
-    	
-    	
-    	GetAutorStr=GetAutor();
-    	GetVersionStr=GetVersion();
-    	GetNameStr=GetName();
-    	
-    	if(ExpectVersion() > EXPECTCORE || EXPECTCORE < ExpectVersion() || EXPECTCORE != ExpectVersion()) {
-    		_log("*****Version check failed Module is compiled for version '%d' of %s", ExpectVersion(), PROGNAME);	
-    		_log("*****The Module is compiled under '%d' Version of %s", EXPECTCORE, PROGNAME);
-    		exit(1);
-    	} 
-    	
-    	_log("Data Lib (%s) by: '%s' Version: %s", GetNameStr, GetAutorStr, GetVersionStr);
-    		
-	
-	
-	shmtok = getConfigValue("shm_key", argv[1]);
-	if(shmtok == NULL) {
-		_log("Unset variable `shm_key'");
-		exit(1);
+	ui=getpwnam(cfg_user);
+	if(ui == NULL) {
+		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
+	} else {
+		setuid(ui->pw_uid);
+		setgid(ui->pw_gid);
+		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
 	}
 	
-	free(GetAutorStr);
-	free(GetVersionStr);
-	free(GetNameStr);
-	free(SOName);
-	
-	exi_code=0;
+	free(cfg_user);
+}
+
+void bartlby_shm_fits(char * cfgfile) {
+
+		struct shm_counter * shmc;
+		int suggested_minimum;
 		
-	while(exi_code != 1) {
+		long cfg_shm_size_bytes;
+		char *  cfg_shm_size;
 		
 		
-		cfg_shm_size = getConfigValue("shm_size", argv[1]);
+		
+		cfg_shm_size = getConfigValue("shm_size", cfgfile);
 		
 		if(cfg_shm_size==NULL) {
 			cfg_shm_size_bytes=10;		
@@ -385,14 +416,14 @@ int main(int argc, char ** argv, char ** envp) {
 		
 		free(cfg_shm_size);
 		
-		shmc = GetCounter(argv[1]);
+		shmc = gGetCounter(cfgfile);
 		if(shmc == NULL) {
 			exit(0);	
 		}
-		SHMSize=cfg_shm_size_bytes*1024*1024;	
+		gSHMSize=cfg_shm_size_bytes*1024*1024;	
 		
 		suggested_minimum = (sizeof(struct shm_header) + (sizeof(struct server) * shmc->servers) + (sizeof(struct worker) * shmc->worker) + (sizeof(struct service) * shmc->services) + (sizeof(struct downtime) * shmc->downtimes) + 2000 + (sizeof(struct btl_event)*EVENT_QUEUE_MAX)) * 2;
-		if(SHMSize <= suggested_minimum) {
+		if(gSHMSize <= suggested_minimum) {
 			_log("SHM is to small minimum: %d KB ", suggested_minimum/1024);
 			exit(1);	
 		}
@@ -400,74 +431,82 @@ int main(int argc, char ** argv, char ** envp) {
 		_log("Size: S=%d, W=%d, D=%d, H=%d, E=%d", sizeof(struct service), sizeof(struct worker), sizeof(struct downtime), sizeof(struct shm_header), sizeof(struct btl_event));
 		free(shmc);
 		
+
+	
+}
+
+int bartlby_populate_shm(char * cfgfile) {
 		
+		gshm_id = shmget(ftok(gShmtok, 32), gSHMSize,IPC_CREAT | IPC_EXCL | 0777);
 		
+		if(gshm_id < 0 && gReuseSHM == 1) {
+			_log("trying to reuse SHM");
+			gshm_id = shmget(ftok(gShmtok, 32), gSHMSize,IPC_CREAT | 0777);
+		}
 		
-		
-		shm_id = shmget(ftok(shmtok, 32), SHMSize,IPC_CREAT | IPC_EXCL | 0777);
-		
-		if(shm_id != -1) {
-			bartlby_address=shmat(shm_id,NULL,0);
+		if(gshm_id != -1) {
+			gBartlby_address=shmat(gshm_id,NULL,0);
 			
-			shm_hdr=(struct shm_header *)(void *)bartlby_address;
-			svcmap=(struct service *)(void *)bartlby_address+sizeof(struct shm_header);
+			gshm_hdr=(struct shm_header *)(void *)gBartlby_address;
+			gsvcmap=(struct service *)(void *)gBartlby_address+sizeof(struct shm_header);
 			
 							
 				
-			shm_svc_cnt=GetServiceMap(svcmap, argv[1]);
+			gshm_svc_cnt=gGetServiceMap(gsvcmap, cfgfile);
 			
-			shm_hdr->svccount=shm_svc_cnt;
+			gshm_hdr->svccount=gshm_svc_cnt;
 			
-			svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+			gsvcmap=bartlby_SHM_ServiceMap(gBartlby_address);
 			
-			wrkmap=(struct worker *)(void*)&svcmap[shm_svc_cnt]+20;
-			shm_wrk_cnt=GetWorkerMap(wrkmap, argv[1]);
-			shm_hdr->wrkcount=shm_wrk_cnt;
+			gwrkmap=(struct worker *)(void*)&gsvcmap[gshm_svc_cnt]+20;
+			gshm_wrk_cnt=gGetWorkerMap(gwrkmap, cfgfile);
+			gshm_hdr->wrkcount=gshm_wrk_cnt;
 			
-			dtmap=(struct downtime *)(void *)&wrkmap[shm_wrk_cnt]+20;
-			shm_dt_cnt=GetDowntimeMap(dtmap, argv[1]);
-			shm_hdr->dtcount=shm_dt_cnt;
+			gdtmap=(struct downtime *)(void *)&gwrkmap[gshm_wrk_cnt]+20;
+			gshm_dt_cnt=gGetDowntimeMap(gdtmap, cfgfile);
+			gshm_hdr->dtcount=gshm_dt_cnt;
 				
-			srvmap=(struct server *)(void *)&dtmap[shm_dt_cnt]+20;
-			shm_srv_cnt=GetServerMap(srvmap, argv[1]);
+			gsrvmap=(struct server *)(void *)&gdtmap[gshm_dt_cnt]+20;
+			gshm_srv_cnt=gGetServerMap(gsrvmap, cfgfile);
 			
-			shm_hdr->srvcount=shm_srv_cnt;
+			gshm_hdr->srvcount=gshm_srv_cnt;
 				
 			//06.04.24 Init EVENT QUEUE
-			bartlby_event_init(bartlby_address);
-			cfg_init_cache();
-			bartlby_ext_init(bartlby_address, SOHandle, argv[1]);
+			bartlby_event_init(gBartlby_address);
+			bartlby_ext_init(gBartlby_address, gSOHandle, cfgfile);
 				
 			
-			_log("Workers: %d", shm_hdr->wrkcount);
-			_log("Downtimes: %d", shm_hdr->dtcount);
-			_log("Servers: %d", shm_hdr->srvcount);
-			shm_hdr->current_running=0;
-			sprintf(shm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
+			_log("Workers: %d", gshm_hdr->wrkcount);
+			_log("Downtimes: %d", gshm_hdr->dtcount);
+			_log("Servers: %d", gshm_hdr->srvcount);
+			gshm_hdr->current_running=0;
+			sprintf(gshm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 						
-			shm_hdr->do_reload=0;
-			shm_hdr->last_replication=-1;
+			gshm_hdr->do_reload=0;
+			gshm_hdr->last_replication=-1;
 			//shm_hdr->startup_time=time(NULL);
-			shm_hdr->startup_time=global_startup_time;
+			if(gReuseSHM != 1) {
+				gshm_hdr->startup_time=global_startup_time;
+			}
 			
-			shm_hdr->sirene_mode=0; //Default disable	
-			shm_hdr->size_of_structs=sizeof(struct shm_header)+sizeof(struct worker)+sizeof(struct service)+sizeof(struct downtime)+sizeof(struct server);
-			shm_hdr->pstat.sum=0;
-			shm_hdr->pstat.counter=0;
+			gshm_hdr->sirene_mode=0; //Default disable	
+			gshm_hdr->size_of_structs=sizeof(struct shm_header)+sizeof(struct worker)+sizeof(struct service)+sizeof(struct downtime)+sizeof(struct server);
+			gshm_hdr->pstat.sum=0;
+			gshm_hdr->pstat.counter=0;
 			
 			
 			
 			
 			
-			if(shm_hdr->wrkcount <= 0) {
-				_log("Found workers are below zero (%d) maybe your datalib config isnt OK or you havent completed the setup", shm_hdr->wrkcount);
-				shmdt(bartlby_address);
-				shm_id = shmget(ftok(shmtok, 32), 0, 0600);
-				shmctl(shm_id, IPC_RMID, &shm_desc);
-				break;
+			if(gshm_hdr->wrkcount <= 0) {
+				_log("Found workers are below zero (%d) maybe your datalib config isnt OK or you havent completed the setup", gshm_hdr->wrkcount);
+				shmdt(gBartlby_address);
+				gshm_id = shmget(ftok(gShmtok, 32), 0, 0600);
+				shmctl(gshm_id, IPC_RMID, &gshm_desc);
+				return -1;
 				
 			}
-			bartlby_SHM_link_services_servers(bartlby_address, argv[1]);
+			bartlby_SHM_link_services_servers(gBartlby_address, cfgfile);
 			
 			
 		} else {
@@ -476,31 +515,119 @@ int main(int argc, char ** argv, char ** envp) {
 			_log("SHM is already exsisting do a `ipcrm shm SHMID' or something like that");
 			exit(1);
 		}
+
+	return 0;
+}
+
+int bartlby_go(char * cfgfile) {
+	int exi_code=0;
+	
+	while(exi_code != 1) {
 		
-		exi_code=schedule_loop(argv[1], bartlby_address, SOHandle);
+		
+		exi_code=schedule_loop(cfgfile, gBartlby_address, gSOHandle);
 		_log("Scheduler ended with: %d", exi_code);
+		
+		
+		
+		
 		
 		//Destroy SHM
 		bartlby_ext_shutdown(exi_code);
 		//write back all services 
-		sched_write_back_all(argv[1], bartlby_address, SOHandle);
+		sched_write_back_all(cfgfile, gBartlby_address, gSOHandle);
 		
-		shmdt(bartlby_address);
-		shm_id = shmget(ftok(shmtok, 32), 0, 0600);
-		shmctl(shm_id, IPC_RMID, &shm_desc);
+		shmdt(gBartlby_address);
+		gshm_id = shmget(ftok(gShmtok, 32), 0, 0600);
+		shmctl(gshm_id, IPC_RMID, &gshm_desc);
+		
+		if(exi_code != 1) {
+			//re populate SHM called reload *fg*
+			bartlby_shm_fits(gCfgfile);
+			if(bartlby_populate_shm(gCfgfile) < 0) {
+				//in case of zero workers
+				exit(1);
+			}
+		}
 		
 		
 	}
-	
-	free(shmtok);
-		
-	dlclose(SOHandle);	
-		
-	_log("%s Ended(Daemon: %s)", PROGNAME, daemon_mode);	
-		
-	//remove PidFile
-	bartlby_end_clean(argv[1]);
-	free(daemon_mode);
-	free(cfg_user);
+
 	return 1;
 }
+
+
+int main(int argc, char ** argv) {
+	char * daemon_mode;
+	
+
+	global_startup_time=time(NULL);
+	
+	//parse argv
+	bartlby_parse_argv(argc, argv);
+	
+	
+	set_cfg(gCfgfile);
+	cfg_init_cache();
+	cfg_fill_with_file(gCfgfile);
+	
+	
+	//handle -d flag ;) 
+	if(gDebug == 1) {
+		cfg_update_cache("daemon", "false");
+		cfg_update_cache("logfile", "/dev/stdout");
+	}
+	
+	
+	bartlby_init();
+	
+	bartlby_setuid();
+	
+	//set cfg
+	
+	
+	
+		
+	bartlby_pre_init(gCfgfile);
+	
+	
+		
+	
+	//get deamon if needed
+	daemon_mode=getConfigValue("daemon", gCfgfile);
+	if(daemon_mode == NULL) {
+		daemon_mode=strdup("false");	
+	}
+	if(strcmp(daemon_mode,"true") == 0) {	
+		
+		bartlby_get_daemon(gCfgfile);
+	} 		
+		
+	//populate shm
+	
+	bartlby_load_shm_stuff(gCfgfile);
+	
+	bartlby_shm_fits(gCfgfile);
+	
+	if(bartlby_populate_shm(gCfgfile) < 0) {
+		//in case of zero workers
+		exit(1);
+	}
+	
+	//start it
+	bartlby_go(gCfgfile);
+		
+	
+	free(gShmtok);
+	dlclose(gSOHandle);	
+	_log("%s Ended(Daemon: %s)", PROGNAME, daemon_mode);	
+	bartlby_end_clean(gCfgfile);
+	
+	free(daemon_mode);
+
+return 1;	
+}
+
+
+
+

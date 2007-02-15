@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.2  2006/11/27 21:16:28  hjanuschka
 auto commit
 
@@ -220,7 +223,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 
 	conn_timedout=0;
 	alarm(svc->service_check_timeout);
-	result=my_tcp_connect(svc->client_ip,svc->client_port,&sd, svc);
+	result=my_tcp_connect(svc->srv->client_ip,svc->srv->client_port,&sd, svc);
 	
 	if(conn_timedout == 1) {
 		sprintf(svc->new_server_text, "%s", "timed out");

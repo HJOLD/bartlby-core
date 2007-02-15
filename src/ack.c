@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.2  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.1  2006/02/10 23:54:46  hjanuschka
 SIRENE mode added
 
@@ -69,12 +72,16 @@ void bartlby_check_sirene(char * configfile, void * bartlby_address) {
 	}
 	last_sirene=time(NULL);
 	
-	sprintf(svc.client_ip, "0.0.0.0");
-	sprintf(svc.server_name, "CORE");
+	//sprintf(svc.client_ip, "0.0.0.0");
+	//sprintf(svc.server_name, "CORE");
+	svc.srv=malloc(sizeof(struct server));
+	sprintf(svc.srv->client_ip, "0.0.0.0");
+	sprintf(svc.srv->server_name, "CORE");
+	
 	sprintf(svc.service_name, "SIRENE");
 	sprintf(svc.new_server_text, "Your system is in sirene mode all checks have been disabled please give the UI a bit attention");
 	svc.current_state=STATE_SIRENE;
-	svc.client_port=0;
+	//svc.client_port=0;
 	svc.last_state=STATE_SIRENE;
 	
 	_log("!!! System is in sirene Mode !!!!");

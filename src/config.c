@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.11  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.10  2007/01/05 01:49:00  hjanuschka
 auto commit
 
@@ -75,6 +78,9 @@ struct cfg_cache {
 static struct cfg_cache ccache[MAX_CCACHE];
 static int cur_el=0;
 
+
+
+
 void cfg_init_cache(void) {
 	int x;
 	for(x=0; x<MAX_CCACHE; x++) {
@@ -86,7 +92,33 @@ void cfg_init_cache(void) {
 			
 }
 
+
+void cfg_update_cache(char * k, char * v) {
+	int x;
+	for(x=0; x<MAX_CCACHE; x++) {
+		if(strcmp(ccache[x].key, k) == 0) {
+			snprintf(ccache[x].value,2000, "%s", v);	
+			
+			
+		}	
+	}	
+	return;
+}
+
+char * cfg_cache_find(char *k) {
+	int x;
+	for(x=0; x<MAX_CCACHE; x++) {
+		if(strcmp(ccache[x].key, k) == 0) {
+			
+			return strdup(ccache[x].value);	
+		}	
+	}	
+	return NULL;
+}
 char * cfg_add_to_cache(char * k, char * v) {
+	
+	
+	
 	snprintf(ccache[cur_el].key,1020,  "%s", k);
 	snprintf(ccache[cur_el].value,2000, "%s", v);
 	if(cur_el + 1 >= MAX_CCACHE) {
@@ -98,16 +130,6 @@ char * cfg_add_to_cache(char * k, char * v) {
 	return NULL;
 }
 
-char * cfg_cache_find(char *k) {
-	int x;
-	for(x=0; x<MAX_CCACHE; x++) {
-		if(strcmp(ccache[x].key, k) == 0) {
-			//printf("Found cached key/value: %s/%s\n", ccache[x].key, ccache[x].value);
-			return strdup(ccache[x].value);	
-		}	
-	}	
-	return NULL;
-}
 
 char * getConfigValue(char * key, char * fname) {
 	return getConfigValue_ex(key, fname, 1);
@@ -178,5 +200,58 @@ char * getConfigValue_ex(char * key, char * fname, int cache) {
 	
 	
 	return NULL;
+}
+
+void cfg_fill_with_file(char * f) {
+	FILE * fp;
+	char  str[1024];
+	char * val;
+	char * key;
+	char * tok;
+	
+	int c=0;
+	
+	fp=fopen(f, "r");
+	if(!fp)  {
+		printf("config fopen %s failed", f);
+		exit(0);
+		
+		
+	}
+	
+	
+	
+	while(fgets(str,1024,fp) != NULL) {
+		str[strlen(str)-1]='\0';
+		tok=strtok(str, "=");
+		if(tok != NULL) {
+			key=strdup(tok);
+					
+			tok=strtok(NULL, "=");
+			if(tok == NULL) {
+					return;
+			}
+			if(tok[strlen(tok)-1] == '\r') {
+				tok[strlen(tok)-1]='\0';
+			}
+				
+			
+			val=strdup(tok);
+			cfg_add_to_cache(key, val);
+			
+			c++;
+			
+			free(val);
+			free(key);
+				
+					
+		}
+			
+	}
+	
+	
+	fclose(fp);
+	_log("pre-cached %d kv-pairs", c);
+		
 }
 

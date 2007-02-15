@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.2  2007/01/27 19:52:13  hjanuschka
 auto commit
 
@@ -79,7 +82,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	
 	connection_timed_out=0;
 	
-	if((remote_host = gethostbyname(svc->client_ip)) == 0) {
+	if((remote_host = gethostbyname(svc->srv->client_ip)) == 0) {
 		
 		sprintf(svc->new_server_text, "%s", DNS_ERROR);
 		svc->current_state=STATE_CRITICAL;
@@ -90,7 +93,7 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	remote_side.sin_family=AF_INET;
 	remote_side.sin_addr.s_addr = htonl(INADDR_ANY);
 	remote_side.sin_addr.s_addr = ((struct in_addr *) (remote_host->h_addr))->s_addr;
-	remote_side.sin_port=htons(svc->client_port);
+	remote_side.sin_port=htons(svc->srv->client_port);
 	
 	if((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 			

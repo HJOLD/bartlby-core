@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.60  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.59  2007/01/29 04:04:04  hjanuschka
 auto commit
 
@@ -1128,6 +1131,7 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
 	MYSQL_ROW  row;
 	MYSQL_RES  *res;
 	char * sqlupd;
+	struct server * n_srv;
 	
 	int tmprc;
 	
@@ -1165,6 +1169,8 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->last_state=atoi(row[2]);
       		svc->current_state=atoi(row[2]);
       		
+      		n_srv=malloc(sizeof(struct server));
+      		
       		if(row[1] != NULL) {
       			//svc->service_name=malloc(strlen(row[1])*sizeof(char)+2);
       			sprintf(svc->service_name, "%s", row[1]);
@@ -1175,27 +1181,34 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		}
       		
       		
+      		
       		if(row[3] != NULL) {
       			//svc->server_name=malloc(strlen(row[3])*sizeof(char)+2);
-      			sprintf(svc->server_name, "%s", row[3]);
+      			sprintf(n_srv->server_name, "%s", row[3]);
       			
       		} else {
 //    			svc->server_name=NULL;   
-      			sprintf(svc->server_name, "(null)");  				
+      			sprintf(n_srv->server_name, "(null)");  				
       		}
       		
       		
       		if(row[6] != NULL) {
       			//svc->client_ip=malloc(strlen(row[6])*sizeof(char)+2);
-      			sprintf(svc->client_ip, "%s", row[6]);
+      			sprintf(n_srv->client_ip, "%s", row[6]);
       			
       		} else {
       			  
-      			sprintf(svc->client_ip, "(null)");     				
+      			sprintf(n_srv->client_ip, "(null)");     				
       		}
+      		if(row[30] != NULL) {
+      			snprintf(n_srv->server_icon, 1000, "%s", row[30]);
+      		} else {
+      			sprintf(n_srv->server_icon, "(null)");	
+      		}		
       		
+      		n_srv->client_port=atoi(row[5]);
+      		svc->srv=n_srv;
       		
-      		svc->client_port=atoi(row[5]);
       		
 //     		svc->new_server_text=malloc(strlen(row[11])*sizeof(char)+2);
       		
@@ -1281,11 +1294,6 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->snmp_info.crit = atoi(row[28]);
       		svc->snmp_info.type = atoi(row[29]);
       		
-      		if(row[30] != NULL) {
-      			snprintf(svc->server_icon, 1000, "%s", row[30]);
-      		} else {
-      			sprintf(svc->server_icon, "(null)");	
-      		}		
       		svc->flap_seconds = atoi(row[31]);
       		
       		if(row[32] != NULL) {
@@ -1616,6 +1624,7 @@ int GetServerById(int server_id, struct server * svc, char * config) {
       		} else {
       			sprintf(svc->server_icon, "(null)");
       		}
+      		
       		svc->server_enabled=atoi(row[4]);
       		svc->server_notify=atoi(row[5]);
       		svc->server_flap_seconds=atoi(row[6]);
@@ -2075,27 +2084,6 @@ int GetServiceMap(struct service * svcs, char * config) {
       			}
       			
       			
-      			if(row[3] != NULL) {
-      				//svcs[i].server_name=malloc(strlen(row[3])*sizeof(char)+2);
-      				sprintf(svcs[i].server_name, "%s", row[3]);
-      				
-      			} else {
-//    				svcs[i].server_name=NULL;   
-      				sprintf(svcs[i].server_name, "(null)");  				
-      			}
-      			
-      			
-      			if(row[6] != NULL) {
-      				//svcs[i].client_ip=malloc(strlen(row[6])*sizeof(char)+2);
-      				sprintf(svcs[i].client_ip, "%s", row[6]);
-      				
-      			} else {
-      				  
-      				sprintf(svcs[i].client_ip, "(null)");     				
-      			}
-      			
-      			
-      			svcs[i].client_port=atoi(row[5]);
       			
 //     			svcs[i].new_server_text=malloc(strlen(row[11])*sizeof(char)+2);
       			
@@ -2163,11 +2151,7 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].service_passive_timeout=atoi(row[19]);
       			svcs[i].service_active=atoi(row[20]);
       			svcs[i].service_check_timeout=atoi(row[21]);
-      			if(row[22] != NULL) {
-      				sprintf(svcs[i].server_icon, "%s", row[22]);	
-      			} else {
-      				sprintf(svcs[i].server_icon, "(null)");
-      			}
+      			
       			
       			if(row[23] != NULL) {
       				svcs[i].service_ack = atoi(row[23]);

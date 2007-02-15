@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.9  2007/01/27 19:52:13  hjanuschka
 auto commit
 
@@ -446,7 +449,7 @@ int main(int argc, char ** argv) {
 					sprintf(svc_out, " ");
 					
 					for(x=0; x<shm_hdr->svccount; x++) {
-						if(strcmp(svcmap[x].server_name, in_server_name) == 0) {
+						if(strcmp(svcmap[x].srv->server_name, in_server_name) == 0) {
 							printf("%d", svcmap[x].server_id);
 								
 						}

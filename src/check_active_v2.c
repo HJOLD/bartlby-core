@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.8  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.7  2006/12/20 21:28:56  hjanuschka
 performance on large
 
@@ -120,7 +123,7 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 
 	conn_timedout=0;
 	alarm(svc->service_check_timeout);
-	result=agent_v2_my_tcp_connect(svc->client_ip,svc->client_port,&sd, svc);
+	result=agent_v2_my_tcp_connect(svc->srv->client_ip,svc->srv->client_port,&sd, svc);
 	
 	if(conn_timedout == 1) {
 		sprintf(svc->new_server_text, "%s", "timed out");

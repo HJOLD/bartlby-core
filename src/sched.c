@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.75  2007/02/15 16:25:32  hjanuschka
+auto commit
+
 Revision 1.74  2007/02/02 20:56:10  hjanuschka
 auto commit
 
@@ -416,7 +419,7 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	} else {
 		
 		//_log("@KILL@Killing runaaway process: %s:%d/%s %d (done)",svc->process.pid); 	
-		_log("@KILL@%d|%d|%s:%d/%s|Killing process with pid: %d", svc->service_id, svc->current_state, svc->server_name, svc->client_port, svc->service_name, svc->process.pid);
+		_log("@KILL@%d|%d|%s:%d/%s|Killing process with pid: %d", svc->service_id, svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->process.pid);
 	}
 		
 	sprintf(svc->new_server_text, "%s", "in-core time out");
@@ -504,8 +507,8 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	if(sched_pause >= 0) {
 		if(svc->do_force == 1) {
 			svc->do_force=0; //dont force again
-			//_log("Force: %s:%d/%s", svc->server_name, svc->client_port, svc->service_name);
-			_log("@FORCE@%d|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->server_name, svc->client_port, svc->service_name);
+			//_log("Force: %s:%d/%s", svc->srv->server_name, svc->srv->client_port, svc->service_name);
+			_log("@FORCE@%d|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name);
 			return 1;	
 		}
 	}
