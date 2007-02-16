@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.12  2007/02/16 18:13:43  hjanuschka
+Revision 1.13  2007/02/16 20:40:26  hjanuschka
 auto commit
 
 Revision 1.10  2007/02/15 16:25:32  hjanuschka
@@ -429,7 +429,7 @@ int main(int argc, char ** argv) {
 								svcmap[x].current_state=passive_state;
 								sprintf(svcmap[x].new_server_text, "%s", passive_text);
 								svcmap[x].last_check=time(NULL);
-								gettimeofday(&svcmap[x].lcheck, NULL);
+								
 								
 								passive_beauty=bartlby_beauty_state(svcmap[x].current_state);
 								sprintf(svc_out, "+PASSIVOK (%d) %d : %s (%s)\n", x, svcmap[x].service_id, passive_beauty, svcmap[x].new_server_text);

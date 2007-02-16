@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.77  2007/02/16 20:40:26  hjanuschka
+auto commit
+
 Revision 1.76  2007/02/15 20:46:38  hjanuschka
 auto commit
 
@@ -299,6 +302,7 @@ void * gshm_addr;
 char * gConfig;
 
 
+int g_micros_before_after_check=700;
 int shortest_intervall;
 
 
@@ -494,6 +498,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	
 	//just to be sure
 	
+	usleep(g_micros_before_after_check);
 	
 	cur_time=time(NULL);
 	gettimeofday(&cur_tv, NULL);
@@ -504,7 +509,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 	
 	 
 	//_log("intervall: %d, my_diff: %d",svc->check_interval_original, my_diff);
-	if((svc->check_interval_original-my_diff) < shortest_intervall && svc->service_active == 1 && svc->service_type != SVC_TYPE_PASSIVE && svc->srv->server_enabled != 0) {
+	if((svc->check_interval_original-my_diff) < shortest_intervall && svc->service_active == 1 && svc->srv->server_enabled != 0) {
 		shortest_intervall=(svc->check_interval_original-my_diff);
 		 
 	}
@@ -737,6 +742,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	
 	int round_start, round_visitors;
 	char * cfg_sched_pause;
+	char * cfg_g_micros_before_after_check;
 	
 	int sched_pause;
 	
@@ -815,6 +821,14 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 			_log("info: sched_pause really low should'nt be less than 1 milliseconds defaulting to it: %d", sched_pause);
 		}
 	}
+	cfg_g_micros_before_after_check = getConfigValue("sched_micros_before_after_check", cfgfile);
+	if(cfg_g_micros_before_after_check == NULL) {
+		_log("HINT: to tune performance see 'sched_micros_before_after_check' defaults to 700");	
+	} else {
+		g_micros_before_after_check=atoi(cfg_g_micros_before_after_check);
+		_log("micros_before_after=%d", g_micros_before_after_check);
+		free(cfg_g_micros_before_after_check);
+	}
 	
 	//Make a second sortable array
 	for(x=0; x<gshm_hdr->svccount; x++) {
@@ -860,7 +874,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		}
 		
 		
-		shortest_intervall=50000;
+		shortest_intervall=10;
 		for(x=0; x<gshm_hdr->svccount; x++) {
 			
 			
@@ -897,11 +911,13 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					if(ssort[x].svc->service_type != SVC_TYPE_PASSIVE) {
 						ssort[x].svc->last_check=time(NULL);
 						gettimeofday(&ssort[x].svc->lcheck, NULL);
+					} else {
+						gettimeofday(&ssort[x].svc->lcheck, NULL);
 					}
 			 		
 			 		sched_run_check(ssort[x].svc, cfgfile, shm_addr, SOHandle);
 			 		
-			 		usleep(1000);
+			 		usleep(g_micros_before_after_check);
 			 		
 			 		gettimeofday(&run_c_end,NULL);
 			 		//_log("took: %d ms", bartlby_milli_timediff(run_c_end,run_c_start));
@@ -928,7 +944,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 
 		usleep(sched_pause);
 		if(shortest_intervall > 1) {
-			usleep(shortest_intervall-1);
+			usleep((shortest_intervall-1)*1000);
 			
 		}
 		
