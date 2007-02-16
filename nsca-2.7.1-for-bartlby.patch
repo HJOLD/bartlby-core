@@ -292,7 +292,7 @@ diff -Nur ../nsca-2.7.1/src/Makefile.in ./src/Makefile.in
  	$(CC) $(CFLAGS) -o $@ send_nsca.c netutils.c utils.c $(LDFLAGS) $(SOCKETLIBS)
 diff -Nur ../nsca-2.7.1/src/nsca.c ./src/nsca.c
 --- ../nsca-2.7.1/src/nsca.c	2007-01-30 06:53:05.000000000 +0100
-+++ ./src/nsca.c	2007-02-16 17:08:47.000000000 +0100
++++ ./src/nsca.c	2007-02-16 19:08:19.000000000 +0100
 @@ -20,7 +20,7 @@
  #include "../include/netutils.h"
  #include "../include/utils.h"
@@ -346,7 +346,7 @@ diff -Nur ../nsca-2.7.1/src/nsca.c ./src/nsca.c
  		else if(strstr(input_buffer,"decryption_method")){
  
                          decryption_method=atoi(varvalue);
-@@ -1086,64 +1096,67 @@
+@@ -1086,64 +1096,68 @@
  
  /* writes service/host check results to the Nagios command file */
  static int write_check_result(char *host_name, char *svc_description, int return_code, char *plugin_output, time_t check_time){
@@ -392,6 +392,7 @@ diff -Nur ../nsca-2.7.1/src/nsca.c ./src/nsca.c
 +				svcmap[x].current_state=return_code;
 +				snprintf(svcmap[x].new_server_text, 2074, "%s",  	plugin_output);
 +				svcmap[x].last_check = check_time;		
++				gettimeofday(&svcmap[x].lcheck, NULL);
 +				break;
 +			}	
 +		}
@@ -458,7 +459,7 @@ diff -Nur ../nsca-2.7.1/src/nsca.c ./src/nsca.c
          return OK;
          }
  
-@@ -1152,7 +1165,7 @@
+@@ -1152,7 +1166,7 @@
  /* closes the command file */
  static void close_command_file(void){
  

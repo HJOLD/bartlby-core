@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.11  2007/02/16 18:09:36  hjanuschka
+Revision 1.12  2007/02/16 18:13:43  hjanuschka
 auto commit
 
 Revision 1.10  2007/02/15 16:25:32  hjanuschka
@@ -204,6 +204,7 @@ int main(int argc, char ** argv) {
 	
 	struct shm_header * shm_hdr;
 	struct service * svcmap;
+	struct server * srvmap;
 	
 	
 	allowed_ip_list=getConfigValue("allowed_ips", argv[0]);
@@ -249,6 +250,8 @@ int main(int argc, char ** argv) {
 		bartlby_address=shmat(shm_id,NULL,0);
 		shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
 		svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+		srvmap=bartlby_SHM_ServerMap(bartlby_address);
+		
 		printf("+SVCC: %d WRKC: %d V: %s\n", shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->version);
 		fflush(stdout);
 		
@@ -454,7 +457,7 @@ int main(int argc, char ** argv) {
 					sprintf(svc_out, " ");
 					
 					for(x=0; x<shm_hdr->svccount; x++) {
-						if(strcmp(svcmap[x].srv->server_name, in_server_name) == 0) {
+						if(strcmp(srvmap[svcmap[x].srv_place].server_name, in_server_name) == 0) {
 							printf("%d", svcmap[x].server_id);
 								
 						}
