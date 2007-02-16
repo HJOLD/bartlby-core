@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.77  2007/02/16 20:40:26  hjanuschka
+Revision 1.78  2007/02/16 21:50:00  hjanuschka
 auto commit
 
 Revision 1.76  2007/02/15 20:46:38  hjanuschka
@@ -895,7 +895,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 					
 					
 					ct = time(NULL);			
-					expt = (ssort[x].svc->last_check+ssort[x].svc->check_interval_original);
+					expt = (ssort[x].svc->last_check+ssort[x].svc->check_interval);
 					
 					if(ct > expt && ssort[x].svc->service_type != SVC_TYPE_PASSIVE) {
 						// service check has delayed
