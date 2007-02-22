@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.26  2007/02/22 12:51:06  hjanuschka
+*** empty log message ***
+
 Revision 1.25  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -269,8 +272,8 @@ void str_mysql_safe(char * str) {
 void service_mysql_safe(struct service * svc) {
 	str_mysql_safe(svc->new_server_text);	
 	str_mysql_safe(svc->service_name);
-	str_mysql_safe(svc->srv->server_name);
-	str_mysql_safe(svc->srv->client_ip);
+	//str_mysql_safe(svc->srv->server_name);
+	//str_mysql_safe(svc->srv->client_ip);
 	str_mysql_safe(svc->plugin);
 	str_mysql_safe(svc->plugin_arguments);
 	str_mysql_safe(svc->service_var);
