@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.27  2007/03/23 10:22:13  hjanuschka
+auto commit
+
 Revision 1.26  2007/02/22 12:51:06  hjanuschka
 *** empty log message ***
 
@@ -373,6 +376,7 @@ void str_replace(char *str, const char *from, const char *to, int maxlen)
 
 void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
 	char * human_state, * human_state_last;
+	char * srv;
 	
 	
 	human_state=bartlby_beauty_state(svc->current_state);
@@ -393,6 +397,12 @@ void bartlby_replace_svc_in_str(char * str, struct service * svc, int max) {
 	str_replace(str,"$SERVICE", svc->service_name, max); 
 	setenv("MESSAGE",  svc->new_server_text, 1);
 	str_replace(str,"$MESSAGE", svc->new_server_text, max); 
+
+	srv=getenv("BARTLBY_CURR_HOST");
+	if(srv != NULL) {
+		 setenv("SERVER",  srv, 1);
+		 str_replace(str,"$SERVER", srv, max);
+	}
 	
 		
 	
