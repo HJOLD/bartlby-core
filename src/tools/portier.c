@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.15  2007/03/23 17:26:43  hjanuschka
+*** empty log message ***
+
 Revision 1.14  2007/03/22 01:09:21  hjanuschka
 auto commit
 
@@ -495,7 +498,7 @@ int main(int argc, char ** argv) {
 				exit(1);				
 		}
 		
-		printf(svc_out);
+		printf("%s", svc_out);
 			
 	}
 	shmdt(bartlby_address);
