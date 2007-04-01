@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.28  2007/04/01 16:06:32  hjanuschka
+auto commit
+
 Revision 1.27  2007/03/23 10:22:13  hjanuschka
 auto commit
 
@@ -153,6 +156,7 @@ int service_is_in_time(char * time_plan) {
 	struct tm *tmnow;
 	struct tm fromcheck, tocheck;       
 	int fromts, tots;
+	char in_or_out;
 	
 	int min,hour, min1,hour1;
 	int cur_ts;
@@ -164,6 +168,8 @@ int service_is_in_time(char * time_plan) {
 		return 1; //if no plan?! always check ;)
 	}
 	
+	
+	
 	cur_ts = time(&tnow);
 	tmnow = localtime(&tnow);
 	
@@ -172,6 +178,14 @@ int service_is_in_time(char * time_plan) {
 	while(token != NULL) {
 		sprintf(idx, "%c", *token);
 		if(atoi(idx) == tmnow->tm_wday) {
+			ttok = token+1;
+			in_or_out = *ttok;
+			if(in_or_out == '!') {
+				rt=1;
+			} else {
+				rt=-1;	
+			}
+				
 			ttok = token+2;
 			//now check threw the timeranges
 			tmp1 = strdup(ttok);
@@ -199,9 +213,16 @@ int service_is_in_time(char * time_plan) {
 					
 					
 					if(cur_ts >= fromts && cur_ts <= tots) {
-						rt = 1;
-						break;	
+						if(in_or_out == '=') {
+							rt = 1;
+						} else {
+							
+							rt = -1;
+						}
+	
 					}
+					
+					
 						
 				
 				
@@ -216,17 +237,18 @@ int service_is_in_time(char * time_plan) {
 			
 			
 		}
+		/*
 		if(rt > 0) {
 			//Someone found;)
 			break;	
 		}
+		*/
 		
 		token = strtok(NULL, "|");
 		
 	}
 	
 	free(tmp);	
-	
 	
 	
 	return rt;	
