@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.79  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.78  2007/02/16 21:50:00  hjanuschka
 auto commit
 
@@ -303,7 +306,7 @@ char * gConfig;
 
 
 int g_micros_before_after_check=700;
-int shortest_intervall;
+long shortest_intervall;
 
 
 
@@ -426,7 +429,7 @@ void sched_kill_runaaway(void * shm_addr, struct service *  svc, char * cfg, voi
 	} else {
 		
 		//_log("@KILL@Killing runaaway process: %s:%d/%s %d (done)",svc->process.pid); 	
-		_log("@KILL@%d|%d|%s:%d/%s|Killing process with pid: %d", svc->service_id, svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->process.pid);
+		_log("@KILL@%ld|%d|%s:%d/%s|Killing process with pid: %d", svc->service_id, svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->process.pid);
 	}
 		
 	sprintf(svc->new_server_text, "%s", "in-core time out");
@@ -491,7 +494,7 @@ int sched_is_server_dead(struct service * svc) {
 
 int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void * SOHandle, int sched_pause) {
 	int cur_time;
-	int my_diff;
+	long my_diff;
 	int kill_diff;
 	
 	struct timeval cur_tv;
@@ -519,7 +522,7 @@ int sched_check_waiting(void * shm_addr, struct service * svc, char * cfg, void 
 		if(svc->do_force == 1) {
 			svc->do_force=0; //dont force again
 			//_log("Force: %s:%d/%s", svc->srv->server_name, svc->srv->client_port, svc->service_name);
-			_log("@FORCE@%d|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name);
+			_log("@FORCE@%ld|%d|%d|||%s:%d/%s|Force check", svc->service_id, svc->last_state ,svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name);
 			return 1;	
 		}
 	}
@@ -779,7 +782,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 	ssort  = malloc(sizeof(struct service_sort)*gshm_hdr->svccount);
 	
 	
-	_log("Scheduler working on %d Services", gshm_hdr->svccount);
+	_log("Scheduler working on %ld Services", gshm_hdr->svccount);
 	
 	cfg_mps=getConfigValue("max_concurent_checks", cfgfile);
 	if(cfg_mps == NULL) {
@@ -933,7 +936,7 @@ int schedule_loop(char * cfgfile, void * shm_addr, void * SOHandle) {
 		
 		
 		if(time(NULL)-round_start > sched_pause*3 && sched_pause > 0) {
-			_log("Done %d Services in %d Seconds", round_visitors, time(NULL)-round_start);				
+			_log("Done %d Services in %ld Seconds", round_visitors, time(NULL)-round_start);				
 		}
 		
 		//Log Round End

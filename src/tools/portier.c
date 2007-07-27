@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.16  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.15  2007/03/23 17:26:43  hjanuschka
 *** empty log message ***
 
@@ -258,7 +261,7 @@ int main(int argc, char ** argv) {
 		svcmap=bartlby_SHM_ServiceMap(bartlby_address);
 		srvmap=bartlby_SHM_ServerMap(bartlby_address);
 		
-		printf("+SVCC: %d WRKC: %d V: %s\n", shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->version);
+		printf("+SVCC: %ld WRKC: %ld V: %s\n", shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->version);
 		fflush(stdout);
 		
 	} else {
@@ -438,7 +441,7 @@ int main(int argc, char ** argv) {
 								
 								
 								passive_beauty=bartlby_beauty_state(svcmap[x].current_state);
-								sprintf(svc_out, "+PASSIVOK (%d) %d : %s (%s)\n", x, svcmap[x].service_id, passive_beauty, svcmap[x].new_server_text);
+								sprintf(svc_out, "+PASSIVOK (%d) %ld : %s (%s)\n", x, svcmap[x].service_id, passive_beauty, svcmap[x].new_server_text);
 								free(passive_beauty);
 							} else {
 								sprintf(svc_out, "-3 Service is not of type 'PASSIVE'");	
@@ -464,7 +467,7 @@ int main(int argc, char ** argv) {
 					
 					for(x=0; x<shm_hdr->svccount; x++) {
 						if(strcmp(srvmap[svcmap[x].srv_place].server_name, in_server_name) == 0) {
-							printf("%d", svcmap[x].server_id);
+							printf("%ld", svcmap[x].server_id);
 								
 						}
 					}
@@ -482,7 +485,7 @@ int main(int argc, char ** argv) {
 					for(x=0; x<shm_hdr->svccount; x++) {
 						if(svcmap[x].server_id == passive_serverid && svcmap[x].service_type == SVC_TYPE_PASSIVE && svcmap[x].service_passive_timeout > 0) {
 							if(service_is_in_time(svcmap[x].service_exec_plan)) {
-								printf("%d", svcmap[x].service_id);
+								printf("%ld", svcmap[x].service_id);
 								printf(" ");	
 							}
 						}

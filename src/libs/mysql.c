@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.62  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.61  2007/02/15 20:46:38  hjanuschka
 auto commit
 
@@ -283,39 +286,39 @@ CVS Header
 
 #define SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, 'a', 'a', 'a','a', svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout,service_active, svc.service_check_timeout, srv.server_ico, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, svc.flap_seconds, svc.service_exec_plan  from services svc, servers srv where svc.server_id=srv.server_id ORDER BY RAND()"
 #define WORKER_SELECTOR "select worker_mail, worker_icq, 'removed' ,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes, notify_plan from workers"
-#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%d"
+#define SERVICE_UPDATE_TEXT "update services set service_last_check=FROM_UNIXTIME(%d), service_text='%s', service_state=%d where service_id=%ld"
 
 
 
-#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico, server_enabled, server_notify, server_flap_seconds, server_dead) VALUES('%s','%s', '%d', '%s', '%d', '%d', '%d', '%d')"
+#define ADD_SERVER "insert into servers (server_name,server_ip,server_port, server_ico, server_enabled, server_notify, server_flap_seconds, server_dead) VALUES('%s','%s', '%d', '%s', '%d', '%d', '%ld', '%d')"
 #define DELETE_SERVER "delete from servers where server_id=%d"
-#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s', server_enabled='%d', server_notify='%d', server_flap_seconds='%d', server_dead='%d' where server_id=%d"
+#define UPDATE_SERVER "update servers set server_name='%s',server_ip='%s',server_port=%d, server_ico='%s', server_enabled='%d', server_notify='%d', server_flap_seconds='%ld', server_dead='%d' where server_id=%ld"
 #define SERVER_SELECTOR "select server_name, server_ip, server_port, server_ico, server_enabled, server_notify, server_flap_seconds, server_dead from servers where server_id=%d"
 #define SERVER_CHANGE_ID "update servers set server_id=%d where server_id=%d"
 #define SERVER_CHANGE_SERVICES "update services set server_id=%d where server_id=%d"
 
-#define SERVER_UPDATE_TEXT "update servers set server_enabled='%d', server_notify='%d' where server_id=%d"
+#define SERVER_UPDATE_TEXT "update servers set server_enabled='%d', server_notify='%d' where server_id=%ld"
 
 #define DELETE_SERVICE_BY_SERVER "delete from services where server_id=%d"
 
-#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain, service_snmp_community, service_snmp_objid, service_snmp_version, service_snmp_warning, service_snmp_critical, service_snmp_type, flap_seconds, service_exec_plan) values(%d,'%s','%s',4, 'Newly created', '%s',%d,%d,%d,%d,'%s',%d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d, '%s')"
+#define ADD_SERVICE "insert into services(server_id, service_plugin, service_name, service_state,service_text, service_args,service_notify, service_active, service_interval, service_type,service_var,service_passive_timeout,service_check_timeout, service_ack, service_retain, service_snmp_community, service_snmp_objid, service_snmp_version, service_snmp_warning, service_snmp_critical, service_snmp_type, flap_seconds, service_exec_plan) values(%ld,'%s','%s',4, 'Newly created', '%s',%d,%d,%ld,%d,'%s',%ld, %ld, %d, %ld, '%s', '%s', %d, %ld, %ld, %ld, %ld, '%s')"
 #define DELETE_SERVICE "delete from services where service_id=%d"
 #define SERVICE_CHANGE_ID "update services set service_id=%d where service_id=%d"
 
-#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%d,service_interval = %d, service_plugin='%s',service_args='%s',service_passive_timeout=%d, service_var='%s',service_check_timeout=%d, service_ack='%d', service_retain='%d', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%d', service_snmp_critical='%d', service_snmp_type='%d', service_notify='%d', service_active='%d', flap_seconds='%d', service_exec_plan='%s'  where service_id=%d"
+#define UPDATE_SERVICE "update services set service_type=%d,service_name='%s',server_id=%ld,service_interval = %ld, service_plugin='%s',service_args='%s',service_passive_timeout=%ld, service_var='%s',service_check_timeout=%ld, service_ack='%d', service_retain='%ld', service_snmp_community='%s', service_snmp_objid='%s', service_snmp_version='%d', service_snmp_warning='%ld', service_snmp_critical='%ld', service_snmp_type='%ld', service_notify='%d', service_active='%d', flap_seconds='%ld', service_exec_plan='%s'  where service_id=%ld"
 #define SERVICE_SELECTOR "select svc.service_id, svc.service_name, svc.service_state, srv.server_name, srv.server_id, srv.server_port, srv.server_ip, svc.service_plugin, svc.service_args, UNIX_TIMESTAMP(svc.service_last_check), svc.service_interval, svc.service_text, 'a', 'a','a', 'a', svc.service_notify, svc.service_type, svc.service_var, svc.service_passive_timeout, svc.service_active,svc.service_check_timeout, svc.service_ack, svc.service_retain, svc.service_snmp_community, svc.service_snmp_objid, svc.service_snmp_version, svc.service_snmp_warning, svc.service_snmp_critical, svc.service_snmp_type, srv.server_ico, svc.flap_seconds, svc.service_exec_plan from services svc, servers srv where svc.server_id=srv.server_id and svc.service_id=%d"
 
 
 
 
-#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, notify_levels, worker_active, worker_name, password,enabled_triggers, escalation_limit, escalation_minutes, notify_plan) VALUES('%s', '%s', '%s', %d, '%s', '%s', '%s', '%d', '%d', '%s')"
+#define ADD_WORKER    "INSERT INTO workers(worker_mail, worker_icq, notify_levels, worker_active, worker_name, password,enabled_triggers, escalation_limit, escalation_minutes, notify_plan) VALUES('%s', '%s', '%s', %d, '%s', '%s', '%s', '%ld', '%ld', '%s')"
 #define DELETE_WORKER "delete from workers where worker_id=%d"
-#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s', enabled_triggers='%s', escalation_limit='%d', escalation_minutes='%d', notify_plan='%s' WHERE worker_id=%d"
+#define UPDATE_WORKER "update workers set worker_mail='%s', worker_icq='%s', notify_levels='%s', worker_active=%d, worker_name='%s', password='%s', enabled_triggers='%s', escalation_limit='%ld', escalation_minutes='%ld', notify_plan='%s' WHERE worker_id=%ld"
 #define WORKER_SEL "select worker_mail, worker_icq, enabled_services,notify_levels, worker_active, worker_name, worker_id, password, enabled_triggers, escalation_limit, escalation_minutes, notify_plan from workers where worker_id=%d"
 #define WORKER_CHANGE_ID "update workers set worker_id=%d where worker_id=%d"
 
 
-#define UPDATE_DOWNTIME "update downtime set downtime_notice='%s', downtime_from=%d,downtime_to=%d, service_id=%d, downtime_type=%d where downtime_id=%d"
+#define UPDATE_DOWNTIME "update downtime set downtime_notice='%s', downtime_from=%d,downtime_to=%d, service_id=%d, downtime_type=%d where downtime_id=%ld"
 #define DEL_DOWNTIME "delete from downtime where downtime_id=%d"
 #define ADD_DOWNTIME "INSERT INTO downtime(downtime_type, downtime_from,downtime_to,service_id, downtime_notice) VALUES(%d,%d,%d,%d, '%s')"
 #define DOWNTIME_SEL "select downtime_id, downtime_type, downtime_from, downtime_to, downtime_notice, service_id from downtime"
@@ -966,7 +969,7 @@ int GetWorkerById(int worker_id, struct worker * svc, char * config) {
       			sprintf(svc->notify_plan, " ");	
       		}
       		tmprc=0;
-      		printf("limit: %d, minutes: %d", svc->escalation_limit, svc->escalation_minutes);
+      		printf("limit: %ld, minutes: %ld", svc->escalation_limit, svc->escalation_minutes);
       	} else {
 			tmprc=-1;
 	}
@@ -1244,9 +1247,9 @@ int GetServiceById(int service_id, struct service * svc, char * config) {
       		svc->lcheck.tv_sec=atoi(row[9]);
       		svc->last_check=atoi(row[9]);
       		
-      		svc->check_interval=atoi(row[10]);
+      		svc->check_interval=atol(row[10]);
       		
-      		svc->check_interval_original=atoi(row[10])*1000;
+      		svc->check_interval_original=atol(row[10])*1000;
       		      		
       		
       		//svc->hour_from=atoi(row[12]);
@@ -2124,8 +2127,8 @@ int GetServiceMap(struct service * svcs, char * config) {
       			svcs[i].lcheck.tv_sec=atoi(row[9]);                      
 			svcs[i].last_check=atoi(row[9]);    				                            
       				                                 
-      			svcs[i].check_interval=atoi(row[10]);
-      			svcs[i].check_interval_original=atoi(row[10])*1000;
+      			svcs[i].check_interval=atol(row[10]);
+      			svcs[i].check_interval_original=atol(row[10])*1000;
       			
       			/*if(i > POS2_QUEUER_THREADS*POS2_QUEUER_THREADS*POS2_QUEUER_THREADS) {
       				ht += 10;

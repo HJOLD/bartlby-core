@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.69  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.68  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -348,7 +351,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		svc->service_retain_current=0;
 		svc->last_state=svc->current_state;
 		
-		_log("@LOG@%d|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->new_server_text);
+		_log("@LOG@%ld|%d|%s:%d/%s|%s", svc->service_id, svc->current_state, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->new_server_text);
 		bartlby_push_event(EVENT_STATUS_CHANGED, "Service-Changed;%d;%s:%d/%s;%d;%s", svc->service_id, svc->srv->server_name, svc->srv->client_port, svc->service_name, svc->current_state, svc->new_server_text);
 		bartlby_callback(EXTENSION_CALLBACK_STATE_CHANGED, svc);
 	}	

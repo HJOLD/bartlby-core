@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.6  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.5  2006/02/19 15:04:13  hjanuschka
 *** empty log message ***
 
@@ -94,7 +97,7 @@ int main(int argc, char ** argv) {
 			bartlby_address=shmat(shm_id,NULL,0);
 			shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
 			
-			printf("%d\t%d\t%d\t%d\t%d\n", shm_id, shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->dtcount, shm_hdr->current_running);
+			printf("%d\t%ld\t%ld\t%ld\t%ld\n", shm_id, shm_hdr->svccount, shm_hdr->wrkcount, shm_hdr->dtcount, shm_hdr->current_running);
 			
 			shmdt(bartlby_address); 
 			exit(1);

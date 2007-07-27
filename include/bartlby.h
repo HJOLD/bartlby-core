@@ -101,10 +101,10 @@
 
 
 struct shm_counter {
-	int worker;
-	int services;
-	int downtimes;
-	int servers;	
+	long worker;
+	long services;
+	long downtimes;
+	long servers;	
 };
 
 struct perf_statistic {
@@ -117,9 +117,9 @@ struct snmpi {
 	char community[512];
 	int version;
 	char objid[1024];
-	int warn;
-	int crit;
-	int type;
+	long warn;
+	long crit;
+	long type;
 };
 struct sprocess {
 	int start_time;
@@ -137,17 +137,17 @@ struct sched_threads {
 
 
 struct shm_header {
-	int size_of_structs;
-	int thrdcount;
-	int svccount;
-	int wrkcount;
-	int srvcount;
-	int current_running;
+	long size_of_structs;
+	long thrdcount;
+	long svccount;
+	long wrkcount;
+	long srvcount;
+	long current_running;
 	char  version[50];
 	int do_reload;
 	int last_replication;
 	int startup_time;
-	int dtcount;
+	long dtcount;
 	int sirene_mode;
 	struct perf_statistic pstat;
 	int cur_event_index;
@@ -156,7 +156,7 @@ struct shm_header {
 };
 
 struct server {
-	int server_id;
+	long server_id;
 	char  client_ip[2048];
 	char  server_name[2048];
 	char server_icon[1024];
@@ -164,7 +164,7 @@ struct server {
 	int client_port;
 	int server_dead;
 	int server_notify;
-	int server_flap_seconds;
+	long server_flap_seconds;
 	int flap_count;
 	int last_notify_send;
 	struct service * dead_marker;
@@ -174,8 +174,8 @@ struct server {
 
 
 struct service {
-	int service_id;
-	int server_id;
+	long service_id;
+	long server_id;
 	int last_state;
 	int current_state;
 	
@@ -184,8 +184,8 @@ struct service {
 	
 	char  plugin[2048];
 	char  plugin_arguments[2048];
-	int check_interval;
-	int check_interval_original;
+	long check_interval;
+	long check_interval_original;
 	int last_check;
 	struct timeval lcheck;
 	
@@ -196,24 +196,24 @@ struct service {
 	/*Notify things*/
 	int notify_enabled;
 	int last_notify_send;
-	int flap_count;
+	long flap_count;
 	
 	int service_active;
 	
 	char  service_var[2048];
 	int service_type;
-	int service_passive_timeout;
+	long service_passive_timeout;
 	
 	int notify_last_state;
 	int notify_last_time;
-	int service_check_timeout;
+	long service_check_timeout;
 	
 	
 	
 	int service_ack;
 	
-	int service_retain;
-	int service_retain_current;
+	long service_retain;
+	long service_retain_current;
 	
 	
 	
@@ -228,10 +228,10 @@ struct service {
 	
 	struct sprocess process;
 	
-	int flap_seconds;
+	long flap_seconds;
 	
 	struct server * srv;
-	int srv_place;
+	long srv_place;
 	
 	int is_server_dead;
 	
@@ -248,7 +248,7 @@ struct worker {
 	char  icq[2048];
 	char  services[2048];
 	
-	int worker_id;
+	long worker_id;
 	int active;
 	char notify_plan[2048];
 	char password[2048];
@@ -258,14 +258,14 @@ struct worker {
 	char notify_levels[20];
 	char enabled_triggers[2048];
 	char t[500];
-	int escalation_limit;
-	int escalation_minutes;
+	long escalation_limit;
+	long escalation_minutes;
 
 }sa;
 
 
 struct downtime {
-	int downtime_id;
+	long downtime_id;
 	int downtime_type;
 	int downtime_from;
 	int downtime_to;
@@ -275,7 +275,7 @@ struct downtime {
 }sb;
 
 struct btl_event {
-	int evnt_id;
+	long evnt_id;
 	char evnt_message[1024];
 	int evnt_time;
 		
@@ -362,11 +362,12 @@ void bartlby_SHM_link_services_servers(void * shm_addr, char * cfgfile);
 
 void bartlby_perf_track(struct service * svc,char * return_buffer, int return_bytes, char * cfgfile);
 int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int type, int time);
-int bartlby_milli_timediff(struct timeval end, struct timeval start);
+long bartlby_milli_timediff(struct timeval end, struct timeval start);
 
 void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check);
 //Global :-)
 int _log(char * str,  ...);
+
 void bartlby_decode(char * msg, int length);
 void bartlby_encode(char * msg, int length);
 char * bartlby_beauty_state(int status);

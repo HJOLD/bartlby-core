@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.43  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.42  2007/02/15 20:46:38  hjanuschka
 auto commit
 
@@ -239,6 +242,8 @@ int gReuseSHM=0;
 
 
 void dispHelp(void) {
+	
+	
 	printf("\n");
 	printf("	Bartlby\n");
 	printf("          %s Version %s (%s) started. compiled %s/%s\n", PROGNAME, VERSION,REL_NAME, __DATE__, __TIME__);
@@ -335,7 +340,7 @@ void bartlby_load_shm_stuff(char * cfgfile) {
     	gGetNameStr=gGetName();
     	
     	if(gExpectVersion() > EXPECTCORE || EXPECTCORE < gExpectVersion() || EXPECTCORE != gExpectVersion()) {
-    		_log("*****Version check failed Module is compiled for version '%d' of %s", gExpectVersion(), PROGNAME);	
+    		_log("*****Version check failed Module is compiled for version '%ld' of %s", gExpectVersion(), PROGNAME);	
     		_log("*****The Module is compiled under '%d' Version of %s", EXPECTCORE, PROGNAME);
     		exit(1);
     	} 
@@ -431,7 +436,7 @@ void bartlby_shm_fits(char * cfgfile) {
 			exit(1);	
 		}
 		_log("SHM requires: %d KB ", suggested_minimum/1024);
-		_log("Size: S=%d, W=%d, D=%d, H=%d, E=%d", sizeof(struct service), sizeof(struct worker), sizeof(struct downtime), sizeof(struct shm_header), sizeof(struct btl_event));
+		_log("Size: S=%ld, W=%ld, D=%ld, H=%ld, E=%ld", sizeof(struct service), sizeof(struct worker), sizeof(struct downtime), sizeof(struct shm_header), sizeof(struct btl_event));
 		free(shmc);
 		
 
@@ -479,9 +484,9 @@ int bartlby_populate_shm(char * cfgfile) {
 			bartlby_ext_init(gBartlby_address, gSOHandle, cfgfile);
 				
 			
-			_log("Workers: %d", gshm_hdr->wrkcount);
-			_log("Downtimes: %d", gshm_hdr->dtcount);
-			_log("Servers: %d", gshm_hdr->srvcount);
+			_log("Workers: %ld", gshm_hdr->wrkcount);
+			_log("Downtimes: %ld", gshm_hdr->dtcount);
+			_log("Servers: %ld", gshm_hdr->srvcount);
 			gshm_hdr->current_running=0;
 			sprintf(gshm_hdr->version, "%s-%s (%s)", PROGNAME, VERSION, REL_NAME);
 						
@@ -502,7 +507,7 @@ int bartlby_populate_shm(char * cfgfile) {
 			
 			
 			if(gshm_hdr->wrkcount <= 0) {
-				_log("Found workers are below zero (%d) maybe your datalib config isnt OK or you havent completed the setup", gshm_hdr->wrkcount);
+				_log("Found workers are below zero (%ld) maybe your datalib config isnt OK or you havent completed the setup", gshm_hdr->wrkcount);
 				shmdt(gBartlby_address);
 				gshm_id = shmget(ftok(gShmtok, 32), 0, 0600);
 				shmctl(gshm_id, IPC_RMID, &gshm_desc);

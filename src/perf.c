@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.11  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.10  2006/12/05 03:47:12  hjanuschka
 auto commit
 
@@ -82,8 +85,12 @@ core statistic (should be used in debug mode only produces a biiiig file)
 
 #include <bartlby.h>
 
-int bartlby_milli_timediff(struct timeval end, struct timeval start) {
-	return ((end.tv_sec - start.tv_sec) * 1000) +  (((1000000 + end.tv_usec - start.tv_usec) / 1000) - 1000);	
+long bartlby_milli_timediff(struct timeval end, struct timeval start) {
+	long r;
+	
+	r=((end.tv_sec - start.tv_sec) * 1000) +  (((1000000 + end.tv_usec - start.tv_usec) / 1000) - 1000);	
+	
+	return r;
 }
 
 int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int type, int time) {
@@ -127,7 +134,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 	
 	
 	//signal(SIGCHLD, SIG_IGN);
-	sprintf(my_own_handler, "perfhandler_enabled_%d", svc->service_id);
+	sprintf(my_own_handler, "perfhandler_enabled_%ld", svc->service_id);
 	
 	
 	perf_enabled=getConfigValue("perfhandler_enabled", cfgfile);
@@ -159,7 +166,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 			_log("Performance Trigger: %s not found", perf_trigger);	
 		} else {
 			
-			sprintf(perf_trigger, "%s/%s %d %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
+			sprintf(perf_trigger, "%s/%s %ld %s 2>&1 > /dev/null", cfg_perf_dir, svc->plugin, svc->service_id, return_buffer);
 			signal(SIGPIPE,SIG_DFL);
 			signal(SIGCHLD,SIG_DFL);
 			gettimeofday(&stat_start,NULL);

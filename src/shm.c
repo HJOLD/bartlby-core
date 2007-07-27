@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.11  2007/07/27 22:54:04  hjanuschka
+int to long changing
+
 Revision 1.10  2007/02/15 20:46:38  hjanuschka
 auto commit
 
@@ -47,7 +50,7 @@ CVS Header
 
 #include <string.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 
 
 #include <bartlby.h>
