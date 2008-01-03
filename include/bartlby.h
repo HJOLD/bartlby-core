@@ -1,6 +1,6 @@
 
 #define PROGNAME "bartlby"
-#define REL_NAME "spartan"
+#define REL_NAME "zero-eight"
 #define VERSION  "1.2.9"
 #define EXPECTCORE 1102051 //Module V Check's
 
