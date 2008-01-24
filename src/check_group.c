@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2008/01/24 14:10:16  hjanuschka
+auto commit
+
 Revision 1.2  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -89,7 +92,7 @@ void bartlby_check_group(struct service * svc, void * shm_addr) {
 				return;
 			}
 			
-			if(svg->current_state == state) {
+			if(bartlby_is_in_downtime(shm_addr, svg) > 0 && svg->current_state == state) {
 				//_log("Service: is not %d\n", svg->current_state );
 				sprintf(svc->new_server_text, "%s %s:%d/%s - %d", GROUP_CRITICAL, svg->srv->server_name, svg->srv->client_port, svg->service_name, state);
 				svc->current_state=STATE_CRITICAL;
