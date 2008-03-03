@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.7  2008/03/03 12:01:27  hjanuschka
+list all services
+
 Revision 1.6  2007/07/27 22:54:04  hjanuschka
 int to long changing
 
@@ -57,7 +60,9 @@ int main(int argc, char ** argv) {
 	//int * shm_elements;
 	void * bartlby_address;
 	struct shm_header * shm_hdr;
-	
+	struct service * svcmap;
+	struct server * srvmap;
+	int x;
 	
 	
 	
@@ -101,8 +106,18 @@ int main(int argc, char ** argv) {
 			
 			shmdt(bartlby_address); 
 			exit(1);
+		} else if ( strcmp(argv[2], "list") == 0 ) {
+			bartlby_address=shmat(shm_id,NULL,0);
+			svcmap=bartlby_SHM_ServiceMap(bartlby_address);
+			shm_hdr=bartlby_SHM_GetHDR(bartlby_address);
+			srvmap=bartlby_SHM_ServerMap(bartlby_address);
+			
+			for(x=0; x<shm_hdr->svccount; x++) {
+				printf("%ld;%s;%d;%s;%d;\n", svcmap[x].service_id, srvmap[svcmap[x].srv_place].server_name, srvmap[svcmap[x].srv_place].client_port, svcmap[x].service_name, svcmap[x].current_state);
+			}
+			exit(1);
 		}
-		printf("Unknown option: status|remove");
+		printf("Unknown option: status|remove|list");
 		
 		
 	} else {
