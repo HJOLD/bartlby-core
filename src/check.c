@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.70  2008/03/11 20:35:04  hjanuschka
+Revision 1.71  2008/03/11 20:49:28  hjanuschka
 auto commit
 
 Revision 1.69  2007/07/27 22:54:04  hjanuschka
@@ -397,7 +397,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 	/* current state is critical*/
 	/* retain_current >= escalate_value */ 
 	
-	if ( (svc->service_retain_current >= svc->service_retain) && ( svc->current_state == STATE_CRITICAL )  && ( svc->escalate_seconds > 0 ) && ( svc->service_retain_current % svc->escalate_seconds == 0 ) ) {
+	if ( (svc->service_retain_current >= svc->service_retain) && ( svc->current_state == STATE_CRITICAL )  && ( svc->escalate_divisor > 0 ) && ( svc->service_retain_current % svc->escalate_divisor == 0 ) ) {
 		_log("escalate to standby workers	 for %s:%d/%s", svc->srv->server_name,svc->srv->client_port, svc->service_name);
 		bartlby_trigger(svc, cfgfile, shm_addr, 1, 1);
 		
