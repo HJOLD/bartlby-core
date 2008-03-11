@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.31  2008/03/11 20:35:04  hjanuschka
+auto commit
+
 Revision 1.30  2007/07/27 22:54:04  hjanuschka
 int to long changing
 
@@ -205,8 +208,8 @@ int bartlby_trigger_worker_level(struct worker * w,  struct service * svc) {
 	return rt;
 }
 
-int bartlby_trigger_escalation(struct worker *w, struct service * svc) {
-	if(w->active != 1) {
+int bartlby_trigger_escalation(struct worker *w, struct service * svc, int standby_workers_only) {
+	if(standby_workers_only == 0 && w->active != 1) {
 		//_log("Worker: %s is inactive", w->mail);
 		return FL;	
 	}
@@ -393,7 +396,7 @@ int bartlby_worker_has_service(struct worker * w, struct service * svc, char * c
 	return the_state;
 }
 
-void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check) {
+void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check, int standby_workers_only) {
 	char * trigger_dir;
 	struct dirent *entry;
 	DIR * dtrigger;
@@ -498,9 +501,11 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 						if(strstr(wrkmap[x].enabled_triggers, find_trigger) != NULL || strlen(wrkmap[x].enabled_triggers) == 0) {
 							
 							
-							if((bartlby_trigger_escalation(&wrkmap[x], svc)) == FL) continue;
+							if((bartlby_trigger_escalation(&wrkmap[x], svc, standby_workers_only)) == FL) continue;
 							if((bartlby_trigger_worker_level(&wrkmap[x], svc)) == FL) continue;
-							
+								
+							/* if standby escalation message check if worker is in standby mode either skip him/her*/
+							if(standby_workers_only == 1 && wrkmap[x].active != 2) continue;
 							
 							en.trigger = entry->d_name;
 							en.svc = svc;
@@ -558,4 +563,11 @@ void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int 
 	free(notify_msg);
 	closedir(dtrigger);
 }
+
+
+
+
+
+
+
 

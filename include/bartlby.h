@@ -2,7 +2,7 @@
 #define PROGNAME "bartlby"
 #define REL_NAME "autobot"
 #define VERSION  "1.3.1"
-#define EXPECTCORE 1103151 //Module V Check's
+#define EXPECTCORE 1103251 //Module V Check's
 
 #define MAX_CCACHE 1024
 
@@ -235,6 +235,9 @@ struct service {
 	
 	int is_server_dead;
 	
+	/**/
+	long renotify_interval; // interval to renotify
+	long escalate_seconds; //
 };
 
 struct service_sort {
@@ -364,7 +367,7 @@ void bartlby_perf_track(struct service * svc,char * return_buffer, int return_by
 int bartlby_core_perf_track(struct shm_header * hdr, struct service * svc, int type, int time);
 long bartlby_milli_timediff(struct timeval end, struct timeval start);
 
-void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check);
+void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check, int standby_workers_only);
 //Global :-)
 int _log(char * str,  ...);
 

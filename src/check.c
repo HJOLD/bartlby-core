@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.70  2008/03/11 20:35:04  hjanuschka
+auto commit
+
 Revision 1.69  2007/07/27 22:54:04  hjanuschka
 int to long changing
 
@@ -363,7 +366,7 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 			svc->recovery_outstanding = RECOVERY_OUTSTANDING;	
 		}
 		
-		bartlby_trigger(svc, cfgfile, shm_addr, 1);
+		bartlby_trigger(svc, cfgfile, shm_addr, 1, 0);
 		svc->notify_last_state=svc->current_state;
 		
 		if(svc->current_state == STATE_OK && svc->recovery_outstanding == RECOVERY_OUTSTANDING) {
@@ -378,6 +381,30 @@ void bartlby_fin_service(struct service * svc, void * SOHandle, void * shm_addr,
 		
 	
 	}
+	/* Check if we need to re-notify */
+	/* when retain in reached */
+	/* current state is critical*/
+	/* re-notify interval reached  (seen from last_notify) */
+	
+	if ( (svc->service_retain_current >= svc->service_retain) && ( svc->current_state == STATE_CRITICAL )  && ( svc->renotify_interval > 0 ) && ( (time(NULL)-svc->last_notify_send) >= svc->renotify_interval ) ) {
+		_log("re-notify	 for %s:%d/%s", svc->srv->server_name,svc->srv->client_port, svc->service_name);
+		bartlby_trigger(svc, cfgfile, shm_addr, 1, 0);
+		svc->notify_last_state=svc->current_state;
+		
+	}
+	/* Check if we need to escalate and enable standby workers */
+	/* when retain in reached */
+	/* current state is critical*/
+	/* retain_current >= escalate_value */ 
+	
+	if ( (svc->service_retain_current >= svc->service_retain) && ( svc->current_state == STATE_CRITICAL )  && ( svc->escalate_seconds > 0 ) && ( svc->service_retain_current % svc->escalate_seconds == 0 ) ) {
+		_log("escalate to standby workers	 for %s:%d/%s", svc->srv->server_name,svc->srv->client_port, svc->service_name);
+		bartlby_trigger(svc, cfgfile, shm_addr, 1, 1);
+		
+		
+	}
+	
+	
 	
 	
 	

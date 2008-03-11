@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.3  2008/03/11 20:35:04  hjanuschka
+auto commit
+
 Revision 1.2  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -85,7 +88,7 @@ void bartlby_check_sirene(char * configfile, void * bartlby_address) {
 	svc.last_state=STATE_SIRENE;
 	
 	_log("!!! System is in sirene Mode !!!!");
-	bartlby_trigger(&svc,configfile, bartlby_address, 0);
+	bartlby_trigger(&svc,configfile, bartlby_address, 0, 0);
 	
 	
 	
