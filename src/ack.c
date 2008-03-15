@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2008/03/15 18:25:28  hjanuschka
+auto commit
+
 Revision 1.3  2008/03/11 20:35:04  hjanuschka
 auto commit
 
@@ -78,6 +81,12 @@ void bartlby_check_sirene(char * configfile, void * bartlby_address) {
 	//sprintf(svc.client_ip, "0.0.0.0");
 	//sprintf(svc.server_name, "CORE");
 	svc.srv=malloc(sizeof(struct server));
+	if(svc.srv == NULL) {
+		_log("malloc failed in bartlby_check_sirene()");
+		return;	
+	}
+	
+	
 	sprintf(svc.srv->client_ip, "0.0.0.0");
 	sprintf(svc.srv->server_name, "CORE");
 	

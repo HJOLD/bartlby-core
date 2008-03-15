@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2008/03/15 18:25:28  hjanuschka
+auto commit
+
 Revision 1.11  2006/09/09 19:38:34  hjanuschka
 auto commit
 
@@ -238,9 +241,13 @@ void bartlby_pre_init(char * cfgfile) {
 		
 	} else {
 		sprintf(pidstr, "%d", getpid());
-		fwrite(pidstr, sizeof(char), strlen(pidstr), pidfile);
-		fclose(pidfile);
-		_log("pidfile is at: '%s'", pidfname);
+		if(fwrite(pidstr, sizeof(char), strlen(pidstr), pidfile) <= 0) {
+			_log("pidfile creation failed");
+		} else {
+			fclose(pidfile);
+			_log("pidfile is at: '%s'", pidfname);
+		}
+		
 	}
 	
 	if(setenv("BARTLBY_HOME", base_dir,1) == 0) {
