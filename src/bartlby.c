@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.44  2008/03/16 22:25:37  hjanuschka
+auto commit
+
 Revision 1.43  2007/07/27 22:54:04  hjanuschka
 int to long changing
 
@@ -396,8 +399,15 @@ void bartlby_setuid(void) {
 	if(ui == NULL) {
 		_log("User: %s not found cannot setuid running as %d", cfg_user, getuid());	
 	} else {
-		setuid(ui->pw_uid);
-		setgid(ui->pw_gid);
+		if(setuid(ui->pw_uid) < 0) {
+			_log("setuid() failed: %s", ui->pw_name);	
+			exit(2);
+		}
+		if(setgid(ui->pw_gid) < 0) {
+			_log("setgid() failed: %d", ui->pw_name);	
+			exit(2);
+			
+		}
 		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
 	}
 	
@@ -508,9 +518,17 @@ int bartlby_populate_shm(char * cfgfile) {
 			
 			if(gshm_hdr->wrkcount <= 0) {
 				_log("Found workers are below zero (%ld) maybe your datalib config isnt OK or you havent completed the setup", gshm_hdr->wrkcount);
-				shmdt(gBartlby_address);
+				
+				if(shmdt(gBartlby_address) < 0) {
+					_log("shmdt() failed '%s`", strerror(errno));	
+				}
+				
 				gshm_id = shmget(ftok(gShmtok, 32), 0, 0600);
-				shmctl(gshm_id, IPC_RMID, &gshm_desc);
+				
+				if(shmctl(gshm_id, IPC_RMID, &gshm_desc) < 0) {
+					_log("shmctl() failed '%s`", strerror(errno));	
+				}
+				
 				return -1;
 				
 			}
@@ -545,9 +563,16 @@ int bartlby_go(char * cfgfile) {
 		//write back all services 
 		sched_write_back_all(cfgfile, gBartlby_address, gSOHandle);
 		
-		shmdt(gBartlby_address);
+				
+		if(shmdt(gBartlby_address) < 0) {
+			_log("shmdt() failed '%s`", strerror(errno));	
+		}
+		
 		gshm_id = shmget(ftok(gShmtok, 32), 0, 0600);
-		shmctl(gshm_id, IPC_RMID, &gshm_desc);
+		if(shmctl(gshm_id, IPC_RMID, &gshm_desc) < 0) {
+			_log("shmctl() failed '%s`", strerror(errno));		
+		}
+		
 		
 		if(exi_code != 1) {
 			//re populate SHM called reload *fg*
@@ -624,11 +649,17 @@ int main(int argc, char ** argv) {
 	}
 	
 	//start it
-	bartlby_go(gCfgfile);
+	if(bartlby_go(gCfgfile) < 0) {
+			_log("bartlby_go() failed");
+	}
 		
 	
 	free(gShmtok);
-	dlclose(gSOHandle);	
+
+	if(dlclose(gSOHandle) < 0) {
+		_log("dlclose() failed '%s`", strerror(errno));	
+	}	
+
 	_log("%s Ended(Daemon: %s)", PROGNAME, daemon_mode);	
 	bartlby_end_clean(gCfgfile);
 	

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.80  2008/03/16 22:25:37  hjanuschka
+auto commit
+
 Revision 1.79  2007/07/27 22:54:04  hjanuschka
 int to long changing
 
@@ -317,7 +320,12 @@ void catch_signal(int signum) {
 		do_shutdown=1;
 		sig_pid=getpid();
 		if(sig_pid != sched_pid) {
-			kill(sched_pid, SIGINT); //Notify scheduler that someone is trying to kill us
+			
+			if(kill(sched_pid, SIGINT) < 0) {
+				_log("kill() failed in catch_signal() '%s`", strerror(errno));	
+			} //Notify scheduler that someone is trying to kill us
+			
+			
 			exit(1); // Exid child
 				
 		}
@@ -330,7 +338,10 @@ void catch_signal(int signum) {
                 gshm_hdr->do_reload=1;
                 sig_pid=getpid();
                 if(sig_pid != sched_pid) {
-                        kill(sched_pid, SIGUSR2); //notify scheduler
+                	
+                        if(kill(sched_pid, SIGUSR2) < 0) {
+                        	_log("kill() failed in catch_signal() '%s`", strerror(errno));		
+                        } //notify scheduler
                         exit(1);
 
                 }
@@ -357,7 +368,9 @@ void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle) {
 	LOAD_SYMBOL(doUpdateServer,SOHandle, "doUpdateServer");
 	
 	for(x=0; x<gshm_hdr->svccount; x++) {
-		doUpdate(&services[x], cfgfile);
+		if(doUpdate(&services[x], cfgfile) != 1) {
+			_log("doUpdate() failed in sched_writeback_all() '%s` for service id: %d", strerror(errno), services[x].service_id);		
+		}
 	}	
 	_log("wrote back %d services!", x);
 	
