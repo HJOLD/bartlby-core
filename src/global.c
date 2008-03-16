@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.29  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.28  2007/04/01 16:06:32  hjanuschka
 auto commit
 
@@ -145,7 +148,7 @@ void set_cfg(char * cfg) {
 }
 
 
-int service_is_in_time(char * time_plan) {
+int service_is_in_time(const char * time_plan) {
 	char * tmp;	
 	char * tmp1;
 	char * token, *token1;
@@ -316,7 +319,7 @@ void bartlby_encode(char * msg, int length) {
 	
 }
 
-int _log(char * str,  ...) {
+int _log(const char * str,  ...) {
 //	printf("LOG: %s\n", str);
 	
 	

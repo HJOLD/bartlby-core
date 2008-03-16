@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.12  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.11  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -105,7 +108,7 @@ void cfg_update_cache(char * k, char * v) {
 	return;
 }
 
-char * cfg_cache_find(char *k) {
+char * cfg_cache_find(const char *k) {
 	int x;
 	for(x=0; x<MAX_CCACHE; x++) {
 		if(strcmp(ccache[x].key, k) == 0) {
@@ -115,7 +118,7 @@ char * cfg_cache_find(char *k) {
 	}	
 	return NULL;
 }
-char * cfg_add_to_cache(char * k, char * v) {
+char * cfg_add_to_cache(const char * k, char * v) {
 	
 	
 	
@@ -135,7 +138,7 @@ char * getConfigValue(char * key, char * fname) {
 	return getConfigValue_ex(key, fname, 1);
 }
 
-char * getConfigValue_ex(char * key, char * fname, int cache) {
+char * getConfigValue_ex(const char * key, const char * fname, int cache) {
 	FILE * fp;
 	char  str[1024];
 	char * val;

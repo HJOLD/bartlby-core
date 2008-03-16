@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.3  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -45,7 +48,7 @@ auto commit
 #include <bartlby.h>
 
 
-static int connection_timed_out=0;
+static sig_atomic_t connection_timed_out=0;
 
 static void bartlby_conn_timeout(int signo) {
  	connection_timed_out = 1;

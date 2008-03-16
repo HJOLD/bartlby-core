@@ -326,7 +326,7 @@ typedef struct port_packet_struct{
 #define PORTIER_REQUEST_PACKET 3
 
 
-char * getConfigValue_ex(char * key, char * fname, int cache);
+char * getConfigValue_ex(const char * key, const char * fname, int cache);
 char * getConfigValue(char *, char *);
 int clear_serviceMap(struct service **);
 int clear_workerMap(struct worker ** m);
@@ -335,7 +335,7 @@ int schedule_loop(char *, void *, void *);
 void sched_write_back_all(char * cfgfile, void * shm_addr, void * SOHandle);
 
 void sched_reschedule(struct service * svc);
-int service_is_in_time(char * time_plan);
+int service_is_in_time(const char * time_plan);
 void bartlby_check_service(struct service * svc, void *, void *, char *);
 void bartlby_check_active(struct service * svc, char * cfgfile);
 void bartlby_check_local(struct service * svc, char * cfgfile);
@@ -369,7 +369,7 @@ long bartlby_milli_timediff(struct timeval end, struct timeval start);
 
 void bartlby_trigger(struct service * svc, char * cfgfile, void * shm_addr, int do_check, int standby_workers_only);
 //Global :-)
-int _log(char * str,  ...);
+int _log(const char * str,  ...);
 
 void bartlby_decode(char * msg, int length);
 void bartlby_encode(char * msg, int length);
@@ -392,12 +392,12 @@ ssize_t recvall(int _socket, char* buffer, int max_len,int flags);
 //EVNT's
 void bartlby_event_init(void * bartlby_address);
 struct btl_event * bartlby_SHM_EventMap(void * shm_addr);
-int bartlby_push_event(int event_id, char * str,  ...);
+int bartlby_push_event(int event_id, const char * str,  ...);
 
 void bartlby_pre_init(char * cfgfile);
 
 void cfg_init_cache(void);
-char * cfg_add_to_cache(char * k, char * v);
+char * cfg_add_to_cache(const char * k, char * v);
 void cfg_fill_with_file(char * f);
 void cfg_update_cache(char * k, char * v);
 void bartlby_ext_init(void * shm_addr, void * data_loader, char * cfg);

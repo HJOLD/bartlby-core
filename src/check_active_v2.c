@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.9  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.8  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -71,7 +74,7 @@ auto commit
 
 
 
-static int conn_timedout = 0;
+static sig_atomic_t conn_timedout = 0;
 static unsigned long crc32_table[256];
 
 

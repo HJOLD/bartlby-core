@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.4  2006/06/05 00:00:06  hjanuschka
 *** empty log message ***
 
@@ -69,7 +72,7 @@ void bartlby_event_init(void * bartlby_address) {
 	_log("Init event queue done %d messages available", x);
 }
 
-int bartlby_push_event(int event_id, char * str,  ...) {
+int bartlby_push_event(int event_id, const char * str,  ...) {
 //	printf("LOG: %s\n", str);
 	
 	

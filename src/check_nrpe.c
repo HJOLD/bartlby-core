@@ -38,6 +38,9 @@ $Source$
 
 
 $Log$
+Revision 1.4  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.3  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -115,7 +118,7 @@ void bartlby_check_nrpe(struct service * svc, char * cfgfile, int use_ssl) {
 
 #else
 
-static int conn_timedout = 0;
+static sig_atomic_t conn_timedout = 0;
 static unsigned long crc32_table[256];
 
 

@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.32  2008/03/16 21:06:11  hjanuschka
+auto commit
+
 Revision 1.31  2008/03/11 20:35:04  hjanuschka
 auto commit
 
@@ -153,7 +156,7 @@ CVS Header
 #define TR 1
 
 
-static int connection_timed_out=0;
+static sig_atomic_t connection_timed_out=0;
 #define CONN_TIMEOUT 15
 
 
