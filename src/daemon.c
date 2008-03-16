@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.13  2008/03/16 21:23:05  hjanuschka
+auto commit
+
 Revision 1.12  2008/03/15 18:25:28  hjanuschka
 auto commit
 
@@ -229,8 +232,14 @@ void bartlby_pre_init(char * cfgfile) {
 	bartlby_set_limits();
   	
   	
-	chdir(base_dir);
-	_log("basedir set to:%s", base_dir);
+	if(chdir(base_dir) < 0) {		
+		_log("basedir setting failed :%s (%s)", base_dir,strerror(errno));
+		exit(1);	
+	} else {
+		_log("basedir set to:%s", base_dir);	
+	}
+	
+	/* out of manpage: This system call always succeeds and the previous value of the mask is returned.*/
 	umask(0);
 	
 	
@@ -244,7 +253,10 @@ void bartlby_pre_init(char * cfgfile) {
 		if(fwrite(pidstr, sizeof(char), strlen(pidstr), pidfile) <= 0) {
 			_log("pidfile creation failed");
 		} else {
-			fclose(pidfile);
+			if(fclose(pidfile) == EOF) {
+				_log("fclose() failed for pidfile!!");
+				exit(1);
+			}
 			_log("pidfile is at: '%s'", pidfname);
 		}
 		
@@ -283,8 +295,12 @@ void bartlby_end_clean(char *cfgfile) {
 		pid_def_name=strdup(base_dir);
 	}
 	sprintf(pidfname, "%s/bartlby.pid", pid_def_name);
-	unlink(pidfname);
-	_log("%s Pid file removed", pidfname);
+	
+	if(unlink(pidfname) == 0) {	
+		_log("%s Pid file removed", pidfname);
+	} else {
+		_log("%s Pid file remove failed", pidfname);
+	}
 	free(base_dir);
 	free(pid_def_name);
 	
@@ -293,6 +309,7 @@ void bartlby_end_clean(char *cfgfile) {
 
 void bartlby_get_daemon(char * cfgfile) {
 	pid_t pid;
+	
 		
 	if ((pid = fork ()) != 0) {
 		//_log("Fork failed");
@@ -308,5 +325,7 @@ void bartlby_get_daemon(char * cfgfile) {
 	signal(SIGHUP, SIG_IGN);
 	
 	
+	
+	return;
 	
 }
