@@ -16,7 +16,7 @@ $Source$
 
 
 $Log$
-Revision 1.44  2008/03/16 22:25:37  hjanuschka
+Revision 1.45  2008/03/16 22:29:37  hjanuschka
 auto commit
 
 Revision 1.43  2007/07/27 22:54:04  hjanuschka
@@ -404,8 +404,8 @@ void bartlby_setuid(void) {
 			exit(2);
 		}
 		if(setgid(ui->pw_gid) < 0) {
-			_log("setgid() failed: %d", ui->pw_name);	
-			exit(2);
+			_log("setgid() failed: %d '%s`", ui->pw_gid, strerror(errno));	
+		//	exit(2);
 			
 		}
 		_log("User: %s/%d", ui->pw_name, ui->pw_gid);	
