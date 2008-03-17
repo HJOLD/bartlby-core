@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.13  2008/03/17 19:04:43  hjanuschka
+SF Feature issue #1916495 changed static key,value length of config cache to pre defined constant variables (config.c, bartlby.h) reported by Markus Elfring (elfring)
+
 Revision 1.12  2008/03/16 21:06:11  hjanuschka
 auto commit
 
@@ -73,8 +76,8 @@ CVS Header
 
 
 struct cfg_cache {
-	char key[1024];
-	char value[2048];
+	char key[MAX_CCACHE_KEY];
+	char value[MAX_CCACHE_VALUE];
 		
 } ccf;
 
@@ -87,8 +90,8 @@ static int cur_el=0;
 void cfg_init_cache(void) {
 	int x;
 	for(x=0; x<MAX_CCACHE; x++) {
-		snprintf(ccache[x].key,1020,  "%s", "");
-		snprintf(ccache[x].value,2000, "%s", "");
+		snprintf(ccache[x].key,MAX_CCACHE_KEY,  "%s", "");
+		snprintf(ccache[x].value,MAX_CCACHE_VALUE, "%s", "");
 	}
 	_log("Cache init ready for %d variables to hold", MAX_CCACHE);
 			
@@ -100,7 +103,7 @@ void cfg_update_cache(char * k, char * v) {
 	int x;
 	for(x=0; x<MAX_CCACHE; x++) {
 		if(strcmp(ccache[x].key, k) == 0) {
-			snprintf(ccache[x].value,2000, "%s", v);	
+			snprintf(ccache[x].value,MAX_CCACHE_VALUE, "%s", v);	
 			
 			
 		}	
@@ -122,8 +125,8 @@ char * cfg_add_to_cache(const char * k, char * v) {
 	
 	
 	
-	snprintf(ccache[cur_el].key,1020,  "%s", k);
-	snprintf(ccache[cur_el].value,2000, "%s", v);
+	snprintf(ccache[cur_el].key,MAX_CCACHE_KEY,  "%s", k);
+	snprintf(ccache[cur_el].value,MAX_CCACHE_VALUE, "%s", v);
 	if(cur_el + 1 >= MAX_CCACHE) {
 		cur_el=0;
 	} else {

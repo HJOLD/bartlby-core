@@ -16,8 +16,8 @@ $Source$
 
 
 $Log$
-Revision 1.45  2008/03/16 22:29:37  hjanuschka
-auto commit
+Revision 1.46  2008/03/17 19:04:43  hjanuschka
+SF Feature issue #1916495 changed static key,value length of config cache to pre defined constant variables (config.c, bartlby.h) reported by Markus Elfring (elfring)
 
 Revision 1.43  2007/07/27 22:54:04  hjanuschka
 int to long changing
@@ -532,6 +532,7 @@ int bartlby_populate_shm(char * cfgfile) {
 				return -1;
 				
 			}
+			
 			bartlby_SHM_link_services_servers(gBartlby_address, cfgfile);
 			
 			

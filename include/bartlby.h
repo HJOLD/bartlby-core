@@ -5,6 +5,8 @@
 #define EXPECTCORE 1103251 //Module V Check's
 
 #define MAX_CCACHE 1024
+#define MAX_CCACHE_KEY 1024
+#define MAX_CCACHE_VALUE 1024
 
 
 #define RECOVERY_OUTSTANDING 1
