@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.5  2008/03/17 21:42:12  hjanuschka
+missing errno.h in check_activ.c after some splint-down of a few unchecked syscalls
+
 Revision 1.4  2008/03/16 21:06:11  hjanuschka
 auto commit
 
@@ -44,6 +47,7 @@ auto commit
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #include <bartlby.h>
 
@@ -109,7 +113,18 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 			
 	}
 	act1.sa_handler = bartlby_conn_timeout;
-	sigemptyset(&act1.sa_mask);
+		
+	
+	if(sigemptyset(&act1.sa_mask) < 0) {
+		
+		sprintf(svc->new_server_text, "%s", ALARM_ERROR);
+		svc->current_state=STATE_CRITICAL;
+				
+		return;
+	
+		
+	}	
+	
 	act1.sa_flags=0;
 	#ifdef SA_INTERRUPT
 	act1.sa_flags |= SA_INTERRUPT;
@@ -131,7 +146,10 @@ void bartlby_check_active(struct service * svc, char * cfgfile) {
 	if(connection_timed_out == 1 || client_connect_retval == -1) {
 		sprintf(svc->new_server_text, "%s", CONN_ERROR);
 		svc->current_state=STATE_CRITICAL;
-		close(client_socket);
+		
+		if(close(client_socket) < 0) {
+			_log("close() in check_active failed! '%s`", strerror(errno));	
+		}
 		return;
 	} 
 	
