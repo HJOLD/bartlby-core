@@ -152,7 +152,7 @@ do
 	
 	MYSQL_COMMAND="$MY_MYSQL -u $MYSQL_USER --password=$MYSQL_PASSWORD -h $MYSQL_HOST";
 cat << MYSQL_SCRIPT | $MYSQL_COMMAND; 
-use test;
+quit;
 MYSQL_SCRIPT
 MYSQL_OK=$?;
 	
