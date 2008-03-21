@@ -175,7 +175,7 @@ MYSQL_DO_DROP="false";
 fi;
 
 cat << MYSQL | $MYSQL_COMMAND -D $MYSQL_DB
-	use test;
+	quit;
 MYSQL
 
 EX=$?;
