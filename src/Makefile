@@ -18,7 +18,8 @@ install: all
 	
 
 bartlby: ${OBJS}
-	$(CC)   $(EXTRAOPTIONS) $(OPENSSL_ADDON) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o bartlby ${OBJS}
+	@echo "[ Building binary 'bartlby']";
+	$(LNK)   $(EXTRAOPTIONS) $(OPENSSL_ADDON) $(SNMP_ADDON) $(INCLUDE_L) $(LDL)  -o bartlby ${OBJS}
 
 
 

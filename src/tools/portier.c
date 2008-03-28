@@ -16,6 +16,12 @@ $Source$
 
 
 $Log$
+Revision 1.17  2008/03/28 04:34:23  hjanuschka
+patches: nsca-patch updated for  1.3 series of bartlby
+core:	fixed a few compile warnings, happend on x86_64 debian
+core:	cleaner build output
+core:	install-counter, be a part of the community and show the others you are using bartlby
+
 Revision 1.16  2007/07/27 22:54:04  hjanuschka
 int to long changing
 
@@ -181,7 +187,7 @@ int main(int argc, char ** argv) {
 	char * allowed_ip_list;
 	int ip_ok=-1;
 	struct sockaddr_in name;
-   	int namelen = sizeof(name);
+   	unsigned int namelen = sizeof(name);
 	
 	char * token;
 	

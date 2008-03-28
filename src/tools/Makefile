@@ -20,13 +20,15 @@ install: all
 	
 
 shmt: ${SHMT}
-	$(CC)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o bartlby_shmt ${SHMT}
+	@echo "[ Building binary 'bartlby_shmt']";
+	$(LNK)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o bartlby_shmt ${SHMT}
 
 
 
 
 portier: ${PORTIER}
-	$(CC)  $(LDL) $(OPENSSL_ADDON) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o bartlby_portier ${PORTIER}
+	@echo "[ Building binary 'bartlby_portier']";
+	$(LNK)  $(LDL) $(OPENSSL_ADDON) $(EXTRAOPTIONS) $(INCLUDE_LL)   -o bartlby_portier ${PORTIER}
 	
 
 

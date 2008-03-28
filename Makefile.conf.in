@@ -1,4 +1,5 @@
-CC = @CC@
+CC = @echo "[CC] $<";@CC@
+LNK = @echo "[LNK] $<"; @CC@
 CPPVA = @INSTALL_PATH@ @INSTALL_OPTIONS@
 RMVFR = rm -vfr
 MKDIRP = @INSTALL_PATH@ @INSTALL_OPTIONS@ -d

@@ -15,7 +15,8 @@ MYSQL = ../global.o ../config.o mysql.o
 all:   mysql
 
 mysql: ${MYSQL}
-	$(CC)  $(INCLUDE_MYSQL) $(LMYSQL) $(DYNLINK)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o mysql.so ${MYSQL}
+	@echo "[ Building binary 'mysql.so']";
+	$(LNK)  $(INCLUDE_MYSQL) $(LMYSQL) $(DYNLINK)  $(EXTRAOPTIONS) $(INCLUDE_LL) -o mysql.so ${MYSQL}
 
 
 install: all

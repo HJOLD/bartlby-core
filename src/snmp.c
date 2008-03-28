@@ -16,6 +16,12 @@ $Source$
 
 
 $Log$
+Revision 1.6  2008/03/28 04:34:23  hjanuschka
+patches: nsca-patch updated for  1.3 series of bartlby
+core:	fixed a few compile warnings, happend on x86_64 debian
+core:	cleaner build output
+core:	install-counter, be a part of the community and show the others you are using bartlby
+
 Revision 1.5  2007/02/15 16:25:32  hjanuschka
 auto commit
 
@@ -67,8 +73,8 @@ void bartlby_check_snmp(struct service * svc, char * cfgfile) {
 		svc->current_state=STATE_CRITICAL;
 	}
 	
-	session.community = strdup(svc->snmp_info.community);
-	session.community_len = strlen(session.community);
+	session.community = (unsigned char *)strdup(svc->snmp_info.community);
+	session.community_len = strlen((char *)session.community);
 	SOCK_STARTUP;
 	ss = snmp_open(&session);
 	

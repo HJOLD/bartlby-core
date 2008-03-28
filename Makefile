@@ -1,5 +1,6 @@
 include Makefile.conf
 
+
 SUBDIRS = src/ src/libs/ src/tools/
 TRIGGERS = icq.sh jabber.sh mail.sh
 PERFHANDLERS = bartlby_http bartlby_if bartlby_load bartlby_snmp.sh bartlby_swap.sh bartlby_files_in_dir
@@ -8,9 +9,11 @@ PERFHANDLERS = bartlby_http bartlby_if bartlby_load bartlby_snmp.sh bartlby_swap
 DIRR = bartlby-core bartlby-plugins bartlby-php bartlby-ui bartlby-docs
 
 all:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
+	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make all); \
 	done
+	
+	
 	
 install: all
 	$(MKDIRP) ${BARTLBY_HOME}/bin/
@@ -41,9 +44,9 @@ install: all
 	  test "$$subdir" = . || (cd $$subdir && make install); \
 	done
 
-
+	. ./post_compile.sh
 clean:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
+	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test "$$subdir" = . || (cd $$subdir && make clean); \
 	done
 changelog:
