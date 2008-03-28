@@ -10,6 +10,81 @@ chmod -R a+rw ${BARTLBY_HOME}/var/
 chmod a+rw ${BARTLBY_HOME}/etc/bartlby.cfg
 
 
+function install_portier {
+	
+	echo "------------------------------------------------------";
+	echo "Installing Bartlby-Portier (Port: 9031)";
+	echo "------------------------------------------------------";
+
+	echo "registering service (bartlbyp 9031)";
+	grep -sqe "^bartlbyp" /etc/services
+	EX=$?;
+	
+	if [ $EX = 1 ];
+	then
+		echo "bartlbyp                9031/tcp                        #Bartlby Portier" >> /etc/services
+		echo "DONE";
+	else
+		echo "Already existing!";
+	fi;
+	
+	echo "------------------------------------------------------";
+	echo "";
+	echo "";
+	
+	
+	echo "------------------------------------------------------";
+	
+	if [ -f /etc/inetd.conf ];
+	then
+		echo "Checking service in inetd.conf";
+		grep -sqe "^bartlbyp" /etc/inetd.conf
+		EX=$?;
+		if [ $EX = 1 ];
+		then
+			echo "bartlbyp                stream  tcp     nowait.500      bartlby  ${BARTLBY_HOME}/bin/bartlby_portier ${BARTLBY_HOME}/etc/bartlby.cfg" >> /etc/inetd.conf
+			echo "DONE ... restarting inetd";
+			if [ -f /etc/init.d/openbsd-inetd ];
+			then
+				echo "detected openbsd-inetd";
+				echo "....restarting openbsd-inetd"
+				/etc/init.d/openbsd-inetd restart
+			else
+				/etc/init.d/inetd restart
+			fi;
+		else
+			echo "Already existing";
+		fi;
+	
+	else
+		echo "Checking service in /etc/xinetd.d/";
+		if [ ! -f /etc/xinetd.d/bartlbyp ];
+		then
+	
+			echo "service bartlbyp" > /etc/xinetd.d/bartlbyp
+			echo "{" >> /etc/xinetd.d/bartlbyp
+			echo "        disable                 = no" >> /etc/xinetd.d/bartlbyp
+			echo "        port                    = 9030" >> /etc/xinetd.d/bartlbyp
+			echo "        socket_type             = stream" >> /etc/xinetd.d/bartlbyp
+			echo "        protocol                = tcp" >> /etc/xinetd.d/bartlbyp
+			echo "        wait                    = no" >> /etc/xinetd.d/bartlbyp
+			echo "        user                    = root" >> /etc/xinetd.d/bartlbyp
+			echo "        server                  = ${BARTLBY_HOME}/bin/bartlby_portier" >> /etc/xinetd.d/bartlbyp
+			echo "        server_args             = ${BARTLBY_HOME}/etc/bartlby.cfg" >> /etc/xinetd.d/bartlbyp
+			echo "}" >> /etc/xinetd.d/bartlbyp
+		echo "DONE ... restarting xinetd";
+		/etc/init.d/xinetd restart
+			
+		else
+			echo "already existing";
+		fi;
+	fi;
+
+
+	
+	
+}
+
 function start_it_up {
 	$BARTLBY_HOME/etc/bartlby.startup stop 2>&1 >> /dev/null
 	$BARTLBY_HOME/etc/bartlby.startup remove 2>&1 >> /dev/null
@@ -20,6 +95,9 @@ function start_it_up {
 	echo "--------------------------------------------------------------";
 	echo "";
 	echo "";
+	
+	install_portier;
+	
 	
 	echo "####################################################";
 	echo "####################################################";

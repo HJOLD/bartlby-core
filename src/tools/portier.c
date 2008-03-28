@@ -16,6 +16,9 @@ $Source$
 
 
 $Log$
+Revision 1.18  2008/03/28 05:19:53  hjanuschka
+core: portier installation in postinstall-pak
+
 Revision 1.17  2008/03/28 04:34:23  hjanuschka
 patches: nsca-patch updated for  1.3 series of bartlby
 core:	fixed a few compile warnings, happend on x86_64 debian
@@ -301,8 +304,8 @@ int main(int argc, char ** argv) {
 	connection_timed_out=0;
 	alarm(CONN_TIMEOUT);
 	//ipmlg]ajgai]Amoowlkecvg~"/j"nmacnjmqv~
-	if(read(fileno(stdin), svc_in, 1024) < 0) {
-		printf("BAD!");
+	if(read(fileno(stdin), svc_in, 2000) < 0) {
+		printf("-2 read-error on portier side\n");
 		exit(1);
 	}
 	alarm(0);
@@ -319,58 +322,7 @@ int main(int argc, char ** argv) {
 	if(token != NULL) {
 		command=atoi(token);
 		switch(command) {
-			/*
-			case CMD_REPL:
-				token=strtok(NULL, "|");
-				if(token != NULL) {
-					
-					repl_bdir = getConfigValue("basedir", argv[0]);
-					
-					
-					repl_SHMSize=atol(token);
-					printf("+waiting for: %ld Bytes\n", repl_SHMSize);
-					fflush(stdout);
-					
-					
-					repl_shm_addr=malloc(repl_SHMSize*2);
-					
-					connection_timed_out=0;
-					alarm(CONN_TIMEOUT+500);
-					
-					if((read_rtc=Readn(fileno(stdin), repl_shm_addr, repl_SHMSize)) < 0) {
-						printf("-BAD!");
-						exit(1);
-					}
-					alarm(0);
-					
-					if(connection_timed_out == 1) {
-						printf("-Timed out!!!\n");
-						exit(1);	
-					}
-					
-					FILE * fp;
-					char base_fname[2048];
-					sprintf(base_fname, "%s/bartlby.shm.repl", repl_bdir);
-					
-					fp=fopen(base_fname, "wb");
-					//fwrite(repl_shm_addr,sizeof(repl_shm_addr), repl_SHMSize, fp);
-					write(fileno(fp), repl_shm_addr, read_rtc);
-					fclose(fp);
-					
-					printf("+ OK %s\n", base_fname);				
-					free(repl_shm_addr);
-					free(base_fname);
-					free(repl_bdir);
-					
-					exit(1);
-					
-					
-						
-				} else {
-					sprintf(svc_out, "-7 Bytes not supplied\n");	
-				}
-			break;
-			*/
+			
 			case CMD_GET_PLG:
 				token=strtok(NULL, "|");
 				if(token != NULL) {
