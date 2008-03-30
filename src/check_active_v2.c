@@ -17,6 +17,9 @@ $Source$
 
 
 $Log$
+Revision 1.10  2008/03/30 16:09:34  hjanuschka
+fixed compile warnings on ubuntu710
+
 Revision 1.9  2008/03/16 21:06:11  hjanuschka
 auto commit
 
@@ -269,7 +272,7 @@ void bartlby_check_v2(struct service * svc, char * cfgfile, int use_ssl) {
 		svc->current_state=STATE_CRITICAL;
 		return;
 	}else if(bytes_to_recv<sizeof(receive_packet)){
-		sprintf(svc->new_server_text, "AgentV2: Receive underflow - only %d bytes received (%ld expected).\n",bytes_to_recv,sizeof(receive_packet));
+		sprintf(svc->new_server_text, "AgentV2: Receive underflow - only %d bytes received (%ld expected).\n",bytes_to_recv,(unsigned long)sizeof(receive_packet));
 		svc->current_state=STATE_CRITICAL;
 		return;
 	}
