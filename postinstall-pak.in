@@ -230,7 +230,7 @@ do
 	
 	MYSQL_COMMAND="$MY_MYSQL -u $MYSQL_USER --password=$MYSQL_PASSWORD -h $MYSQL_HOST";
 cat << MYSQL_SCRIPT | $MYSQL_COMMAND; 
-quit;
+select 1;
 MYSQL_SCRIPT
 MYSQL_OK=$?;
 	
@@ -253,7 +253,7 @@ MYSQL_DO_DROP="false";
 fi;
 
 cat << MYSQL | $MYSQL_COMMAND -D $MYSQL_DB
-	quit;
+	select 1;
 MYSQL
 
 EX=$?;
