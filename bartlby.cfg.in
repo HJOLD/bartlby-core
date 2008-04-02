@@ -14,6 +14,7 @@ pidfile_dir=@prefix@/var/
 sched_round_pause=6
 sirene_interval=10
 instant_write_back=true
+micros_before_after=700
 ui_right_dir=/var/www/htdocs/dev.bartlby.org/bartlby-ui/rights/
 
 
